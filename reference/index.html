@@ -1,0 +1,849 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Varkesh Reach</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Grenze+Gothic:wght@500;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Share+Tech+Mono&display=swap">
+<style>
+[hidden]{display:none!important}
+img{max-width:100%}
+body{margin:0}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+
+/* Layout: a field data-slate — sticky tab rail, single reading column, panels only where something is operated */
+:root{
+  --bg:#16120f; --panel:#211a16; --panel2:#2a211c; --line:#3d312a;
+  --ink:#ebdfc8; --dim:#a8977f; --brass:#d0a952; --blood:#b8392e; --verd:#6f9a86;
+  --f-display:"Grenze Gothic","Palatino Linotype",Georgia,serif;
+  --f-body:"Alegreya Sans","Segoe UI",system-ui,sans-serif;
+  --f-mono:"Share Tech Mono",ui-monospace,Menlo,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.55;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.wrap{max-width:760px;margin:0 auto}
+header.hero{padding-block:28px 18px;border-bottom:1px solid var(--line)}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass)}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(40px,11vw,68px);line-height:.95;margin:6px 0 10px;text-wrap:balance;letter-spacing:.01em}
+h1 span{color:var(--blood)}
+.lede{color:var(--dim);max-width:62ch;margin:0}
+nav.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);display:flex;gap:4px;overflow-x:auto;padding-block:10px;border-bottom:1px solid var(--line);scrollbar-width:none;margin-inline:-4px}
+nav.tabs::-webkit-scrollbar{display:none}
+nav.tabs button{flex:0 0 auto;font-family:var(--f-mono);font-size:13px;letter-spacing:.06em;text-transform:uppercase;background:none;color:var(--dim);border:1px solid transparent;padding:8px 12px;border-radius:2px;cursor:pointer}
+nav.tabs button[aria-selected="true"]{color:var(--bg);background:var(--brass)}
+nav.tabs button:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+section.tab{padding-block:22px}
+h2{font-family:var(--f-display);font-weight:700;font-size:34px;line-height:1.05;margin:0 0 6px;text-wrap:balance}
+h3{font-family:var(--f-display);font-weight:500;font-size:23px;margin:26px 0 6px;color:var(--brass);text-wrap:balance}
+p{margin:0 0 12px;max-width:65ch}
+.dim{color:var(--dim)}
+.mono{font-family:var(--f-mono)}
+ol.steps{list-style:none;padding:0;margin:18px 0;display:grid;gap:0;counter-reset:s}
+ol.steps li{counter-increment:s;display:grid;grid-template-columns:44px 1fr;gap:12px;padding:14px 0;border-top:1px solid var(--line)}
+ol.steps li::before{content:counter(s,upper-roman);font-family:var(--f-display);font-size:26px;color:var(--blood);line-height:1}
+ol.steps li > div{min-width:0}
+ol.steps b{display:block;font-size:17px}
+.tbl{overflow-x:auto;margin:10px 0 16px}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{text-align:left;padding:8px 10px 8px 0;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);font-weight:400}
+td.n{font-family:var(--f-mono);color:var(--brass);white-space:nowrap;font-variant-numeric:tabular-nums}
+.btn{font-family:var(--f-mono);font-size:13px;letter-spacing:.05em;text-transform:uppercase;background:var(--panel2);color:var(--ink);border:1px solid var(--line);padding:9px 14px;border-radius:2px;cursor:pointer}
+.btn.primary{background:var(--brass);color:var(--bg);border-color:var(--brass)}
+.btn.danger{color:var(--blood)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.sm{padding:5px 9px;font-size:11px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.note{border-left:3px solid var(--blood);padding:8px 12px;background:var(--panel);margin:14px 0;max-width:65ch}
+.note b{color:var(--blood)}
+/* map */
+.mapbox{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:8px}
+.mapbox svg{display:block;width:100%;height:auto;max-width:100%}
+.terr{cursor:pointer}
+.terr:focus-visible circle.ring{stroke:var(--brass);stroke-width:3}
+.info{margin-top:12px;background:var(--panel);border:1px solid var(--line);padding:14px;border-radius:3px}
+.info h4{font-family:var(--f-display);font-size:24px;margin:0 0 2px}
+.chip{display:inline-flex;align-items:center;gap:6px;font-family:var(--f-mono);font-size:12px;padding:4px 9px;border:1px solid var(--line);border-radius:20px;color:var(--dim);background:none;cursor:pointer}
+.chip[aria-pressed="true"]{border-color:var(--brass);color:var(--ink);background:var(--panel2)}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex:none}
+select,input[type=text]{font:inherit;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:2px;padding:7px 9px;max-width:100%}
+/* cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin:12px 0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:12px 12px 10px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.card .k{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);display:flex;justify-content:space-between;gap:8px}
+.card .t{font-family:var(--f-display);font-size:21px;line-height:1.1}
+.card .e{font-size:14.5px}
+.card.fac{border-color:var(--brass)}
+.card.fac .k span:first-child{color:var(--brass)}
+.card .acts{display:flex;gap:6px;margin-top:6px}
+/* factions */
+.web svg{width:100%;height:auto;display:block}
+.pair{border-top:1px solid var(--line);padding:12px 0}
+.pair b{font-family:var(--f-display);font-size:20px;font-weight:500}
+.pair .rel{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding:2px 7px;border-radius:2px;margin-left:6px;vertical-align:2px}
+/* tracker */
+.player{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:14px;margin:12px 0}
+.player .top{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.player .top input{flex:1 1 140px;min-width:0}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
+.stat{background:var(--panel2);padding:8px;border-radius:2px;text-align:center}
+.stat .l{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+.stat .v{font-family:var(--f-display);font-size:28px;line-height:1;font-variant-numeric:tabular-nums}
+.stat .pm{display:flex;justify-content:center;gap:4px;margin-top:4px}
+.handbar{display:flex;gap:4px;margin:4px 0 2px}
+.handbar i{flex:1;height:5px;background:var(--line);border-radius:1px}
+.handbar i.on{background:var(--brass)}
+.msg{font-family:var(--f-mono);font-size:12px;color:var(--blood);min-height:1em}
+@media (prefers-reduced-motion:no-preference){.card.new{animation:deal .35s ease-out}@keyframes deal{from{transform:translateY(-8px) rotate(-2deg);opacity:.3}to{transform:none;opacity:1}}}
+</style>
+</head>
+<body>
+
+
+<style>
+.acts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px;margin:12px 0}
+.act{text-align:left;background:var(--panel2);border:1px solid var(--line);border-radius:3px;padding:12px;color:var(--ink);cursor:pointer;font:inherit;display:flex;flex-direction:column;gap:3px}
+.act:hover{border-color:var(--brass)}
+.act .an{font-family:var(--f-display);font-size:22px;line-height:1}
+.act .at{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+.act .at.b{color:var(--blood)} .act .at.q{color:var(--verd)}
+.act .ad{font-size:14.5px;color:var(--dim)}
+.strip{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 4px}
+.strip .chip.done{opacity:.45;text-decoration:line-through}
+.strip .chip.cur{border-color:var(--brass);color:var(--ink);background:var(--panel2)}
+.turn{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:16px;margin-top:12px}
+.turn h4{font-family:var(--f-display);font-size:28px;font-weight:700;margin:0;line-height:1.05}
+.battle{border:1px solid var(--brass);border-radius:3px;padding:14px;margin-top:12px;background:var(--bg)}
+.battle .size{font-family:var(--f-display);font-size:46px;line-height:1;color:var(--brass)}
+.twist{border-left:3px solid var(--blood);padding:4px 10px;margin:8px 0}
+.twist b{font-family:var(--f-display);font-size:19px;font-weight:500}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1 1 180px}
+.field label{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.log{list-style:none;padding:0;margin:8px 0;font-size:14.5px}
+.log li{padding:6px 0;border-top:1px solid var(--line);color:var(--dim)}
+.log li b{color:var(--ink);font-weight:500}
+.log .r{font-family:var(--f-mono);font-size:11px;color:var(--brass);margin-right:6px}
+.win{border:2px solid var(--brass);padding:16px;text-align:center;margin-top:12px;border-radius:3px}
+.win b{font-family:var(--f-display);font-size:30px;display:block}
+.stats{grid-template-columns:repeat(4,1fr)}
+@media (max-width:440px){.stats{grid-template-columns:repeat(2,1fr)}}
+</style>
+
+<div class="wrap">
+<header class="hero">
+  <div class="eyebrow">Narrative campaign · 500 → 2000 pts</div>
+  <h1>The Varkesh <span>Reach</span></h1>
+  <p class="lede">A dying sub-sector, a rift that will not close, and every warband that came to pick at the bones. Small squads, hard-won scars, no heroes of legend. Your models earn their names here.</p>
+</header>
+
+<nav class="tabs" role="tablist" aria-label="Campaign sections">
+  <button role="tab" data-tab="pitch" aria-selected="true">Pitch</button>
+  <button role="tab" data-tab="war">War Room</button>
+  <button role="tab" data-tab="map">Map</button>
+  <button role="tab" data-tab="rules">Rules</button>
+  <button role="tab" data-tab="cards">Fate Deck</button>
+  <button role="tab" data-tab="factions">Factions</button>
+  <button role="tab" data-tab="tracker">Players</button>
+</nav>
+
+<!-- PITCH -->
+<section class="tab" id="pitch">
+  <h2>How it works, step by step</h2>
+  <p class="dim">Read this out to the group, or copy it into the group chat.</p>
+  <ol class="steps" id="pitchSteps">
+    <li><div><b>The setting</b>Three years ago the Hollowgate rift tore open at the heart of the Varkesh Reach. The Imperium's grip collapsed. The system is a scatter of worlds, each split into provinces, and every faction has its own reason for being here. The more players, the more worlds.</div></li>
+    <li><div><b>Build a 750 pt roster</b>Name your warband. No Epic Heroes or named characters, ever. Your leaders are nobodies who might become somebody. Start with 5 Requisition Points (RP) and a Capital province on one of the outer worlds.</div></li>
+    <li><div><b>The War Round</b>The campaign is played in War Rounds. At the start of each, everyone draws a Fate Card. Then each player takes one turn, smallest empire first.</div></li>
+    <li><div><b>Take a campaign action</b>On your turn pick one: Conquer, Raid, Recuperate, Muster, Fortify or Scout. Conquer and Raid start a battle. The others build you up without fighting.</div></li>
+    <li><div><b>Generate the battle</b>The province sets the size: an outpost is small, a hive city is big. Worlds closer to the rift multiply it. Then roll a Mission Twist like "no Toughness 10+" or "−1 to hit at range". Otherwise it's a normal game of 40k.</div></li>
+    <li><div><b>Outcome and rewards</b>Units gain XP and risk scars. Both sides earn RP and grow their supply limit. The winner takes the province. Then the next player takes their turn.</div></li>
+    <li><div><b>Grow your empire</b>Spread province by province across your world, seize a Spaceport, then jump along warp lanes to the next world. Inner worlds mean bigger games and two twists at once.</div></li>
+    <li><div><b>The Hollowgate</b>Once 60% of the Reach is claimed (or by War Round 8), the rift opens: a 2000 pt fight reached from the inner worlds. Whoever holds it at the end of a War Round wins the Reach.</div></li>
+  </ol>
+  <div class="row"><button class="btn primary" id="copyPitch">Copy pitch for group chat</button><span class="msg" id="copyMsg" style="color:var(--verd)"></span></div>
+  <textarea id="pitchText" style="position:absolute;left:-9999px" aria-hidden="true" tabindex="-1"></textarea>
+  <div class="note"><b>No epic heroes.</b> No unit with the Epic Hero keyword and no named character, even "counts-as". Your Characters are built from datasheets and named by you.</div>
+</section>
+
+<!-- WAR ROOM -->
+<section class="tab" id="war" hidden>
+  <h2>War Room</h2>
+  <p class="dim">Runs the campaign turn by turn. Battle results update the map and players automatically. Record XP and scars on your own rosters.</p>
+  <div id="warBody"></div>
+  <h3>Campaign log</h3>
+  <ul class="log" id="logList"></ul>
+</section>
+
+<!-- MAP -->
+<section class="tab" id="map" hidden>
+  <h2>The Reach</h2>
+  <p class="dim">The War Room updates who holds what, but you can correct any province here. Chart a new Reach from the War Room before round 1 if your group size changes.</p>
+  <div class="row mono" id="stageLine" style="font-size:13px;margin-bottom:10px;color:var(--brass)"></div>
+  <div id="mapHead" style="margin-bottom:10px"></div>
+  <div class="mapbox"><svg id="mapSvg" viewBox="0 0 360 360" role="img" aria-label="Campaign map of the Varkesh Reach"></svg></div>
+  <div class="info" id="terrInfo"></div>
+  <div id="legend" class="row" style="margin-top:12px"></div>
+</section>
+
+<!-- RULES -->
+<section class="tab" id="rules" hidden>
+  <h2>Rules</h2>
+  <p class="dim">Everything the War Room does, written out so you can play it on paper too.</p>
+
+  <h3>The War Round</h3>
+  <ol class="steps">
+    <li><div><b>Muster</b>Every player draws 1 Fate Card (hand limit 5).</div></li>
+    <li><div><b>Income</b>+1 RP for your Capital and each Hive City you hold. Refineries draw extra cards.</div></li>
+    <li><div><b>Turn order</b>Fewest provinces goes first. Break ties with a roll-off.</div></li>
+    <li><div><b>Each player's turn</b>Choose one campaign action. If it starts a battle, generate it, play it, and apply the outcome before the next player goes.</div></li>
+    <li><div><b>End of round</b>If someone holds the Hollowgate, they win the Reach. Otherwise start the next War Round.</div></li>
+  </ol>
+  <p class="dim">Can't get every game played in one evening? Fine. A War Round can stretch over a couple of weeks. Non-battle turns take a minute and can be done over the group chat.</p>
+
+  <h3>Campaign actions</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Action</th><th>Battle?</th><th>Effect</th></tr></thead>
+    <tbody id="actTable"></tbody>
+  </table></div>
+
+  <h3>The Reach</h3>
+  <p>The system is charted for your group: one more world than players (3 to 7 worlds), each with 5 to 7 provinces. Every player starts with a Capital on an outer world. Inner worlds sit nearest the Hollowgate.</p>
+
+  <h3>Where you can attack</h3>
+  <ol class="steps">
+    <li><div><b>Overland</b>Any province that borders one you hold on the same world.</div></li>
+    <li><div><b>Planetfall</b>If you hold a Spaceport or your Capital on a world, you can attack any province on a world linked to it by a warp lane.</div></li>
+    <li><div><b>The rift</b>Once the Hollowgate opens, anyone holding a province on an inner world can attack it.</div></li>
+    <li><div><b>No foothold</b>A player with no provinces can attack any unclaimed province on an outer world.</div></li>
+  </ol>
+
+  <h3>Battle size</h3>
+  <p>Province size × the world's orbit. A little outpost stays a small fight all campaign, but a hive city on an inner world is a 2000 pt war.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Orbit</th><th>Multiplier</th><th>Twists</th></tr></thead>
+    <tbody id="orbitTable"></tbody>
+  </table></div>
+  <p>If either player's supply limit is lower than the battle size, play at the lower number. An attacker with fewer provinces than the defender is the <b>Underdog</b> and gets +10% points.</p>
+
+  <h3>Province types</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Type</th><th>Base pts</th><th>Holder's bonus</th></tr></thead>
+    <tbody id="provTable"></tbody>
+  </table></div>
+
+  <h3>World types</h3>
+  <p>Every battle on a world uses its trait, on top of any twists.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>World</th><th>Trait</th></tr></thead>
+    <tbody id="planetTable"></tbody>
+  </table></div>
+
+  <h3>Mission Twists (D12)</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>D12</th><th>Twist</th><th>Effect</th></tr></thead>
+    <tbody id="twistTable"></tbody>
+  </table></div>
+
+  <h3>After each battle</h3>
+  <ol class="steps">
+    <li><div><b>Award XP</b>+1 to every unit that fought and was not destroyed. +1 per enemy unit it destroyed. +2 to one unit you <i>Marked for Glory</i> before the game.</div></li>
+    <li><div><b>Roll for the fallen</b>Every unit destroyed rolls a D6. On a 1 it gains a Battle Scar. Characters roll on a 1–2.</div></li>
+    <li><div><b>Requisition</b>+1 RP to both players, +1 more to the winner. Bank up to 10.</div></li>
+    <li><div><b>Supply</b>Both players' supply limits grow by 150 pts.</div></li>
+    <li><div><b>Spoils</b>The winner draws 1 Fate Card. A Conquer winner takes the province. A Raid winner steals 1 RP and a random Fate Card.</div></li>
+    <li><div><b>Underdog's grit</b>Any player now holding the fewest provinces in the campaign draws 1 Fate Card.</div></li>
+  </ol>
+
+  <h3>Ranks</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Rank</th><th>XP</th><th>Battle Honours</th></tr></thead>
+    <tbody>
+      <tr><td>Green</td><td class="n">0</td><td>—</td></tr>
+      <tr><td>Blooded</td><td class="n">3</td><td>1</td></tr>
+      <tr><td>Veteran</td><td class="n">8</td><td>2</td></tr>
+      <tr><td>Elite</td><td class="n">15</td><td>3</td></tr>
+      <tr><td>Legend of the Reach</td><td class="n">25</td><td>4, and the unit gets a name in the campaign log</td></tr>
+    </tbody>
+  </table></div>
+  <p>Each Battle Honour adds 10% of the unit's points (round to nearest 5) to its cost, so veterans take up real space in your list.</p>
+
+  <h3>Battle Honours (roll D6 or pick)</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>D6</th><th>Honour</th><th>Effect</th></tr></thead>
+    <tbody>
+      <tr><td class="n">1</td><td>Steady Aim</td><td>Re-roll hit rolls of 1 with ranged attacks.</td></tr>
+      <tr><td class="n">2</td><td>Brawlers</td><td>Re-roll wound rolls of 1 in melee.</td></tr>
+      <tr><td class="n">3</td><td>Grizzled</td><td>+1 to Battle-shock and Leadership tests.</td></tr>
+      <tr><td class="n">4</td><td>Fleet</td><td>+1" to Move.</td></tr>
+      <tr><td class="n">5</td><td>Hard to Kill</td><td>+1 to its roll for the fallen after battle.</td></tr>
+      <tr><td class="n">6</td><td>Objective Hunters</td><td>+1 OC.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Battle Scars (roll D3)</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>D3</th><th>Scar</th><th>Effect</th></tr></thead>
+    <tbody>
+      <tr><td class="n">1</td><td>Shaken</td><td>−1 to Battle-shock tests.</td></tr>
+      <tr><td class="n">2</td><td>Crippled</td><td>−1" Move, cannot Advance and charge.</td></tr>
+      <tr><td class="n">3</td><td>Worn Gear</td><td>Worsen BS or WS of one weapon by 1.</td></tr>
+    </tbody>
+  </table></div>
+  <p class="dim">Three scars and the unit is gone: remove it from your roster. That's the cost of a long war.</p>
+
+  <h3>Spending Requisition</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Cost</th><th>Requisition</th><th>Effect</th></tr></thead>
+    <tbody>
+      <tr><td class="n">1 RP</td><td>Reinforcements</td><td>+200 pts to your supply limit.</td></tr>
+      <tr><td class="n">1 RP</td><td>Field Surgeon</td><td>Remove one Battle Scar.</td></tr>
+      <tr><td class="n">1 RP</td><td>Requisition the Deck</td><td>Draw one Fate Card.</td></tr>
+      <tr><td class="n">1 RP</td><td>Promotion</td><td>Give a Character an enhancement, or make a Veteran unit's sergeant a Character.</td></tr>
+      <tr><td class="n">2 RP</td><td>Seasoned Recruits</td><td>Add a new unit that starts at 3 XP (Blooded).</td></tr>
+    </tbody>
+  </table></div>
+  <p class="dim">Spend RP at any time outside a battle.</p>
+</section>
+
+<!-- CARDS -->
+<section class="tab" id="cards" hidden>
+  <h2>The Fate Deck</h2>
+  <p>One shared deck. Each player also adds their faction's cards to their own draws. <b>Hand limit 5.</b> Play up to <b>1 card per 500 pts</b> in the battle (rounded down, minimum 1). Reveal a card when you use it, then discard it.</p>
+  <div class="note"><b>House note.</b> These are suggestions. Strike any card that feels too strong after a few games, and write new ones as the story grows.</div>
+  <div class="row" id="deckFilter" role="group" aria-label="Filter cards"></div>
+  <div class="cards" id="deckList"></div>
+</section>
+
+<!-- FACTIONS -->
+<section class="tab" id="factions" hidden>
+  <h2>How the factions intertwine</h2>
+  <p class="dim">Pick what your group plays. Each pairing gets a reason to fight and a first battle to play.</p>
+  <div class="row" id="facChips" role="group" aria-label="Factions in play"></div>
+  <div class="row" style="margin-top:10px"><button class="btn sm" id="useTracker">Use factions from Players</button></div>
+  <div class="web mapbox" style="margin-top:14px"><svg id="webSvg" viewBox="0 0 360 300" role="img" aria-label="Web of faction relationships"></svg></div>
+  <div id="facWants" style="margin-top:8px"></div>
+  <h3>Rivalries</h3>
+  <div id="pairs"></div>
+</section>
+
+<!-- PLAYERS -->
+<section class="tab" id="tracker" hidden>
+  <h2>Players</h2>
+  <p class="dim">Saved in this browser on this device. The two players below are examples; rename or remove them.</p>
+  <div class="row"><button class="btn primary" id="addPlayer">Add player</button></div>
+  <div id="players"></div>
+  <div class="row" style="margin-top:20px"><button class="btn danger sm" id="resetBtn">Reset campaign</button><span id="resetConfirm" hidden><span class="mono" style="font-size:12px">Wipe everything?</span> <button class="btn danger sm" id="resetYes">Yes, reset</button> <button class="btn sm" id="resetNo">Cancel</button></span></div>
+</section>
+</div>
+<script>
+const FACTIONS = {
+  "Space Marines":{c:"#4f7fc4",side:"imp",want:"to hold the Hollowgate until the fleet arrives",open:"A lone strike squad, cut off after their drop pod scattered."},
+  "Astra Militarum":{c:"#8f9a5a",side:"imp",want:"to defend the hive they were born in",open:"A local defence regiment, the last one still answering vox."},
+  "Adepta Sororitas":{c:"#c45a5a",side:"imp",want:"to recover a holy relic buried in the Vesk Ossuary",open:"A pilgrim escort that refused the order to evacuate."},
+  "Adeptus Mechanicus":{c:"#b56b3a",side:"imp",want:"to salvage the STC fragment beneath Forge Thessaly",open:"A salvage team that arrived to strip the forge before anyone notices."},
+  "Chaos Space Marines":{c:"#9b3a3a",side:"cha",want:"to widen the rift and make the Reach their own",open:"A raiding cell that came through the Hollowgate first."},
+  "Death Guard":{c:"#7d8a3e",side:"cha",want:"to seed a plague in the agri-domes",open:"A plague-bearer vanguard testing a new contagion."},
+  "Orks":{c:"#4f9a46",side:"xen",want:"a good fight, and the scrap from every wreck",open:"A mob of Boyz who crashed here and decided they liked it."},
+  "Necrons":{c:"#47a89a",side:"xen",want:"to put the waking tomb under Kell back to order",open:"A tomb's first guardians, awake and very annoyed."},
+  "Tyranids":{c:"#9a5ab0",side:"xen",want:"to consume every living thing in the Reach",open:"A splinter vanguard, the first scent of a hive fleet."},
+  "Genestealer Cults":{c:"#a07ab8",side:"xen",want:"to welcome the Star Children by any means",open:"A cult cell revealing itself in the underhive."},
+  "Aeldari":{c:"#d1b84a",side:"xen",want:"to seal the rift before it reaches their craftworld",open:"A small warhost following a farseer's warning."},
+  "T'au Empire":{c:"#6aa3b8",side:"xen",want:"to win the Reach's survivors over to the Greater Good",open:"A hunter cadre offering protection to anyone who signs."}
+};
+const SIDE_HOOK = {
+  "imp-imp":["Uneasy allies","Both serve the Throne but neither trusts the other's orders. Their first clash is a misunderstanding in the dark that turns into a blood debt."],
+  "cha-cha":["Rival warbands","The same dark gods, different masters. Only one of them will be chosen to open the rift."],
+  "imp-cha":["Blood feud","Traitors were hiding inside the Imperial ranks when the rift opened. Someone here let them in."],
+  "imp-xen":["Invaders","The Imperium sees only another xenos threat. The xenos see a dying empire too slow to hold what it claims."],
+  "cha-xen":["Opportunists","Each sees the other as a tool. Every alliance ends with a knife in the back."],
+  "xen-xen":["Ancient rivals","Both came for the Reach for reasons the humans cannot understand. Neither will share it."]
+};
+const BATTLES = ["Supply Drop: fight over a crashed lander in the middle of the board.","Night Raid: visibility capped at 18\" in battle round 1 and 2.","Recon: each side's first unit to reach the far table half scores 3 VP.","Ambush: the defender deploys first, the attacker can deep-strike one extra unit.","Last Stand: one side holds a ruin, the other has 5 turns to take it.","Breakthrough: score VP for every unit you move off the far edge."];
+
+/* ---------- THE REACH: GENERATED SYSTEM ---------- */
+const ORBITS={
+  outer:{name:"Outer worlds",mult:1,twists:1,r:146},
+  middle:{name:"Middle worlds",mult:1.5,twists:1,r:100},
+  inner:{name:"Inner worlds",mult:2,twists:2,r:56}};
+const PTYPES={
+  hive:{n:"Hive World",c:"#8a7d6e",trait:"Dense ruins: set up the table with heavy, tall terrain.",fav:"hive"},
+  death:{n:"Death World",c:"#4d7744",trait:"Hostile wildlife: at the end of each turn, roll a D6 for each unit not in cover. On a 6 it suffers 1 mortal wound.",fav:"outpost"},
+  forge:{n:"Forge World",c:"#9a5a35",trait:"Industrial sprawl: vehicles within 3\" of terrain count as being in cover.",fav:"forge"},
+  agri:{n:"Agri World",c:"#a3934c",trait:"Open fields: lighter terrain. Crop fields count as light cover.",fav:"settlement"},
+  shrine:{n:"Shrine World",c:"#b3a280",trait:"Fervour: both sides may re-roll Battle-shock tests.",fav:"shrine"},
+  moon:{n:"Dead Moon",c:"#6c6863",trait:"Low gravity, no air: +1\" Move for Infantry. No Aircraft.",fav:"ruins"},
+  ice:{n:"Ice World",c:"#86a7b5",trait:"Blizzards: nothing can be targeted from more than 24\" away.",fav:"outpost"},
+  ash:{n:"Ash World",c:"#7d3b2f",trait:"Lava vents: a unit that Advances rolls a D6. On a 1 it suffers 1 mortal wound.",fav:"refinery"}};
+const VTYPES={
+  capital:{n:"Capital",size:750,bonus:"Home of a warband. +1 RP at the start of each War Round. Counts as a Spaceport. If lost, the taker also steals 2 RP.",suf:["Landing"]},
+  spaceport:{n:"Spaceport",size:750,bonus:"From this planet you can attack any province on a planet linked by a warp lane.",suf:["Port","Docks","Landing Fields"]},
+  hive:{n:"Hive City",size:1000,bonus:"+1 RP at the start of each War Round.",suf:["Spire","Hive","Stack"]},
+  forge:{n:"Forge",size:750,bonus:"Your Muster action gives +150 more supply.",suf:["Works","Foundry","Forge"]},
+  fortress:{n:"Fortress",size:1000,bonus:"Always counts as Fortified when its holder defends it.",suf:["Bastion","Keep","Citadel"]},
+  shrine:{n:"Shrine",size:500,bonus:"+1 XP to your Marked for Glory unit in any battle fought here.",suf:["Ossuary","Reliquary","Chapel"]},
+  refinery:{n:"Refinery",size:750,bonus:"Draw 1 extra Fate Card at the start of each War Round.",suf:["Sump","Refinery","Wells"]},
+  settlement:{n:"Settlement",size:600,bonus:"No bonus. Quiet, cheap ground to grow an empire.",suf:["Hold","Stead","Township"]},
+  outpost:{n:"Outpost",size:500,bonus:"No bonus. A small, sharp fight.",suf:["Watch","Post","Station"]},
+  ruins:{n:"Ruins",size:1000,bonus:"No bonus. Wide open killing ground.",suf:["Wastes","Barrens","Ruins"]}};
+const HOLL={id:"holl",name:"The Hollowgate",type:"rift",pl:null};
+const PLANET_NAMES=["Varkesh Prime","Kell","Ostrava","Thessaly","Grael","Vesk","Orrin's Tomb","Cinderfall","Lantern","Choirhold","Sorrow","Aster"];
+const PREFIX=["Ash","Iron","Grey","Thorn","Saint's","Black","Hollow","Cinder","Mire","Vor","Kalt","Rust","Gallow","Dusk","Pale","Brine","Ember","Wyrm","Tallow","Scour","Red","Bone","Salt","Gilt","Ruin","Widow's","Ghost","Ochre","Slag","Weeping","Old","Low","High","Far","Cold","Dread"];
+const r50=n=>Math.round(n/50)*50;
+
+function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function shuffle(arr,R){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(R()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function clipHalf(poly,pi,pj){const dx=pj[0]-pi[0],dy=pj[1]-pi[1],mx=(pi[0]+pj[0])/2,my=(pi[1]+pj[1])/2;
+  const f=p=>(p[0]-mx)*dx+(p[1]-my)*dy, out=[];
+  for(let k=0;k<poly.length;k++){const a=poly[k],b=poly[(k+1)%poly.length],fa=f(a),fb=f(b);
+    if(fa<=0)out.push(a);
+    if((fa<0&&fb>0)||(fa>0&&fb<0)){const t=fa/(fa-fb);out.push([a[0]+t*(b[0]-a[0]),a[1]+t*(b[1]-a[1])])}}
+  return out}
+function cellsFor(pts){
+  const circ=[];for(let k=0;k<64;k++){const a=k/64*Math.PI*2;circ.push([Math.cos(a),Math.sin(a)])}
+  const cells=pts.map((p,i)=>{let poly=circ;pts.forEach((q,j)=>{if(j!==i)poly=clipHalf(poly,p,q)});return poly});
+  const nb=pts.map((p,i)=>pts.map((q,j)=>{if(i===j)return -1;const dx=q[0]-p[0],dy=q[1]-p[1],mx=(p[0]+q[0])/2,my=(p[1]+q[1])/2;
+    const on=cells[i].filter(v=>Math.abs((v[0]-mx)*dx+(v[1]-my)*dy)<1e-9).length;return on>=2?j:-1}).filter(j=>j>=0));
+  return {cells,nb}}
+
+function genSystem(players,seed){
+  const R=mulberry(seed), n=Math.max(1,players.length);
+  const P=Math.min(7,Math.max(3,n+1));
+  const nIn=P>=6?2:1, nMid=Math.round((P-nIn)/2), nOut=P-nIn-nMid;
+  const names=shuffle(PLANET_NAMES,R), types=shuffle(Object.keys(PTYPES),R), prefixes=shuffle(PREFIX,R);
+  const planets=[];let pi=0;
+  [["outer",nOut],["middle",nMid],["inner",nIn]].forEach(([o,c])=>{const off=R()*Math.PI*2;
+    for(let k=0;k<c;k++){planets.push({id:"pl"+pi,name:names[pi],type:types[pi],orbit:o,ang:off+k*2*Math.PI/c});pi++}});
+  planets.forEach(p=>{p.x=180+ORBITS[p.orbit].r*Math.cos(p.ang);p.y=180+ORBITS[p.orbit].r*Math.sin(p.ang)});
+  const lanes=[],addL=(a,b)=>{if(a!==b&&!lanes.some(l=>l.includes(a)&&l.includes(b)))lanes.push([a,b])};
+  ["outer","middle","inner"].forEach(o=>{const g=planets.filter(p=>p.orbit===o).sort((a,b)=>a.ang-b.ang);
+    if(g.length===2)addL(g[0].id,g[1].id);if(g.length>2)g.forEach((p,i)=>addL(p.id,g[(i+1)%g.length].id))});
+  const nextIn={outer:"middle",middle:"inner"};
+  planets.forEach(p=>{const tgt=nextIn[p.orbit];if(!tgt)return;let best=null,bd=1e9;
+    planets.filter(q=>q.orbit===tgt).forEach(q=>{const d=Math.hypot(p.x-q.x,p.y-q.y);if(d<bd){bd=d;best=q}});if(best)addL(p.id,best.id)});
+  const provs=[];let pfx=0;
+  planets.forEach(pl=>{
+    const k=pl.orbit==="inner"?5:5+Math.floor(R()*3);
+    let pts=[],min=0.62;
+    while(pts.length<k){let tries=0,ok=false;
+      while(tries++<400){const a=R()*Math.PI*2,rr=Math.sqrt(R())*0.8,p=[rr*Math.cos(a),rr*Math.sin(a)];
+        if(pts.every(q=>Math.hypot(q[0]-p[0],q[1]-p[1])>=min)){pts.push(p);ok=true;break}}
+      if(!ok)min*=0.9}
+    const {cells,nb}=cellsFor(pts);
+    const fav=PTYPES[pl.type].fav;
+    const pool=shuffle(["spaceport",fav,"outpost","settlement","ruins","fortress","refinery","shrine","hive","forge","settlement","outpost"],R);
+    const tlist=["spaceport",fav];pool.forEach(t=>{if(tlist.length<k&&!tlist.includes(t))tlist.push(t)});while(tlist.length<k)tlist.push("outpost");
+    const ts=shuffle(tlist,R);
+    pts.forEach((p,i)=>{const ty=ts[i],suf=VTYPES[ty].suf;
+      provs.push({id:pl.id+"-"+i,pl:pl.id,type:ty,name:prefixes[pfx++%prefixes.length]+" "+suf[Math.floor(R()*suf.length)],x:p[0],y:p[1],cell:cells[i].map(v=>[+v[0].toFixed(4),+v[1].toFixed(4)]),nb:nb[i].map(j=>pl.id+"-"+j)})});
+  });
+  // capitals: spread players over outer then middle worlds
+  const homes=[...planets.filter(p=>p.orbit==="outer"),...planets.filter(p=>p.orbit==="middle")];
+  const terr={},cap={};
+  players.forEach((pl,i)=>{const world=homes[i%homes.length];
+    const cand=provs.filter(v=>v.pl===world.id&&!Object.values(cap).includes(v.id)&&v.type!=="spaceport");
+    const others=Object.values(cap).map(id=>provs.find(v=>v.id===id)).filter(v=>v.pl===world.id);
+    cand.sort((a,b)=>{const da=Math.min(9,...others.map(o=>Math.hypot(o.x-a.x,o.y-a.y))),db=Math.min(9,...others.map(o=>Math.hypot(o.x-b.x,o.y-b.y)));return db-da});
+    const v=cand[0]||provs.find(v=>!Object.values(cap).includes(v.id));
+    v.type="capital";v.name=v.name.split(" ")[0]+" Landing";cap[pl.id]=v.id;terr[v.id]=pl.id});
+  return {sys:{seed,planets,lanes,provs},terr,cap};
+}
+const GENERIC = [
+  {t:"Grim Resolve",e:"One unit auto-passes every Battle-shock test this game.",n:3},
+  {t:"Sudden Advance",e:"Before the first turn, one Infantry unit makes a 6\" move.",n:2},
+  {t:"Hidden Cache",e:"Pick one unit. Its ranged weapons gain +1 Strength this game.",n:2},
+  {t:"Lucky Shot",e:"Once, re-roll one hit, wound or damage roll.",n:4},
+  {t:"Dug In",e:"One unit starting the game in cover gets +1 to its armour saves until it moves.",n:2},
+  {t:"Scout Report",e:"After both sides deploy, redeploy up to two of your units.",n:2},
+  {t:"Fog of War",e:"Your opponent cannot target your units more than 24\" away in round 1.",n:1},
+  {t:"Field Medic",e:"After this battle, one destroyed unit automatically passes its roll for the fallen.",n:3},
+  {t:"Inspired",e:"Your Marked for Glory unit gains +1 to hit this game.",n:2},
+  {t:"Forced March",e:"One unit may Advance and still shoot this game (as if Assault).",n:2},
+  {t:"Ambush Point",e:"One unit gains Deep Strike for this battle.",n:2},
+  {t:"Sabotage",e:"Choose one enemy vehicle. It starts the game having lost D3 wounds.",n:1},
+  {t:"Rallying Cry",e:"Once, a unit below half strength regains its full OC until your next turn.",n:2},
+  {t:"Spoils of War",e:"If you win this battle, gain 1 extra RP.",n:2},
+  {t:"Veteran Instinct",e:"Once, one unit can shoot or fight after a Fall Back.",n:2},
+  {t:"Desperate Hour",e:"Play only if you are behind on VP at the start of round 4. Gain 1 extra CP.",n:2}
+];
+const FACCARDS = {
+  "Space Marines":[{t:"Angels Descend",e:"One unit arriving from reserves may charge on the turn it arrives."},{t:"Oath of the Lost",e:"Re-roll wound rolls against one enemy unit chosen at the start of the game."}],
+  "Astra Militarum":[{t:"Artillery Barrage",e:"Before round 1, roll a D6 for each enemy unit in their deployment zone: on a 6 it suffers D3 mortal wounds."},{t:"Hold the Line",e:"Infantry within 6\" of an objective get +1 OC this game."}],
+  "Adepta Sororitas":[{t:"Martyr's Vow",e:"The first time a Character would be destroyed, it stays on 1 wound instead."},{t:"Relic Bearer",e:"One unit ignores Battle-shock and gains +1 to hit in melee."}],
+  "Adeptus Mechanicus":[{t:"Salvage Protocol",e:"After the battle, gain 1 RP for every enemy vehicle destroyed (max 2)."},{t:"Overclocked",e:"One unit gains +1 Attack on its ranged weapons for one shooting phase."}],
+  "Chaos Space Marines":[{t:"Dark Pact",e:"One unit gains Lethal Hits this game; it suffers 1 mortal wound at the end of each of your turns."},{t:"Through the Rift",e:"One unit sets up anywhere more than 9\" from enemies at the end of round 1."}],
+  "Death Guard":[{t:"Bloated Resilience",e:"One unit gains a 5+ Feel No Pain this game."},{t:"Creeping Plague",e:"Enemy units within 3\" of one chosen objective get −1 Toughness."}],
+  "Orks":[{t:"Waaagh! Early",e:"Your Waaagh! can be called in round 1 even if not normally allowed, or one unit gets +2\" charge."},{t:"Scavenged Kit",e:"One vehicle regains D3 wounds at the start of each of your turns."}],
+  "Necrons":[{t:"Protocols Restored",e:"Reanimation Protocols on one unit restore 1 extra wound each time."},{t:"Tomb Defenders",e:"Units within 6\" of your home objective get +1 to saves."}],
+  "Tyranids":[{t:"Burrowed Swarm",e:"One unit sets up from reserves at the end of round 1, more than 6\" from enemies."},{t:"Adaptive Carapace",e:"Choose a weapon type after deployment; one unit gets −1 Damage against it."}],
+  "Genestealer Cults":[{t:"Cult Uprising",e:"Return one destroyed Infantry unit at full strength once this game."},{t:"Long Planned",e:"Pick an objective; you control it at the start of round 1."}],
+  "Aeldari":[{t:"Fate Foreseen",e:"Gain one extra fate dice (or one re-roll if you don't use them)."},{t:"Webway Strike",e:"One unit can redeploy anywhere after both sides have deployed."}],
+  "T'au Empire":[{t:"Coordinated Fire",e:"Two units can target the same enemy and both get +1 to hit."},{t:"Local Allies",e:"Add a free 5-model unit of friendly human auxiliaries (use Kroot or Guardsmen stats) for this game."}]
+};
+
+const TWISTS=[
+  {t:"Clear Skies",e:"No twist. Fight as planned.",m:1},
+  {t:"Vanguard Only",e:"Both sides field 25% fewer points.",m:0.75},
+  {t:"Full Commitment",e:"Both sides field 25% more points (up to supply limit).",m:1.25},
+  {t:"Light Forces",e:"No unit with Toughness 10 or higher.",m:1},
+  {t:"Smoke and Ash",e:"Ranged attacks targeting a unit more than 12\" away get −1 to hit.",m:1},
+  {t:"Night Fighting",e:"Nothing can be targeted from more than 18\" away in rounds 1 and 2.",m:1},
+  {t:"Scattered Landing",e:"Half your units (rounding up) start in Strategic Reserves and arrive from round 2.",m:1},
+  {t:"Close Quarters",e:"Play on a 44\" x 30\" table with extra ruins.",m:1},
+  {t:"Supply Shortage",e:"Both sides start with 1 fewer CP and can play only 1 Fate Card.",m:1},
+  {t:"Warp Storm",e:"All Battle-shock tests are taken at −1.",m:1},
+  {t:"Blood Price",e:"Each unit gets +1 extra XP for every enemy unit it destroys.",m:1},
+  {t:"Last Light",e:"The battle ends after round 4.",m:1}];
+const ACTIONS=[
+  {id:"conquer",n:"Conquer",battle:true,d:"Attack a province next to one you hold, or on a world linked by warp lane to one where you hold a Spaceport or your Capital. Win to take it."},
+  {id:"raid",n:"Raid",battle:true,d:"Strike an enemy province you could reach, at half size. Win to steal 1 RP and a random Fate Card. The province does not change hands."},
+  {id:"recuperate",n:"Recuperate",battle:false,d:"Gain 1 RP and remove up to 2 Battle Scars from your roster."},
+  {id:"muster",n:"Muster",battle:false,d:"+250 pts to your supply limit and draw 1 Fate Card."},
+  {id:"fortify",n:"Fortify",battle:false,d:"Mark a province you hold. The next defender there gets +1 CP and one extra piece of terrain."},
+  {id:"scout",n:"Scout",battle:false,d:"Draw 1 Fate Card. In your next battle you may swap one rolled twist for any twist you choose."}];
+const ALT=["#c9c2b2","#5a8fd6","#d65a8f","#e0a23c","#58b8a8","#9c7ad6","#cc6b3d"];
+
+/* ---------- STATE ---------- */
+const KEY="varkesh-v3";
+function examplePlayers(){return [
+  {id:"p1",name:"Player 1 (example)",faction:"Space Marines",rp:5,battles:0,wins:0,sup:0,scout:false,hand:[]},
+  {id:"p2",name:"Player 2 (example)",faction:"Orks",rp:5,battles:0,wins:0,sup:0,scout:false,hand:[]},
+  {id:"p3",name:"Player 3 (example)",faction:"Necrons",rp:5,battles:0,wins:0,sup:0,scout:false,hand:[]}]}
+function fresh(players){const pl=players||examplePlayers();const g=genSystem(pl,Math.floor(Math.random()*1e9));
+  return {round:0,turnIdx:null,order:[],pend:null,log:[],won:null,fort:{},terr:g.terr,cap:g.cap,sys:g.sys,players:pl,webFac:["Space Marines","Orks","Necrons","Death Guard"]}}
+function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&s.players&&s.sys)return s}catch(e){}return fresh()}
+let S=load();
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const P=id=>S.players.find(p=>p.id===id);
+const PL=id=>S.sys.planets.find(p=>p.id===id);
+const V=id=>id==="holl"?HOLL:S.sys.provs.find(v=>v.id===id);
+function log(txt){S.log.unshift({r:S.round,txt});S.log=S.log.slice(0,60)}
+
+/* ---------- HELPERS ---------- */
+function ownerOf(id){return P(S.terr[id])}
+function colorOf(p){if(!p)return"none";const i=S.players.indexOf(p);const clash=S.players.slice(0,i).some(q=>q.faction===p.faction);return clash?ALT[i%ALT.length]:(FACTIONS[p.faction]||{c:"#888"}).c}
+function provsOf(p){return S.sys.provs.filter(v=>S.terr[v.id]===p.id)}
+function count(p){return provsOf(p).length+(S.terr.holl===p.id?1:0)}
+function orbitOf(v){return v.id==="holl"?{name:"The Hollowgate",mult:1,twists:2}:ORBITS[PL(v.pl).orbit]}
+function sizeOf(v){return v.id==="holl"?2000:r50(VTYPES[v.type].size*ORBITS[PL(v.pl).orbit].mult)}
+function claimedFrac(){return S.sys.provs.filter(v=>S.terr[v.id]).length/S.sys.provs.length}
+function hollOpen(){return claimedFrac()>=0.6||S.round>=8}
+function supplyOf(p){return 750+150*p.battles+(p.sup||0)}
+function laneLinked(a){return S.sys.lanes.filter(l=>l.includes(a)).map(l=>l[0]===a?l[1]:l[0])}
+function holdsType(p,ty){return provsOf(p).filter(v=>v.type===ty).length}
+function poolFor(p){const pool=[];GENERIC.forEach(c=>{for(let i=0;i<c.n;i++)pool.push({t:c.t,e:c.e})});(FACCARDS[p.faction]||[]).forEach(c=>{for(let i=0;i<2;i++)pool.push({t:c.t,e:c.e,fac:p.faction})});return pool}
+function drawCard(p){if(p.hand.length>=5)return null;const pool=poolFor(p),c={...pool[Math.floor(Math.random()*pool.length)],isNew:true};p.hand.push(c);return c}
+function drawFor(p,n,why){const got=[];for(let i=0;i<n;i++){const c=drawCard(p);if(c)got.push(c.t)}
+  if(got.length)log(`<b>${esc(p.name)}</b> drew ${got.length>1?got.length+" Fate Cards":"a Fate Card"} (${esc(why)}).`);else log(`<b>${esc(p.name)}</b>'s hand is full, no card drawn (${esc(why)}).`)}
+function stageText(){const pc=Math.round(claimedFrac()*100);return hollOpen()?`${pc}% OF THE REACH CLAIMED · THE HOLLOWGATE IS OPEN`:`${pc}% OF THE REACH CLAIMED · THE HOLLOWGATE OPENS AT 60% OR WAR ROUND 8`}
+function polyCentroid(c){let a=0,x=0,y=0;for(let i=0;i<c.length;i++){const p=c[i],q=c[(i+1)%c.length],f=p[0]*q[1]-q[0]*p[1];a+=f;x+=(p[0]+q[0])*f;y+=(p[1]+q[1])*f}a*=0.5;return [x/(6*a),y/(6*a)]}
+
+/* ---------- TABS ---------- */
+document.querySelectorAll("nav.tabs button").forEach(b=>b.addEventListener("click",()=>show(b.dataset.tab)));
+function show(t){document.querySelectorAll("nav.tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.tab===t));
+  document.querySelectorAll("section.tab").forEach(s=>s.hidden=s.id!==t);
+  if(t==="map")drawMap(); if(t==="factions")drawWeb(); if(t==="tracker")drawPlayers(); if(t==="war")drawWar();
+  try{localStorage.setItem(KEY+"-tab",t)}catch(e){}}
+let startTab="pitch";try{startTab=(location.hash||"").slice(1)||localStorage.getItem(KEY+"-tab")||"pitch"}catch(e){}
+if(!document.getElementById(startTab))startTab="pitch";
+
+/* ---------- STATIC TABLES ---------- */
+$("#actTable").innerHTML=ACTIONS.map(a=>`<tr><td><b>${a.n}</b></td><td>${a.battle?"Yes":"No"}</td><td>${esc(a.d)}</td></tr>`).join("");
+$("#orbitTable").innerHTML=Object.values(ORBITS).map(o=>`<tr><td><b>${o.name}</b></td><td class="n">×${o.mult}</td><td class="n">${o.twists}</td></tr>`).join("")+`<tr><td><b>The Hollowgate</b></td><td class="n">2000</td><td class="n">2</td></tr>`;
+$("#provTable").innerHTML=Object.values(VTYPES).map(t=>`<tr><td><b>${t.n}</b></td><td class="n">${t.size}</td><td>${esc(t.bonus)}</td></tr>`).join("");
+$("#planetTable").innerHTML=Object.values(PTYPES).map(t=>`<tr><td><span class="dot" style="background:${t.c}"></span> <b>${t.n}</b></td><td>${esc(t.trait)}</td></tr>`).join("");
+$("#twistTable").innerHTML=TWISTS.map((c,i)=>`<tr><td class="n">${i+1}</td><td>${esc(c.t)}</td><td>${esc(c.e)}</td></tr>`).join("");
+
+/* ---------- MAP ---------- */
+let view="system", selProv=null;
+function arcPath(cx,cy,r,a0,a1){const x0=cx+r*Math.cos(a0),y0=cy+r*Math.sin(a0),x1=cx+r*Math.cos(a1),y1=cy+r*Math.sin(a1);return `M${x0.toFixed(1)} ${y0.toFixed(1)} A${r} ${r} 0 ${a1-a0>Math.PI?1:0} 1 ${x1.toFixed(1)} ${y1.toFixed(1)}`}
+function drawMap(){view==="system"?drawSystem():drawPlanet(view)}
+function drawSystem(){
+  const sy=S.sys;let h=`<defs><radialGradient id="riftg"><stop offset="0" stop-color="#b8392e" stop-opacity=".95"/><stop offset="1" stop-color="#b8392e" stop-opacity="0"/></radialGradient></defs>`;
+  for(let i=0;i<60;i++){const x=(i*97)%360,y=(i*53+i*i)%360;h+=`<circle cx="${x}" cy="${y}" r="${i%6?0.6:1.2}" fill="#a8977f" opacity=".4"/>`}
+  Object.values(ORBITS).forEach(o=>{h+=`<circle cx="180" cy="180" r="${o.r}" fill="none" stroke="#3d312a" stroke-dasharray="2 4"/>`});
+  h+=`<circle cx="180" cy="180" r="${hollOpen()?44:32}" fill="url(#riftg)"/>`;
+  sy.lanes.forEach(([a,b])=>{const A=PL(a),B=PL(b);h+=`<line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" stroke="#6a5848" stroke-width="1.5" stroke-dasharray="5 3"/>`});
+  sy.planets.filter(p=>p.orbit==="inner").forEach(p=>{h+=`<line x1="${p.x}" y1="${p.y}" x2="180" y2="180" stroke="#b8392e" stroke-width="1.2" stroke-dasharray="2 3" opacity="${hollOpen()?.9:.35}"/>`});
+  const ho=ownerOf("holl");
+  h+=`<g class="terr" tabindex="0" role="button" data-hol="1" aria-label="The Hollowgate"><circle cx="180" cy="180" r="13" fill="${ho?colorOf(ho):"#16120f"}" stroke="#b8392e" stroke-width="2"/></g>`;
+  sy.planets.forEach(p=>{const r=p.orbit==="inner"?14:p.orbit==="middle"?16:18;const vs=sy.provs.filter(v=>v.pl===p.id);
+    let segs="",a=-Math.PI/2;const tot=vs.length,gap=0.08;
+    const groups={};vs.forEach(v=>{const o=S.terr[v.id]||"";groups[o]=(groups[o]||0)+1});
+    Object.entries(groups).sort((x,y)=>(x[0]===""?1:0)-(y[0]===""?1:0)).forEach(([o,n])=>{const a1=a+n/tot*Math.PI*2;segs+=`<path d="${arcPath(p.x,p.y,r+5,a+gap/2,a1-gap/2)}" stroke="${o?colorOf(P(o)):"#3d312a"}" stroke-width="4" fill="none" stroke-linecap="round"/>`;a=a1});
+    const ly=p.y>180?p.y+r+19:p.y-r-11;
+    h+=`<g class="terr" tabindex="0" role="button" data-pl="${p.id}" aria-label="${esc(p.name)}, ${PTYPES[p.type].n}">
+      <circle cx="${p.x}" cy="${p.y}" r="${r}" fill="${PTYPES[p.type].c}"/><circle cx="${p.x-r*.35}" cy="${p.y-r*.35}" r="${r*.55}" fill="#fff" opacity=".08"/>${segs}
+      <text x="${p.x}" y="${ly}" text-anchor="middle" font-family="Grenze Gothic,Georgia,serif" font-size="14" fill="#ebdfc8" paint-order="stroke" stroke="#211a16" stroke-width="4">${esc(p.name)}</text></g>`});
+  $("#mapSvg").setAttribute("viewBox","0 0 360 360");$("#mapSvg").innerHTML=h;
+  $("#mapHead").innerHTML=`<div class="eyebrow">System view</div><p class="dim" style="margin:4px 0 0;font-size:14.5px">Tap a world to see its provinces. Rings show who holds how much of each world. Dashed lines are warp lanes.</p>`;
+  bindMap();
+  $("#terrInfo").innerHTML=`<div class="eyebrow">${sy.planets.length} worlds · ${sy.provs.length} provinces</div>
+    ${sy.planets.map(p=>{const vs=sy.provs.filter(v=>v.pl===p.id);const held=S.players.map(q=>[q,vs.filter(v=>S.terr[v.id]===q.id).length]).filter(x=>x[1]);
+      return `<div class="pair" style="padding:8px 0"><button class="btn sm" data-goto="${p.id}" style="float:right">Open</button><b>${esc(p.name)}</b> <span class="mono dim" style="font-size:12px">${PTYPES[p.type].n.toUpperCase()} · ${ORBITS[p.orbit].name.toUpperCase()} ×${ORBITS[p.orbit].mult} · ${vs.length} PROVINCES</span><br><span style="font-size:14px">${held.length?held.map(([q,n])=>`<span class="dot" style="background:${colorOf(q)}"></span> ${esc(q.name)} ${n}`).join(" · "):`<span class="dim">Unclaimed</span>`}</span></div>`}).join("")}
+    <div class="pair" style="padding:8px 0"><b>The Hollowgate</b> <span class="mono dim" style="font-size:12px">2000 PTS · ${hollOpen()?"OPEN":"SEALED"}</span><br><span style="font-size:14px">Reached from any province on an inner world. Hold it at the end of a War Round to win. ${ho?"Held by "+esc(ho.name)+".":""}</span></div>`;
+  $("#terrInfo").querySelectorAll("[data-goto]").forEach(b=>b.addEventListener("click",()=>{view=b.dataset.goto;selProv=null;drawMap()}));
+}
+function drawPlanet(id){
+  const p=PL(id),vs=S.sys.provs.filter(v=>v.pl===id),cx=180,cy=180,R=160;
+  if(!selProv||!vs.find(v=>v.id===selProv))selProv=vs[0].id;
+  let h=`<defs><clipPath id="disc"><circle cx="${cx}" cy="${cy}" r="${R}"/></clipPath><radialGradient id="shade" cx=".35" cy=".3"><stop offset="0" stop-color="#fff" stop-opacity=".10"/><stop offset=".7" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".45"/></radialGradient></defs>`;
+  h+=`<circle cx="${cx}" cy="${cy}" r="${R+6}" fill="none" stroke="${PTYPES[p.type].c}" stroke-opacity=".35" stroke-width="10"/>`;
+  h+=`<g clip-path="url(#disc)"><circle cx="${cx}" cy="${cy}" r="${R}" fill="${PTYPES[p.type].c}"/>`;
+  vs.forEach(v=>{const o=ownerOf(v.id),pts=v.cell.map(q=>`${(cx+q[0]*R).toFixed(1)},${(cy+q[1]*R).toFixed(1)}`).join(" ");
+    h+=`<polygon class="terr" tabindex="0" role="button" data-v="${v.id}" aria-label="${esc(v.name)}, ${VTYPES[v.type].n}, ${sizeOf(v)} points${o?", held by "+esc(o.name):""}" points="${pts}" fill="${o?colorOf(o):PTYPES[p.type].c}" fill-opacity="${o?.82:.55}" stroke="#16120f" stroke-width="2.5"/>`});
+  h+=`<circle cx="${cx}" cy="${cy}" r="${R}" fill="url(#shade)" pointer-events="none"/></g>`;
+  vs.forEach(v=>{if(S.fort[v.id]||v.id===selProv){const pts=v.cell.map(q=>`${(cx+q[0]*R).toFixed(1)},${(cy+q[1]*R).toFixed(1)}`).join(" ");h+=`<polygon points="${pts}" fill="none" stroke="${v.id===selProv?"#d0a952":"#6f9a86"}" stroke-width="3" stroke-dasharray="${v.id===selProv?0:"6 4"}" clip-path="url(#disc)" pointer-events="none"/>`}});
+  vs.forEach(v=>{const c=polyCentroid(v.cell),x=cx+c[0]*R,y=cy+c[1]*R,o=ownerOf(v.id);
+    h+=`<g pointer-events="none" font-family="Share Tech Mono,monospace" text-anchor="middle"><text x="${x}" y="${y-4}" font-family="Grenze Gothic,Georgia,serif" font-size="13.5" fill="#f3ead8" paint-order="stroke" stroke="#16120f" stroke-width="3.5">${esc(v.name)}</text><text x="${x}" y="${y+10}" font-size="10" fill="#f3ead8" paint-order="stroke" stroke="#16120f" stroke-width="3">${v.type==="capital"?"◆ ":""}${VTYPES[v.type].n.toUpperCase()} ${sizeOf(v)}</text></g>`});
+  $("#mapSvg").setAttribute("viewBox","0 0 360 360");$("#mapSvg").innerHTML=h;
+  const links=laneLinked(id).map(x=>PL(x).name);
+  $("#mapHead").innerHTML=`<div class="row" style="justify-content:space-between"><div><div class="eyebrow">${PTYPES[p.type].n} · ${ORBITS[p.orbit].name} ×${ORBITS[p.orbit].mult}</div><h4 style="font-family:var(--f-display);font-size:28px;margin:2px 0 0">${esc(p.name)}</h4></div><button class="btn sm" id="sysBtn">← System</button></div>
+    <p style="font-size:14.5px;margin:6px 0 0"><b>World trait:</b> ${esc(PTYPES[p.type].trait)}</p><p class="dim" style="font-size:14px;margin:2px 0 0">Warp lanes to: ${esc(links.join(", ")||"none")}${p.orbit==="inner"?", the Hollowgate":""}</p>`;
+  $("#sysBtn").addEventListener("click",()=>{view="system";drawMap()});
+  bindMap();
+  const v=V(selProv),o=ownerOf(v.id),T=VTYPES[v.type];
+  $("#terrInfo").innerHTML=`<div class="eyebrow">${T.n} · ${esc(p.name)}</div><h4>${esc(v.name)} <span class="mono" style="font-size:16px;color:var(--brass)">${sizeOf(v)} pts</span></h4>
+    <p class="dim mono" style="font-size:12px">BASE ${T.size} × ${ORBITS[p.orbit].mult} · ${ORBITS[p.orbit].twists} TWIST${ORBITS[p.orbit].twists>1?"S":""}${S.fort[v.id]?" · FORTIFIED":""}</p>
+    <p><b>Bonus:</b> ${esc(T.bonus)}</p><p class="dim" style="font-size:14px">Borders: ${esc(v.nb.map(n=>V(n).name).join(", "))}</p>
+    <div class="row"><label for="ownSel" class="mono dim" style="font-size:12px">HELD BY</label><select id="ownSel"><option value="">Unclaimed</option>${S.players.map(q=>`<option value="${q.id}" ${o&&o.id===q.id?"selected":""}>${esc(q.name)}</option>`).join("")}</select></div>`;
+  $("#ownSel").addEventListener("change",e=>{if(e.target.value)S.terr[v.id]=e.target.value;else delete S.terr[v.id];save();drawMap()});
+}
+function bindMap(){
+  document.querySelectorAll("#mapSvg .terr").forEach(g=>{const f=()=>{if(g.dataset.pl){view=g.dataset.pl;selProv=null}else if(g.dataset.v){selProv=g.dataset.v}else return;drawMap()};
+    g.addEventListener("click",f);g.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();f()}})});
+  $("#stageLine").textContent=stageText();
+  $("#legend").innerHTML=S.players.map(p=>`<span class="chip" style="cursor:default"><span class="dot" style="background:${colorOf(p)}"></span>${esc(p.name)} · ${count(p)}</span>`).join("");
+}
+
+/* ---------- WAR ROOM ---------- */
+function targets(p,act){
+  const mine=provsOf(p);let set=new Set();
+  if(!mine.length){S.sys.provs.filter(v=>PL(v.pl).orbit==="outer"&&!S.terr[v.id]).forEach(v=>set.add(v.id))}
+  mine.forEach(v=>v.nb.forEach(n=>set.add(n)));
+  const ports=new Set(mine.filter(v=>v.type==="spaceport"||v.type==="capital").map(v=>v.pl));
+  ports.forEach(pl=>laneLinked(pl).forEach(l=>S.sys.provs.filter(v=>v.pl===l).forEach(v=>set.add(v.id))));
+  if(hollOpen()&&mine.some(v=>PL(v.pl).orbit==="inner"))set.add("holl");
+  return [...set].map(V).filter(v=>S.terr[v.id]!==p.id&&(act!=="raid"||(S.terr[v.id]&&v.id!=="holl")));
+}
+function beginRound(){
+  S.round++;S.won=null;S.pend=null;
+  log(`<b>War Round ${S.round} begins.</b>`);
+  S.players.forEach(p=>{const inc=holdsType(p,"capital")+holdsType(p,"hive");if(inc){p.rp=Math.min(10,p.rp+inc);log(`<b>${esc(p.name)}</b> collects ${inc} RP from their cities.`)}
+    drawFor(p,1+holdsType(p,"refinery"),"start of War Round")});
+  S.order=S.players.map(p=>({id:p.id,z:count(p),r:Math.random()})).sort((a,b)=>a.z-b.z||a.r-b.r).map(x=>x.id);
+  S.turnIdx=0;save();drawWar();
+}
+function endTurn(){
+  S.pend=null;S.turnIdx++;
+  while(S.turnIdx<S.order.length&&!P(S.order[S.turnIdx]))S.turnIdx++;
+  if(S.turnIdx>=S.order.length){S.turnIdx=null;const h=ownerOf("holl");
+    if(h){S.won=h.id;log(`<b>${esc(h.name)} holds the Hollowgate at the end of War Round ${S.round} and wins the Varkesh Reach.</b>`)}else log(`War Round ${S.round} ends.`)}
+  save();drawWar();
+}
+function rollBattle(){const v=V(S.pend.zone),n=orbitOf(v).twists,idx=[];while(idx.length<n){const i=Math.floor(Math.random()*12);if(!idx.includes(i))idx.push(i)}S.pend.twists=idx;S.pend.rolled=true;save();drawWar()}
+function battleInfo(){
+  const pd=S.pend,v=V(pd.zone),a=P(pd.actor),d=P(pd.def),notes=[];
+  let pts=sizeOf(v);pd.twists.forEach(i=>pts*=TWISTS[i].m);
+  if(pd.act==="raid"){pts*=0.5;notes.push("Raid: half size.")}
+  pts=Math.max(500,r50(pts));
+  const cap=Math.min(supplyOf(a),supplyOf(d));
+  if(cap<pts){notes.push(`Capped at the lower supply limit (${esc(supplyOf(a)<=supplyOf(d)?a.name:d.name)}).`);pts=Math.floor(cap/50)*50}
+  if(count(a)<count(d))notes.push(`${esc(a.name)} is the Underdog: +10% (${Math.round(pts*1.1/5)*5} pts).`);
+  const held=S.terr[v.id]===d.id;
+  if(held&&(S.fort[v.id]||v.type==="fortress"))notes.push(`Fortified: ${esc(d.name)} gets +1 CP and one extra piece of terrain.`);
+  if(v.type==="capital"&&held)notes.push(`${esc(d.name)}'s Capital: if ${esc(a.name)} wins a Conquer here, they also steal 2 RP.`);
+  if(v.type==="shrine")notes.push("Shrine: both players' Marked for Glory units gain +1 XP.");
+  if(a.scout)notes.push(`Scout: ${esc(a.name)} may swap one twist for any twist of their choice.`);
+  const cards=pd.twists.includes(8)?1:Math.max(1,Math.floor(pts/500));
+  const trait=v.pl?PTYPES[PL(v.pl).type]:{n:"Warp rift",trait:"Shifting ground. At the start of each round roll a D6: on a 1 move one terrain piece 3\". One Lord of War allowed."};
+  return {v,a,d,pts,notes,cards,trait};
+}
+function resolve(res){
+  const pd=S.pend,{v,a,d}=battleInfo();
+  const win=res==="a"?a:res==="d"?d:null;
+  [a,d].forEach(p=>{p.battles++;p.rp=Math.min(10,p.rp+1)});
+  if(win){win.wins++;win.rp=Math.min(10,win.rp+1)}
+  const where=v.pl?`${v.name} on ${PL(v.pl).name}`:v.name;
+  log(`<b>${esc(a.name)}</b> ${pd.act==="raid"?"raided":"attacked"} ${esc(where)} against <b>${esc(d.name)}</b>: ${win?esc(win.name)+" won":"a draw"}.`);
+  if(pd.act==="conquer"){
+    if(win===a){if(v.type==="capital"&&S.terr[v.id]===d.id){const s=Math.min(2,d.rp);d.rp-=s;a.rp=Math.min(10,a.rp+s);log(`<b>${esc(a.name)}</b> sacks ${esc(d.name)}'s Capital and steals ${s} RP.`)}
+      S.terr[v.id]=a.id;log(`<b>${esc(a.name)}</b> takes ${esc(v.name)}.`)}
+    else if(win===d&&S.terr[v.id]===d.id)log(`<b>${esc(d.name)}</b> holds ${esc(v.name)}.`);
+  } else if(win===a){
+    const rp=Math.min(1,d.rp);d.rp-=rp;a.rp=Math.min(10,a.rp+rp);
+    if(d.hand.length&&a.hand.length<5){const c=d.hand.splice(Math.floor(Math.random()*d.hand.length),1)[0];c.isNew=true;a.hand.push(c);log(`<b>${esc(a.name)}</b> steals ${rp} RP and the card "${esc(c.t)}".`)}
+    else log(`<b>${esc(a.name)}</b> steals ${rp} RP.`);
+  }
+  delete S.fort[v.id];
+  if(win)drawFor(win,1,"victory");
+  const min=Math.min(...S.players.map(count));
+  [a,d].forEach(p=>{if(count(p)===min&&S.players.length>1)drawFor(p,1,"Underdog's grit")});
+  a.scout=false;
+  log(`Both players: record XP, roll for the fallen, +150 supply.`);
+  endTurn();
+}
+function doQuiet(act){
+  const p=P(S.pend.actor);
+  if(act==="recuperate"){p.rp=Math.min(10,p.rp+1);log(`<b>${esc(p.name)}</b> recuperates: +1 RP, removes up to 2 Battle Scars.`)}
+  if(act==="muster"){const n=250+150*Math.min(1,holdsType(p,"forge"));p.sup=(p.sup||0)+n;log(`<b>${esc(p.name)}</b> musters: +${n} supply.`);drawFor(p,1,"Muster")}
+  if(act==="fortify"){const z=$("#fortSel").value;S.fort[z]=true;log(`<b>${esc(p.name)}</b> fortifies ${esc(V(z).name)}.`)}
+  if(act==="scout"){p.scout=true;log(`<b>${esc(p.name)}</b> scouts ahead.`);drawFor(p,1,"Scout")}
+  endTurn();
+}
+function regen(){const g=genSystem(S.players,Math.floor(Math.random()*1e9));S.sys=g.sys;S.terr=g.terr;S.cap=g.cap;S.fort={};view="system";selProv=null;
+  log(`A new Reach is charted: ${g.sys.planets.length} worlds, ${g.sys.provs.length} provinces for ${S.players.length} players.`);save();drawWar()}
+function drawWar(){
+  const el=$("#warBody");
+  $("#logList").innerHTML=S.log.length?S.log.slice(0,25).map(l=>`<li><span class="r">R${l.r}</span>${l.txt}</li>`).join(""):`<li>Nothing yet. Begin the first War Round.</li>`;
+  if(!S.players.length){el.innerHTML=`<p>Add players on the Players tab first.</p>`;return}
+  let h=`<div class="row mono" style="font-size:13px;color:var(--brass)">${esc(stageText())}</div>`;
+  if(S.won){const w=P(S.won);h+=`<div class="win"><span class="eyebrow">The Reach is taken</span><b>${esc(w?w.name:"Someone")}</b>holds the Hollowgate. Play on for a rematch, or reset the campaign.</div>`}
+  if(S.turnIdx===null){
+    const homeless=S.players.filter(p=>!provsOf(p).length);
+    h+=`<div class="turn"><div class="eyebrow">${S.round?`War Round ${S.round} complete`:"Setup"}</div><h4>War Round ${S.round+1}</h4>`;
+    if(!S.round)h+=`<p style="margin-top:8px">The Reach is charted for ${S.players.length} players: <b>${S.sys.planets.length} worlds, ${S.sys.provs.length} provinces</b>. Each player starts with a Capital. Added or removed players? Chart a new Reach so the map fits the group.</p>
+      <div class="row" style="margin-bottom:12px"><button class="btn" id="regenBtn">Chart a new Reach for ${S.players.length} players</button></div>`;
+    else if(homeless.length)h+=`<p style="margin-top:8px;color:var(--blood)">${homeless.map(p=>esc(p.name)).join(", ")} hold no provinces. They can Conquer any unclaimed province on an outer world.</p>`;
+    h+=`<p>Everyone draws a Fate Card and collects RP from Capitals and Hive Cities. Then each player takes a turn, fewest provinces first.</p><button class="btn primary" id="beginBtn">Begin War Round ${S.round+1}</button></div>`;
+    el.innerHTML=h;$("#beginBtn").addEventListener("click",beginRound);$("#regenBtn")&&$("#regenBtn").addEventListener("click",regen);return;
+  }
+  const actor=P(S.order[S.turnIdx]);if(!actor){endTurn();return}
+  h+=`<div class="strip">${S.order.map((id,i)=>{const p=P(id);if(!p)return"";return `<span class="chip ${i<S.turnIdx?"done":i===S.turnIdx?"cur":""}"><span class="dot" style="background:${colorOf(p)}"></span>${esc(p.name)}</span>`}).join("")}</div>`;
+  h+=`<div class="turn"><div class="eyebrow">War Round ${S.round} · Turn ${S.turnIdx+1} of ${S.order.length}</div><h4>${esc(actor.name)}</h4>
+    <p class="dim mono" style="font-size:12px;margin-top:4px">${esc(actor.faction.toUpperCase())} · ${actor.rp} RP · SUPPLY ${supplyOf(actor)} · ${count(actor)} PROVINCES · HAND ${actor.hand.length}/5</p>`;
+  const pd=S.pend;
+  if(!pd){
+    h+=`<p style="margin:10px 0 0">Choose a campaign action.</p><div class="acts-grid">${ACTIONS.map(a=>{const ok=a.battle?targets(actor,a.id).length>0&&S.players.length>1:a.id==="fortify"?provsOf(actor).length>0:true;return `<button class="act" data-act="${a.id}" ${ok?"":"disabled style='opacity:.4;cursor:not-allowed'"}><span class="at ${a.battle?"b":"q"}">${a.battle?"Battle":"No battle"}</span><span class="an">${a.n}</span><span class="ad">${esc(a.d)}</span></button>`}).join("")}</div>`;
+  } else {
+    const A=ACTIONS.find(x=>x.id===pd.act);
+    h+=`<div class="row" style="justify-content:space-between;margin-top:10px"><span style="font-family:var(--f-display);font-size:24px;color:var(--brass)">${A.n}</span>${pd.rolled?"":`<button class="btn sm" id="backBtn">Change action</button>`}</div>`;
+    if(A.battle){
+      if(!pd.rolled){
+        const tg=targets(actor,pd.act);if(!pd.zone||!tg.find(v=>v.id===pd.zone))pd.zone=tg[0].id;
+        const holder=ownerOf(pd.zone),others=S.players.filter(p=>p.id!==actor.id);
+        if(holder)pd.def=holder.id;else if(!pd.def||!others.find(p=>p.id===pd.def))pd.def=others[0]?others[0].id:null;
+        const groups={};tg.forEach(v=>{const k=v.pl?PL(v.pl).name:"The Rift";(groups[k]=groups[k]||[]).push(v)});
+        const zv=V(pd.zone);
+        h+=`<div class="row" style="margin-top:10px;align-items:flex-end">
+          <div class="field"><label for="zoneSel">Province</label><select id="zoneSel">${Object.entries(groups).map(([g,list])=>`<optgroup label="${esc(g)}">${list.map(v=>`<option value="${v.id}" ${v.id===pd.zone?"selected":""}>${esc(v.name)} · ${sizeOf(v)} pts${S.terr[v.id]?" · "+esc(ownerOf(v.id).name):""}</option>`).join("")}</optgroup>`).join("")}</select></div>
+          <div class="field"><label for="defSel">Defender</label>${holder?`<div style="padding:7px 0">${esc(holder.name)} (holds it)</div>`:`<select id="defSel">${others.map(p=>`<option value="${p.id}" ${p.id===pd.def?"selected":""}>${esc(p.name)}</option>`).join("")}</select>`}</div></div>
+          ${holder?"":`<p class="dim" style="font-size:14px;margin-top:8px">Unclaimed province: the defender plays the local resistance. Pick whoever is free to play.</p>`}
+          <p style="font-size:14.5px"><b>${zv.pl?esc(VTYPES[zv.type].n)+" on "+esc(PL(zv.pl).name):"Warp rift"}.</b> ${zv.pl?esc(PTYPES[PL(zv.pl).type].trait):""}</p>
+          <button class="btn primary" id="rollBtn" ${pd.def?"":"disabled"}>Generate battle</button>`;
+      } else {
+        const B=battleInfo();
+        h+=`<div class="battle"><div class="eyebrow">${esc(B.v.pl?PL(B.v.pl).name+" · "+VTYPES[B.v.type].n:"The Hollowgate")} · ${esc(B.v.name)}</div>
+          <div class="size">${B.pts} pts</div>
+          <p class="mono dim" style="font-size:12px">${esc(B.a.name.toUpperCase())} (ATTACKER) VS ${esc(B.d.name.toUpperCase())} (DEFENDER) · FATE CARDS: UP TO ${B.cards} EACH</p>
+          ${pd.twists.map(i=>`<div class="twist"><span class="mono" style="font-size:11px;color:var(--blood)">TWIST · D12 ${i+1}</span><br><b>${esc(TWISTS[i].t)}</b><br>${esc(TWISTS[i].e)}</div>`).join("")}
+          <div class="twist" style="border-color:var(--verd)"><span class="mono" style="font-size:11px;color:var(--verd)">WORLD · ${esc(B.trait.n.toUpperCase())}</span><br>${esc(B.trait.trait)}</div>
+          ${B.notes.map(n=>`<p style="font-size:14.5px;margin:4px 0">${n}</p>`).join("")}
+          <p class="mono" style="font-size:12px;color:var(--brass);margin-top:12px">PLAY THE BATTLE WITH NORMAL FORCE RULES, THEN RECORD THE RESULT</p>
+          <div class="row"><button class="btn primary" data-res="a">${esc(B.a.name)} won</button><button class="btn primary" data-res="d">${esc(B.d.name)} won</button><button class="btn" data-res="x">Draw</button><button class="btn sm" id="rerollBtn">Re-roll twists</button></div></div>`;
+      }
+    } else {
+      if(pd.act==="fortify")h+=`<div class="field" style="margin-top:10px"><label for="fortSel">Province to fortify</label><select id="fortSel">${provsOf(actor).map(v=>`<option value="${v.id}">${esc(v.name)} (${esc(PL(v.pl).name)})</option>`).join("")}</select></div>`;
+      h+=`<p style="margin-top:10px">${esc(A.d)}</p><button class="btn primary" id="quietBtn">Confirm ${A.n}</button>`;
+    }
+  }
+  h+=`</div>`;el.innerHTML=h;
+  el.querySelectorAll("[data-act]").forEach(b=>b.addEventListener("click",()=>{S.pend={act:b.dataset.act,actor:actor.id};save();drawWar()}));
+  const q=s=>el.querySelector(s);
+  q("#backBtn")&&q("#backBtn").addEventListener("click",()=>{S.pend=null;save();drawWar()});
+  q("#zoneSel")&&q("#zoneSel").addEventListener("change",e=>{S.pend.zone=e.target.value;save();drawWar()});
+  q("#defSel")&&q("#defSel").addEventListener("change",e=>{S.pend.def=e.target.value;save();drawWar()});
+  q("#rollBtn")&&q("#rollBtn").addEventListener("click",rollBattle);
+  q("#rerollBtn")&&q("#rerollBtn").addEventListener("click",rollBattle);
+  el.querySelectorAll("[data-res]").forEach(b=>b.addEventListener("click",()=>resolve(b.dataset.res)));
+  q("#quietBtn")&&q("#quietBtn").addEventListener("click",()=>doQuiet(pd.act));
+}
+
+/* ---------- PLAYERS ---------- */
+$("#addPlayer").addEventListener("click",()=>{S.players.push({id:"p"+Date.now(),name:"New player",faction:"Astra Militarum",rp:5,battles:0,wins:0,sup:0,scout:false,hand:[]});save();drawPlayers()});
+$("#resetBtn").addEventListener("click",()=>{$("#resetConfirm").hidden=false});
+$("#resetNo").addEventListener("click",()=>{$("#resetConfirm").hidden=true});
+$("#resetYes").addEventListener("click",()=>{const keep=S.players.map(p=>({...p,rp:5,battles:0,wins:0,sup:0,scout:false,hand:[]}));S=fresh(keep);save();$("#resetConfirm").hidden=true;drawPlayers()});
+const msgs={};
+function drawPlayers(){
+  $("#players").innerHTML=S.players.length?S.players.map(p=>{const cap=S.cap[p.id]&&V(S.cap[p.id]);
+    return `<div class="player" data-id="${p.id}">
+      <div class="top"><span class="dot" style="background:${colorOf(p)};width:14px;height:14px"></span>
+        <input type="text" id="name-${p.id}" value="${esc(p.name)}" aria-label="Player name" data-k="name">
+        <select id="fac-${p.id}" aria-label="Faction" data-k="faction">${Object.keys(FACTIONS).map(f=>`<option ${f===p.faction?"selected":""}>${esc(f)}</option>`).join("")}</select></div>
+      <div class="stats">
+        ${["rp","battles","wins"].map(k=>`<div class="stat"><div class="l">${{rp:"Requisition",battles:"Battles",wins:"Wins"}[k]}</div><div class="v">${p[k]}</div><div class="pm"><button class="btn sm" data-inc="${k}" data-d="-1" aria-label="Decrease">−</button><button class="btn sm" data-inc="${k}" data-d="1" aria-label="Increase">+</button></div></div>`).join("")}
+        <div class="stat"><div class="l">Supply</div><div class="v">${supplyOf(p)}</div><div class="pm"><button class="btn sm" data-buy ${p.rp<1?"disabled":""} title="Spend 1 RP for +200 supply">+200 · 1 RP</button></div></div>
+      </div>
+      <div class="mono dim" style="font-size:12px">EMPIRE: ${count(p)} PROVINCE${count(p)===1?"":"S"}${cap?` · CAPITAL ${esc(cap.name.toUpperCase())}, ${esc(PL(cap.pl).name.toUpperCase())}`:""}${p.scout?" · SCOUTED":""}</div>
+      <div class="row" style="margin-top:10px;justify-content:space-between"><span class="mono" style="font-size:12px">FATE HAND ${p.hand.length}/5</span>
+        <span class="row"><button class="btn sm primary" data-draw ${p.hand.length>=5?"disabled":""}>Draw card</button><button class="btn sm danger" data-del>Remove</button></span></div>
+      <div class="handbar">${[0,1,2,3,4].map(i=>`<i class="${i<p.hand.length?"on":""}"></i>`).join("")}</div>
+      <div class="msg">${msgs[p.id]||""}</div>
+      <div class="cards">${p.hand.map((c,i)=>cardHTML(c,`<div class="acts"><button class="btn sm primary" data-play="${i}">Play</button><button class="btn sm" data-disc="${i}">Discard</button></div>`)).join("")}</div>
+    </div>`}).join(""):`<p class="dim" style="margin-top:16px">No players yet. Add the first one to start the campaign.</p>`;
+  S.players.forEach(p=>p.hand.forEach(c=>delete c.isNew));
+  document.querySelectorAll(".player").forEach(el=>{const p=P(el.dataset.id);
+    el.querySelectorAll("[data-k]").forEach(inp=>inp.addEventListener("change",()=>{p[inp.dataset.k]=inp.value;save();drawPlayers()}));
+    el.querySelectorAll("[data-inc]").forEach(b=>b.addEventListener("click",()=>{const k=b.dataset.inc;let v=Math.max(0,p[k]+ +b.dataset.d);if(k==="rp")v=Math.min(10,v);p[k]=v;save();drawPlayers()}));
+    el.querySelector("[data-buy]").addEventListener("click",()=>{if(p.rp<1)return;p.rp--;p.sup=(p.sup||0)+200;log(`<b>${esc(p.name)}</b> spends 1 RP on Reinforcements (+200 supply).`);save();drawPlayers()});
+    el.querySelector("[data-draw]").addEventListener("click",()=>{const c=drawCard(p);msgs[p.id]=c?(p.hand.length===5?"Hand is now full (5).":""):"Hand full. Play or discard a card first.";save();drawPlayers()});
+    el.querySelectorAll("[data-play],[data-disc]").forEach(b=>b.addEventListener("click",()=>{const i=+(b.dataset.play??b.dataset.disc);const c=p.hand.splice(i,1)[0];msgs[p.id]=(b.dataset.play!==undefined?"Played: ":"Discarded: ")+c.t;save();drawPlayers()}));
+    const del=el.querySelector("[data-del]");del.addEventListener("click",()=>{if(del.dataset.armed){S.players=S.players.filter(x=>x.id!==p.id);Object.keys(S.terr).forEach(k=>{if(S.terr[k]===p.id)delete S.terr[k]});delete S.cap[p.id];save();drawPlayers()}else{del.dataset.armed=1;del.textContent="Confirm remove"}});
+  });
+}
+/* ---------- PITCH COPY ---------- */
+$("#copyPitch").addEventListener("click",()=>{
+  const lines=["THE VARKESH REACH — 40k narrative campaign",""];
+  document.querySelectorAll("#pitchSteps li").forEach((li,i)=>{const b=li.querySelector("b").textContent;lines.push((i+1)+". "+b.toUpperCase()+" — "+li.textContent.replace(b,"").trim())});
+  lines.push("","Battles are fought over provinces on a map of worlds. The province sets the size (500–2000 pts), plus a Mission Twist. No Epic Heroes or named characters.","Who's in, and what are you playing?");
+  const txt=lines.join("\n"), ta=$("#pitchText"); ta.value=txt;
+  const ok=()=>{$("#copyMsg").textContent="Copied"};
+  const fb=()=>{ta.select();try{document.execCommand("copy");ok()}catch(e){$("#copyMsg").textContent="Select and copy the text manually"}};
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(ok,fb)}else fb();
+});
+
+/* ---------- DECK ---------- */
+let deckF="Generic";
+function drawDeck(){
+  const opts=["Generic",...Object.keys(FACCARDS)];
+  $("#deckFilter").innerHTML=opts.map(o=>`<button class="chip" aria-pressed="${o===deckF}" data-f="${esc(o)}">${o==="Generic"?"Generic deck":esc(o)}</button>`).join("");
+  $("#deckFilter").querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{deckF=b.dataset.f;drawDeck()}));
+  const list=deckF==="Generic"?GENERIC:FACCARDS[deckF].map(c=>({...c,n:2,fac:deckF}));
+  $("#deckList").innerHTML=list.map(c=>cardHTML(c)).join("");
+}
+function cardHTML(c,acts){return `<div class="card ${c.fac?"fac":""} ${c.isNew?"new":""}"><div class="k"><span>${c.fac?esc(c.fac):"Generic"}</span>${c.n?`<span>×${c.n}</span>`:""}</div><div class="t">${esc(c.t)}</div><div class="e">${esc(c.e)}</div>${acts||""}</div>`}
+
+/* ---------- FACTION WEB ---------- */
+function drawWeb(){
+  $("#facChips").innerHTML=Object.keys(FACTIONS).map(f=>`<button class="chip" aria-pressed="${S.webFac.includes(f)}" data-f="${esc(f)}"><span class="dot" style="background:${FACTIONS[f].c}"></span>${esc(f)}</button>`).join("");
+  $("#facChips").querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{const f=b.dataset.f;S.webFac=S.webFac.includes(f)?S.webFac.filter(x=>x!==f):[...S.webFac,f];save();drawWeb()}));
+  const F=S.webFac, n=F.length, cx=180, cy=150, R=n>6?108:96;
+  const pos=F.map((f,i)=>{const a=-Math.PI/2+i*2*Math.PI/Math.max(n,1);return{f,x:cx+R*Math.cos(a),y:cy+R*Math.sin(a)}});
+  let h=""; const relCol={"imp-imp":"#d0a952","cha-cha":"#b8392e","imp-cha":"#b8392e","imp-xen":"#a8977f","cha-xen":"#a8977f","xen-xen":"#6f9a86"};
+  const pairs=[];
+  for(let i=0;i<n;i++)for(let j=i+1;j<n;j++){const a=pos[i],b=pos[j],k=sideKey(a.f,b.f);pairs.push([a.f,b.f,k]);
+    h+=`<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="${relCol[k]}" stroke-width="1.5" opacity=".7" stroke-dasharray="${k.includes("xen")&&k!=="xen-xen"?"5 4":"0"}"/>`}
+  pos.forEach(p=>{const right=p.x>=cx;h+=`<circle cx="${p.x}" cy="${p.y}" r="9" fill="${FACTIONS[p.f].c}" stroke="#16120f" stroke-width="2"/>
+    <text x="${p.x+(Math.abs(p.x-cx)<5?0:right?14:-14)}" y="${p.y+(Math.abs(p.x-cx)<5?(p.y<cy?-14:22):5)}" text-anchor="${Math.abs(p.x-cx)<5?"middle":right?"start":"end"}" font-family="Alegreya Sans,sans-serif" font-size="13" fill="#ebdfc8">${esc(p.f)}</text>`});
+  if(!n)h=`<text x="180" y="150" text-anchor="middle" fill="#a8977f" font-family="Alegreya Sans,sans-serif" font-size="15">Pick at least two factions above</text>`;
+  $("#webSvg").innerHTML=h;
+  $("#facWants").innerHTML=F.map(f=>`<p style="font-size:15px"><span class="dot" style="background:${FACTIONS[f].c}"></span> <b>${esc(f)}</b> want ${esc(FACTIONS[f].want)}. <span class="dim">First force: ${esc(FACTIONS[f].open)}</span></p>`).join("");
+  $("#pairs").innerHTML=pairs.length?pairs.map(([a,b,k],i)=>{const [lab,txt]=SIDE_HOOK[k];return `<div class="pair"><b>${esc(a)} vs ${esc(b)}</b><span class="rel" style="background:${relCol[k]};color:#16120f">${lab}</span>
+    <p style="margin-top:6px">${esc(txt)} The ${esc(a)} want ${esc(FACTIONS[a].want)}; the ${esc(b)} want ${esc(FACTIONS[b].want)}. Neither can do it while the other is in the Reach.</p>
+    <p class="dim" style="font-size:14.5px;margin:0"><b style="font-family:var(--f-mono);font-size:12px;color:var(--brass)">FIRST 600 PT BATTLE</b> ${esc(BATTLES[(i+a.length+b.length)%BATTLES.length])}</p></div>`}).join(""):`<p class="dim">Select two or more factions to see their rivalries.</p>`;
+}
+function sideKey(a,b){const s=[FACTIONS[a].side,FACTIONS[b].side];const order={imp:0,cha:1,xen:2};s.sort((x,y)=>order[x]-order[y]);return s.join("-")}
+$("#useTracker").addEventListener("click",()=>{S.webFac=[...new Set(S.players.map(p=>p.faction))];save();drawWeb()});
+
+
+drawDeck(); show(startTab);
+</script>
+
+</body>
+</html>
