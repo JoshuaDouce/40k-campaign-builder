@@ -1,0 +1,291 @@
+import { useEffect, useRef, useState } from "react";
+import { canPerform, count, FACTIONS, getPlanet, getProvince, supplyOf } from "../game/index.ts";
+import type { Action, CampaignState, Card, FactionName, Player, StatKey } from "../game/index.ts";
+import { canSeeHand, useCampaign } from "../store/useCampaign.ts";
+import { FateCard } from "./FateCard.tsx";
+
+const FACTION_NAMES = Object.keys(FACTIONS) as FactionName[];
+const STAT_LABELS: ReadonlyArray<readonly [StatKey, string]> = [
+  ["rp", "Requisition"],
+  ["battles", "Battles"],
+  ["wins", "Wins"],
+];
+
+/** crypto.randomUUID needs a secure context; fall back for plain-http dev on a phone. */
+function newId(): string {
+  return typeof crypto.randomUUID === "function" ? crypto.randomUUID() : `p${Date.now()}${Math.floor(Math.random() * 1e6)}`;
+}
+
+const cardKey = (c: Card): string => `${c.fac ?? ""}|${c.t}|${c.e}`;
+const snapshot = (players: Player[]): Record<string, string[]> =>
+  Object.fromEntries(players.map((p) => [p.id, p.hand.map(cardKey)]));
+
+/** Hand positions in `players` that were not in `before`, for the deal animation. */
+function diffHands(before: Record<string, string[]>, players: Player[]): Record<string, Set<number>> {
+  const fresh: Record<string, Set<number>> = {};
+  players.forEach((p) => {
+    const counts = new Map<string, number>();
+    (before[p.id] ?? []).forEach((k) => counts.set(k, (counts.get(k) ?? 0) + 1));
+    const added = new Set<number>();
+    p.hand.forEach((c, i) => {
+      const k = cardKey(c);
+      const left = counts.get(k) ?? 0;
+      if (left > 0) counts.set(k, left - 1);
+      else added.add(i);
+    });
+    fresh[p.id] = added;
+  });
+  return fresh;
+}
+
+/** Hand positions that arrived since the previous state, derived by comparing hands (nothing stored in the campaign). */
+function useNewCards(players: Player[]): Record<string, Set<number>> {
+  const [track, setTrack] = useState<{ players: Player[]; fresh: Record<string, Set<number>> }>({ players, fresh: {} });
+  if (track.players === players) return track.fresh;
+  const next = { players, fresh: diffHands(snapshot(track.players), players) };
+  setTrack(next);
+  return next.fresh;
+}
+
+export function PlayersTab({ colors }: { colors: Record<string, string> }) {
+  const { state, dispatch, viewer } = useCampaign();
+  const [resetOpen, setResetOpen] = useState(false);
+  const newCards = useNewCards(state.players);
+  const add: Action = { type: "addPlayer", id: "new", name: "New player", faction: "Astra Militarum" };
+
+  return (
+    <section className="tab" id="tracker">
+      <h2>Players</h2>
+      <p className="dim">Saved in this browser on this device. The players below are examples; rename or remove them.</p>
+      <div className="row">
+        <button
+          className="btn primary"
+          disabled={!canPerform(state, add, viewer)}
+          onClick={() => dispatch({ ...add, id: newId() })}
+        >
+          Add player
+        </button>
+      </div>
+      <div>
+        {state.players.length ? (
+          state.players.map((p) => (
+            <PlayerCard key={p.id} player={p} state={state} color={colors[p.id]} fresh={newCards[p.id]} />
+          ))
+        ) : (
+          <p className="dim" style={{ marginTop: 16 }}>
+            No players yet. Add the first one to start the campaign.
+          </p>
+        )}
+      </div>
+      <div className="row" style={{ marginTop: 20 }}>
+        <button className="btn danger sm" disabled={!canPerform(state, { type: "reset" }, viewer)} onClick={() => setResetOpen(true)}>
+          Reset campaign
+        </button>
+        {resetOpen ? (
+          <span>
+            <span className="mono" style={{ fontSize: 12 }}>
+              Wipe everything?
+            </span>{" "}
+            <button
+              className="btn danger sm"
+              onClick={() => {
+                dispatch({ type: "reset" });
+                setResetOpen(false);
+              }}
+            >
+              Yes, reset
+            </button>{" "}
+            <button className="btn sm" onClick={() => setResetOpen(false)}>
+              Cancel
+            </button>
+          </span>
+        ) : null}
+      </div>
+    </section>
+  );
+}
+
+interface CardProps {
+  player: Player;
+  state: CampaignState;
+  color: string | undefined;
+  fresh: Set<number> | undefined;
+}
+
+function PlayerCard({ player: p, state, color, fresh }: CardProps) {
+  const { dispatch, viewer } = useCampaign();
+  const [msg, setMsg] = useState("");
+  const [armedAt, setArmedAt] = useState<CampaignState | null>(null);
+  const can = (a: Action) => canPerform(state, a, viewer);
+  const cap = state.cap[p.id] ? getProvince(state, state.cap[p.id]) : undefined;
+  const capPlanet = cap ? getPlanet(state, cap.pl) : undefined;
+  const n = count(state, p);
+  const visible = canSeeHand(p, viewer);
+  const canEdit = can({ type: "updatePlayer", playerId: p.id });
+  const full = p.hand.length >= 5;
+
+  // Any action on this card (or any state change) disarms the two-step Remove, as a prototype re-render did.
+  const armed = armedAt === state;
+  useEffect(() => {
+    if (!armedAt) return;
+    const t = setTimeout(() => setArmedAt(null), 4000);
+    return () => clearTimeout(t);
+  }, [armedAt]);
+
+  // Name edits are committed on blur, Enter, or unmount (so switching tabs never loses one).
+  const draft = useRef<string | null>(null);
+  const commitName = () => {
+    const v = draft.current;
+    draft.current = null;
+    if (v === null || v === p.name || !v.trim()) return;
+    dispatch({ type: "updatePlayer", playerId: p.id, name: v });
+  };
+  const latestCommit = useRef(commitName);
+  useEffect(() => {
+    latestCommit.current = commitName;
+  });
+  useEffect(() => () => latestCommit.current(), []);
+
+  const send = (a: Action): boolean => {
+    if (!can(a)) return false;
+    setArmedAt(null);
+    dispatch(a);
+    return true;
+  };
+
+  const draw = () => {
+    if (full) {
+      setMsg("Hand full. Play or discard a card first.");
+      return;
+    }
+    if (send({ type: "drawCard", playerId: p.id })) setMsg(p.hand.length + 1 === 5 ? "Hand is now full (5)." : "");
+  };
+
+  const spendCard = (kind: "playCard" | "discardCard", index: number) => {
+    const card = p.hand[index];
+    if (!card) return;
+    if (send({ type: kind, playerId: p.id, index })) setMsg(`${kind === "playCard" ? "Played: " : "Discarded: "}${card.t}`);
+  };
+
+  return (
+    <div className="player">
+      <div className="top">
+        <span className="dot" style={{ background: color, width: 14, height: 14 }}></span>
+        <input
+          type="text"
+          key={p.name}
+          defaultValue={p.name}
+          aria-label="Player name"
+          disabled={!canEdit}
+          onChange={(e) => {
+            draft.current = e.currentTarget.value;
+          }}
+          onBlur={(e) => {
+            commitName();
+            e.currentTarget.value = p.name;
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") e.currentTarget.blur();
+          }}
+        />
+        <select
+          aria-label="Faction"
+          value={p.faction}
+          disabled={!canEdit}
+          onChange={(e) => dispatch({ type: "updatePlayer", playerId: p.id, faction: e.target.value as FactionName })}
+        >
+          {FACTION_NAMES.map((f) => (
+            <option key={f} value={f}>
+              {f}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="stats">
+        {STAT_LABELS.map(([k, label]) => {
+          const dec: Action = { type: "adjustStat", playerId: p.id, stat: k, delta: -1 };
+          const inc: Action = { type: "adjustStat", playerId: p.id, stat: k, delta: 1 };
+          return (
+            <div className="stat" key={k}>
+              <div className="l">{label}</div>
+              <div className="v">{p[k]}</div>
+              <div className="pm">
+                <button className="btn sm" aria-label="Decrease" disabled={!can(dec)} onClick={() => dispatch(dec)}>
+                  −
+                </button>
+                <button className="btn sm" aria-label="Increase" disabled={!can(inc)} onClick={() => dispatch(inc)}>
+                  +
+                </button>
+              </div>
+            </div>
+          );
+        })}
+        <div className="stat">
+          <div className="l">Supply</div>
+          <div className="v">{supplyOf(p)}</div>
+          <div className="pm">
+            <button
+              className="btn sm"
+              disabled={p.rp < 1 || !can({ type: "buyReinforcements", playerId: p.id })}
+              title="Spend 1 RP for +200 supply"
+              onClick={() => dispatch({ type: "buyReinforcements", playerId: p.id })}
+            >
+              +200 · 1 RP
+            </button>
+          </div>
+        </div>
+      </div>
+      <div className="mono dim" style={{ fontSize: 12 }}>
+        EMPIRE: {n} PROVINCE{n === 1 ? "" : "S"}
+        {cap ? ` · CAPITAL ${cap.name.toUpperCase()}, ${(capPlanet?.name ?? "").toUpperCase()}` : ""}
+        {p.scout ? " · SCOUTED" : ""}
+      </div>
+      <div className="row" style={{ marginTop: 10, justifyContent: "space-between" }}>
+        <span className="mono" style={{ fontSize: 12 }}>
+          FATE HAND {p.hand.length}/5
+        </span>
+        <span className="row">
+          <button className="btn sm primary" disabled={full || !can({ type: "drawCard", playerId: p.id })} onClick={draw}>
+            Draw card
+          </button>
+          {armed ? (
+            <button
+              className="btn sm danger"
+              disabled={!can({ type: "removePlayer", playerId: p.id })}
+              onBlur={() => setArmedAt(null)}
+              onClick={() => dispatch({ type: "removePlayer", playerId: p.id })}
+            >
+              Confirm remove
+            </button>
+          ) : (
+            <button className="btn sm danger" disabled={!can({ type: "removePlayer", playerId: p.id })} onClick={() => setArmedAt(state)}>
+              Remove
+            </button>
+          )}
+        </span>
+      </div>
+      <div className="handbar">
+        {[0, 1, 2, 3, 4].map((i) => (
+          <i key={i} className={i < p.hand.length ? "on" : ""}></i>
+        ))}
+      </div>
+      <div className="msg">{msg}</div>
+      {visible ? (
+        <div className="cards">
+          {p.hand.map((c, i) => (
+            <FateCard key={i} card={c} isNew={fresh?.has(i)}>
+              <div className="acts">
+                <button className="btn sm primary" disabled={!can({ type: "playCard", playerId: p.id, index: i })} onClick={() => spendCard("playCard", i)}>
+                  Play
+                </button>
+                <button className="btn sm" disabled={!can({ type: "discardCard", playerId: p.id, index: i })} onClick={() => spendCard("discardCard", i)}>
+                  Discard
+                </button>
+              </div>
+            </FateCard>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}

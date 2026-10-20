@@ -141,3 +141,14 @@ through `/build-feature`.
   missing from the current `order`, `won` being null after a winner is removed, and `BattleInfo.v`
   being the rift (`v.type === "rift"`, no `pl`). Compute `playerColors(state)` once per render.
 - Scout's "swap one twist" is a note only (as in the prototype); no twist-picking UI.
+
+## Notes from stage 3 (frontend) — for stage 4
+- `CampaignStore.dispatch` is sync/void today. The Amplify store needs `status` (`idle | saving | offline | conflict`) and `error` on the store interface so components can show "Saving…"/"Offline" (roadmap feature 8).
+- Add-player in PlayersTab must take `userId` from `viewer` (joiners add themselves); the "Saved in this browser on this device…" copy must come from the store/viewer.
+- Map/Factions SVGs hardcode token hex values (as the prototype did) — fine to leave.
+- No cross-tab `storage` sync in the local store; `observeQuery` replaces it in stage 4.
+
+## Stage order change (2026-10-20)
+The owner chose to deploy the local-storage version to Amplify Hosting first (stage 5's hosting
+part) so friends can look at it, then do stage 4 (Cognito + shared campaigns) afterwards.
+`amplify.yml` is frontend-only until then.
