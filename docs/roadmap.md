@@ -109,7 +109,7 @@ Buttons you can't use are hidden or disabled, with a short reason.
 
 ## Out of scope
 Unit rosters/XP (for now), images and uploads, chat, notifications, admin tools, payments,
-server-enforced permissions and truly secret hands, automated component/E2E tests,
+server-enforced permissions and truly secret hands, automated tests of any kind (until the app grows),
 redesigning the rules, tabs or look.
 
 ## Open questions (defaults proposed — say if you disagree)

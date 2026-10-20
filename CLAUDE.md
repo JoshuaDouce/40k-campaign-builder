@@ -33,7 +33,7 @@ frontend/backend folders.
 | **frontend-dev** | `src/` outside `src/game/`: React components, tabs, styling, Amplify client calls |
 | **backend-dev** | `src/game/` (game logic) and `amplify/` (auth, data models, functions, resolvers) |
 | **designer** | New screens not in the prototype, added under `design/` using the prototype's tokens |
-| **test-engineer** | Write tests after a feature is complete |
+| **test-engineer** | Not used for now (no automated tests — see Decisions) |
 | **code-reviewer** | Review every diff before committing |
 | **debug-test** (`/debug-test`) | Diagnose a failing test and delegate the fix to the right specialist |
 
@@ -147,8 +147,10 @@ entries without refreshing.
   +/- buttons, remove player, reset campaign, chart a new Reach: owner only.
 - **Security is honour-system for MVP:** hidden hands and per-player permissions are
   enforced in the UI only. The log is stored as plain data, never HTML.
-- **Tests are light for now:** a small Vitest smoke suite on the game engine to catch
-  porting bugs; no component or E2E tests. The user tests manually. Revisit if it grows.
+- **No automated tests for now** (decided 2026-10-20). This is a throwaway app for a few
+  friends; the user tests manually in the browser. Verification = `npm run build` (type-check)
+  and `npm run lint`. Add testing back (Vitest for `src/game/` first) only if the project
+  grows beyond the friends group.
 - **`main` deploys straight to live** and committing to `main` is fine (friends-only app).
 
 ## Not in the MVP
@@ -184,10 +186,9 @@ images and uploads, chat, notifications, admin tools, payments.
 - Build command: `npm run build` (type-checks frontend, game module and `amplify/`)
 
 ## Testing
-Light for now (see Decisions). The test-engineer step in the feature flow is optional.
-- Game module: Vitest smoke tests in `src/game/**/*.test.ts`, seeded RNG
-- No component, backend or E2E tests until the app goes wider
-- Run all tests: `npm test`
+**None for now** (see Decisions). Skip the test-engineer step in the feature flow and don't
+write test files. Verify with `npm run build` and `npm run lint`; the user tests manually.
+If testing comes back: Vitest for `src/game/` first (seeded RNG), see the `test-automation` skill.
 
 ## Git
 - Commit straight to `main` is fine; every push to `main` deploys to the live site

@@ -53,7 +53,7 @@ Stage 4 adds `AuthGate` (Authenticator + display-name prompt), `CampaignList`,
 | Stage | Agents |
 |---|---|
 | 0 Template applied | done: `.claude/`, merged `CLAUDE.md`, adapted skills, `.gitignore`, `git init` |
-| 2 Game module | backend-dev ports (+ small smoke tests) → code-reviewer |
+| 2 Game module | backend-dev ports (no tests) → code-reviewer |
 | 3 Frontend (local) | design-reviewer brief from prototype → frontend-dev → code-reviewer |
 | 4 Backend | product-owner on the online-only bits (auth, campaign list, join) → designer adds those screens to `design/` (you approve) → solution-architect → backend-dev + frontend-dev → code-reviewer |
 | 5 Deploy | done directly with you (console steps) |
@@ -132,3 +132,12 @@ through `/build-feature`.
 | CDK bootstrap | later | The first `npx ampx sandbox` asks to bootstrap `eu-west-2` (creates an S3 bucket + IAM roles, ~free). I'll ask before running it. |
 | GitHub repo | ❓ | Empty **private** repo, e.g. `varkesh-reach` |
 | Test emails | — | Two addresses for stage 4 (Gmail `+` aliases work: `you+p1@gmail.com`) |
+
+## Notes from stage 2 (game module)
+- **Campaign creation:** start with `fresh([owner])`. Every `addPlayer` adds an outer world, so
+  before round 1 the map grows with each join; the owner's **Chart a new Reach** (`regen`, round 0
+  only) then right-sizes it to `max(3, players + 1)` for the final group.
+- **UI must tolerate:** `order` containing removed player ids (filter with `getPlayer`), late joiners
+  missing from the current `order`, `won` being null after a winner is removed, and `BattleInfo.v`
+  being the rift (`v.type === "rift"`, no `pl`). Compute `playerColors(state)` once per render.
+- Scout's "swap one twist" is a note only (as in the prototype); no twist-picking UI.
