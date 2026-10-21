@@ -1,6 +1,8 @@
 import { getPlanet, hollOpen, ORBITS, ownerOf, PTYPES, systemScale } from "../game/index.ts";
-import type { CampaignState } from "../game/index.ts";
+import type { CampaignState, Planet } from "../game/index.ts";
 import { activateOnKey } from "./mapKeys.ts";
+import { textWidth } from "./mapText.ts";
+import { useIsDesktop } from "./useIsDesktop.ts";
 
 interface Props {
   state: CampaignState;
@@ -19,6 +21,36 @@ function arcPath(cx: number, cy: number, r: number, a0: number, a1: number): str
 /** Below this many CSS px per map unit, labels get too small on a phone; the map scrolls sideways instead. */
 const MIN_PX_PER_UNIT = 0.85;
 
+const LABEL_SIZE = 15;
+const planetRadius = (p: Planet): number => (p.orbit === "inner" ? 14 : p.orbit === "middle" ? 16 : 18);
+/** Label baseline: below worlds in the lower half of the map, above the rest. */
+const labelY = (p: Planet, r: number, c: number): number => (p.y > c ? p.y + r + 19 : p.y - r - 11);
+
+/** Desktop viewBox: the square map plus anything (rings, labels) that pokes past its edges. */
+function desktopViewBox(planets: Planet[], size: number): string {
+  const c = size / 2;
+  const pad = 4;
+  let x0 = 0;
+  let y0 = 0;
+  let x1 = size;
+  let y1 = size;
+  for (const p of planets) {
+    const r = planetRadius(p);
+    const ring = r + 9; // ownership arc at r + 5, plus stroke and round cap
+    const halfW = textWidth(p.name, LABEL_SIZE, "display") / 2 + 3;
+    const ly = labelY(p, r, c);
+    x0 = Math.min(x0, p.x - ring, p.x - halfW);
+    x1 = Math.max(x1, p.x + ring, p.x + halfW);
+    y0 = Math.min(y0, p.y - ring, ly - 14); // cap height plus halo above the baseline
+    y1 = Math.max(y1, p.y + ring, ly + 6); // descender plus halo below it
+  }
+  if (x0 < 0) x0 -= pad;
+  if (y0 < 0) y0 -= pad;
+  if (x1 > size) x1 += pad;
+  if (y1 > size) y1 += pad;
+  return `${x0} ${y0} ${x1 - x0} ${y1 - y0}`;
+}
+
 export function SystemMap({ state, colors, onOpenPlanet }: Props) {
   const sy = state.sys;
   const size = sy.size;
@@ -26,10 +58,11 @@ export function SystemMap({ state, colors, onOpenPlanet }: Props) {
   const scale = systemScale(sy.planets);
   const open = hollOpen(state);
   const ho = ownerOf(state, "holl");
+  const desktop = useIsDesktop();
 
   return (
     <svg
-      viewBox={`0 0 ${size} ${size}`}
+      viewBox={desktop ? desktopViewBox(sy.planets, size) : `0 0 ${size} ${size}`}
       role="img"
       aria-label="Campaign map of the Varkesh Reach"
       style={{ minWidth: Math.round(size * MIN_PX_PER_UNIT) }}
@@ -81,7 +114,7 @@ export function SystemMap({ state, colors, onOpenPlanet }: Props) {
         <circle className="ring" cx={c} cy={c} r="13" fill={ho ? (colors[ho.id] ?? "#16120f") : "#16120f"} stroke="#b8392e" strokeWidth="2" />
       </g>
       {sy.planets.map((p) => {
-        const r = p.orbit === "inner" ? 14 : p.orbit === "middle" ? 16 : 18;
+        const r = planetRadius(p);
         const vs = sy.provs.filter((v) => v.pl === p.id);
         const tot = vs.length;
         const gap = 0.08;
@@ -107,7 +140,7 @@ export function SystemMap({ state, colors, onOpenPlanet }: Props) {
             />
           );
         });
-        const ly = p.y > c ? p.y + r + 19 : p.y - r - 11;
+        const ly = labelY(p, r, c);
         const open1 = () => onOpenPlanet(p.id);
         return (
           <g
@@ -128,7 +161,7 @@ export function SystemMap({ state, colors, onOpenPlanet }: Props) {
               y={ly}
               textAnchor="middle"
               fontFamily="Grenze Gothic,Georgia,serif"
-              fontSize="15"
+              fontSize={LABEL_SIZE}
               fill="#ebdfc8"
               paintOrder="stroke"
               stroke="#211a16"
