@@ -1,0 +1,499 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Varkesh Reach - Character customisation (design mock)</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Grenze+Gothic:wght@500;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Share+Tech+Mono&display=swap">
+<style>
+/* ===== Tokens and base: copied from reference/index.html / design/roster.html ===== */
+[hidden]{display:none!important}
+img{max-width:100%}
+body{margin:0}
+:root{
+  --bg:#16120f; --panel:#211a16; --panel2:#2a211c; --line:#3d312a;
+  --ink:#ebdfc8; --dim:#a8977f; --brass:#d0a952; --blood:#b8392e; --verd:#6f9a86;
+  --f-display:"Grenze Gothic","Palatino Linotype",Georgia,serif;
+  --f-body:"Alegreya Sans","Segoe UI",system-ui,sans-serif;
+  --f-mono:"Share Tech Mono",ui-monospace,Menlo,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.55;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px}
+.wrap{max-width:760px;margin:0 auto}
+header.hero{padding-block:28px 18px;border-bottom:1px solid var(--line)}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass)}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(40px,11vw,68px);line-height:.95;margin:6px 0 10px;text-wrap:balance;letter-spacing:.01em}
+h1 span{color:var(--blood)}
+h2{font-family:var(--f-display);font-weight:700;font-size:34px;line-height:1.05;margin:0 0 6px;text-wrap:balance}
+h3{font-family:var(--f-display);font-weight:500;font-size:23px;margin:26px 0 6px;color:var(--brass);text-wrap:balance}
+p{margin:0 0 12px;max-width:65ch}
+.dim{color:var(--dim)}
+.mono{font-family:var(--f-mono)}
+.tbl{overflow-x:auto;margin:10px 0 16px}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{text-align:left;padding:8px 10px 8px 0;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);font-weight:400}
+td.n{font-family:var(--f-mono);color:var(--brass);white-space:nowrap;font-variant-numeric:tabular-nums}
+.btn{font-family:var(--f-mono);font-size:13px;letter-spacing:.05em;text-transform:uppercase;background:var(--panel2);color:var(--ink);border:1px solid var(--line);padding:9px 14px;border-radius:2px;cursor:pointer}
+.btn.primary{background:var(--brass);color:var(--bg);border-color:var(--brass)}
+.btn.danger{color:var(--blood)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.sm{padding:5px 9px;font-size:11px}
+button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-visible,a:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:6px;font-family:var(--f-mono);font-size:12px;padding:4px 9px;border:1px solid var(--line);border-radius:20px;color:var(--dim);background:none;cursor:pointer}
+.chip[aria-pressed="true"]{border-color:var(--brass);color:var(--ink);background:var(--panel2)}
+.chip:disabled{opacity:.4;cursor:not-allowed}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex:none}
+select,input[type=text],input[type=number],textarea{font:inherit;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:2px;padding:7px 9px;max-width:100%}
+textarea{width:100%;resize:vertical;min-height:96px}
+.msg{font-family:var(--f-mono);font-size:12px;color:var(--blood);min-height:1em}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1 1 180px}
+.field label,.lbl{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.overline{font-family:var(--f-mono);font-size:12px;color:var(--blood);margin-top:6px}
+
+/* ===== Roster classes (from roster.html / prototype.css) ===== */
+.rhead{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:14px;margin:12px 0}
+.pick{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 4px}
+.pick .chip{font-size:13px;padding:6px 11px}
+.unit{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:12px 12px 10px;margin:10px 0;display:flex;flex-direction:column;gap:6px;min-width:0}
+.unit.danger{border-color:var(--blood)}
+.unit .k{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.unit .t{font-family:var(--f-display);font-size:23px;line-height:1.1}
+.unit .pts{font-family:var(--f-mono);font-size:13px;white-space:nowrap;text-align:right}
+.unit .pts b{font-family:var(--f-display);font-size:26px;font-weight:500;color:var(--ink);display:block;line-height:1}
+.unit .pts s{color:var(--dim)}
+.unit .top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.badges{display:flex;flex-wrap:wrap;gap:5px}
+.badge{font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:2px;border:1px solid var(--line);color:var(--ink);background:var(--panel2)}
+.badge.char{border-color:var(--brass);color:var(--brass)}
+.badge.war{background:var(--brass);color:var(--bg);border-color:var(--brass)}
+.badge.hon{border-color:var(--verd);color:var(--verd)}
+.badge.scar{border-color:var(--blood);color:var(--blood)}
+.badge.relic{border-color:var(--brass);color:var(--brass);border-style:dashed}
+.xp{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;font-family:var(--f-mono);font-size:12px}
+.bar{height:6px;background:var(--line);border-radius:1px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--brass)}
+.unit .enh{border-left:3px solid var(--brass);padding:2px 10px;font-size:14.5px}
+.unit .enh span{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);display:block}
+.unit .warnline{font-family:var(--f-mono);font-size:12px;color:var(--blood)}
+.unit .acts{display:flex;gap:6px;margin-top:4px;justify-content:flex-end}
+.ro{font-family:var(--f-mono);font-size:12px;color:var(--dim);border:1px dashed var(--line);padding:6px 10px;border-radius:2px;margin:6px 0}
+.panel{background:var(--panel);border:1px solid var(--brass);border-radius:3px;padding:16px;margin:12px 0}
+.panel h4{font-family:var(--f-display);font-size:28px;font-weight:700;margin:0 0 2px;line-height:1.05}
+.formgrid{display:flex;flex-wrap:wrap;gap:12px;margin:12px 0}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.sub{border-top:1px solid var(--line);padding-top:10px;margin-top:12px}
+.pbunit{border:1px solid var(--line);background:var(--bg);border-radius:3px;padding:12px;margin:8px 0}
+.pbunit .nm{font-family:var(--f-display);font-size:20px;line-height:1.1}
+.res{border-top:1px solid var(--line);padding:12px 0}
+.res .rt{font-family:var(--f-display);font-size:21px;line-height:1.1}
+.out{font-family:var(--f-mono);font-size:12.5px;padding:6px 10px;margin-top:8px;border-left:3px solid var(--verd);background:var(--bg)}
+.out.bad{border-color:var(--blood);color:var(--blood)}
+.out.gone{border-color:var(--blood);background:var(--blood);color:var(--ink)}
+.diebtn{display:inline-flex;gap:6px;align-items:center}
+.die{font-family:var(--f-display);font-size:22px;color:var(--brass);min-width:2ch;text-align:center}
+.picklist{display:grid;gap:6px;margin:8px 0}
+.opt{display:flex;gap:10px;align-items:flex-start;text-align:left;width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:3px;padding:10px 12px;color:var(--ink);font:inherit;cursor:pointer}
+.opt[aria-pressed="true"]{border-color:var(--brass);background:var(--bg)}
+.opt:disabled{opacity:.4;cursor:not-allowed}
+.opt small{display:block;color:var(--dim);font-size:13.5px}
+.seg{display:flex;gap:0}
+.seg .chip{border-radius:0;flex:1;justify-content:center;font-size:13px;padding:7px 11px}
+.seg .chip:first-child{border-radius:20px 0 0 20px}
+.seg .chip:last-child{border-radius:0 20px 20px 0}
+
+/* ===== NEW: character customisation ===== */
+.career{display:flex;gap:14px;align-items:baseline;flex-wrap:wrap;font-family:var(--f-display);font-size:22px;line-height:1.1;padding:6px 0;border-block:1px solid var(--line)}
+.career b{color:var(--brass);font-weight:500;font-variant-numeric:tabular-nums}
+.career .sep{color:var(--dim)}
+.career-sm{font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;color:var(--dim)}
+.pts em{display:block;font-style:normal;color:var(--dim);font-size:11px}
+.title-sub{font-style:italic;color:var(--brass)}
+.more{border:1px solid var(--line);border-radius:3px;background:var(--bg)}
+.more>summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:8px;padding:8px 10px;font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.more>summary::-webkit-details-marker{display:none}
+.more>summary::after{content:"+";color:var(--brass);font-size:14px;line-height:1}
+.more[open]>summary::after{content:"\2212"}
+.more .inner{padding:0 10px 10px;display:grid;gap:8px}
+.story{font-style:italic;border-left:3px solid var(--line);padding:2px 10px;font-size:15px;white-space:pre-line}
+.relics{display:grid;gap:6px}
+.relic{border:1px solid var(--brass);border-style:dashed;border-radius:3px;padding:6px 10px;display:flex;justify-content:space-between;gap:8px;align-items:flex-start;font-size:14.5px}
+.relic b{font-family:var(--f-display);font-size:18px;font-weight:500;color:var(--brass);display:block;line-height:1.15}
+.relic .x{flex:none}
+.relicbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+.relicbar .mono{font-size:12px;color:var(--dim)}
+.counter{font-family:var(--f-mono);font-size:11px;color:var(--dim);text-align:right}
+.counter.over{color:var(--blood)}
+.hallseg{margin:12px 0}
+.hp{margin:18px 0 6px;display:flex;align-items:center;gap:8px;font-family:var(--f-display);font-size:24px;line-height:1.1}
+.hp small{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+.hero-row{background:var(--panel);border:1px solid var(--line);border-left-width:4px;border-radius:3px;padding:10px 12px;margin:8px 0;display:grid;gap:4px}
+.hero-row .nm{font-family:var(--f-display);font-size:21px;line-height:1.1}
+.hero-row .meta{font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);display:flex;flex-wrap:wrap;gap:4px 12px}
+.hero-row .meta b{color:var(--ink);font-weight:400}
+.mem{background:var(--bg);border:1px solid var(--line);border-left:4px solid var(--blood);border-radius:3px;padding:10px 12px;margin:8px 0;display:grid;gap:4px}
+.mem .nm{font-family:var(--f-display);font-size:21px;line-height:1.1}
+.mem .cause{font-style:italic;border-left:3px solid var(--blood);padding:0 10px;font-size:15px}
+.mem .top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.mem .rnd{font-family:var(--f-mono);font-size:11px;color:var(--dim);white-space:nowrap}
+.warlord-row{border:1px solid var(--brass);background:var(--bg);border-radius:3px;padding:12px;margin-top:8px}
+
+/* mock-only: legend + section frames (not part of the product) */
+.legendbox{border:1px dashed var(--line);border-radius:3px;padding:10px 12px;margin:16px 0;font-family:var(--f-mono);font-size:12px;color:var(--dim)}
+.legendbox ol{margin:6px 0 0;padding-left:20px;display:grid;gap:2px}
+.legendbox a{color:var(--brass)}
+.mock{border-top:2px solid var(--line);margin-top:34px;padding-top:6px}
+.mock>.tag{font-family:var(--f-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--brass)}
+.phone{max-width:430px}
+.phone-note{font-family:var(--f-mono);font-size:11px;color:var(--dim);margin:2px 0 8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+  <div class="eyebrow">Design mock · Character customisation</div>
+  <h1>The Varkesh <span>Reach</span></h1>
+</header>
+
+<nav class="legendbox" aria-label="Mock sections">
+  MOCK ONLY - sections:
+  <ol>
+    <li><a href="#s1">Character unit cards</a> (expanded, non-Character, 3 relics)</li>
+    <li><a href="#s2">Unit editor sheet</a> (Character)</li>
+    <li><a href="#s3">Roll-a-relic dialog</a> (roll, duplicate, pick)</li>
+    <li><a href="#s4">Post-battle results</a> (honours, Warlord, Grievous Wound)</li>
+    <li><a href="#s5">Remove Character</a> confirmation</li>
+    <li><a href="#s6">Hall of Heroes</a> sub-view</li>
+  </ol>
+</nav>
+
+<!-- ============ 1. CARDS ============ -->
+<section class="mock" id="s1">
+  <div class="tag">1 · Unit cards</div>
+  <h2>Roster</h2>
+  <p class="phone-note">Edits and Remove appear for the owner of the roster only. Backstory, trait, enhancement and relics sit in a collapsible "Details" block, so a Character with none of them looks as it does today.</p>
+  <div class="phone">
+
+  <!-- Expanded Character (Warlord), 2 of 3 relics -->
+  <article class="unit">
+    <div class="top"><div style="min-width:0">
+      <div class="k"><span>Captain</span></div>
+      <div class="t">Captain Idris Valen<span class="title-sub">, the Unbroken</span></div></div>
+      <div class="pts"><b>115 pts</b><s>85 base</s> +10 honour +20 relics</div></div>
+    <div class="badges"><span class="badge">Veteran</span><span class="badge war">Warlord</span><span class="badge char">Character</span></div>
+    <div class="career" aria-label="Career record"><span><b>7</b> battles</span><span class="sep">·</span><span><b>12</b> kills</span></div>
+    <div class="xp"><span>9 XP</span><div class="bar"><i style="width:14%"></i></div><span>6 to Elite</span></div>
+    <div class="badges">
+      <span class="badge hon" title="Once per battle, gain 1 CP.">Tactical Genius</span>
+      <span class="badge scar" title="Starts its next battle with 1 fewer Wound. After that battle, the scar heals and is removed.">Grievous Wound</span></div>
+    <details class="more" open>
+      <summary><span>Details · trait, enhancement, backstory</span></summary>
+      <div class="inner">
+        <div class="enh"><span>Warlord trait</span>Iron Resolve of the Ninth: while Idris lives, no Ninth Muster unit is ever Battle-shocked on a 1.</div>
+        <div class="enh"><span>Enhancement</span>Gilded Standard of the Ninth: friendly units within 6" re-roll Battle-shock tests.</div>
+        <div><div class="lbl" style="margin-bottom:4px">Backstory</div>
+          <div class="story">Last captain of the Ninth to leave Kharst alive. He carried the Standard through the Cinderfall breach with a shattered hand, and has not set it down since.</div></div>
+      </div>
+    </details>
+    <div class="lbl">Relics · 2 of 3</div>
+    <div class="relics">
+      <div class="relic"><div><b>Orrin's Ward</b>The bearer gains a 5+ invulnerable save, or improves an existing one by 1 (best 4+).</div><button class="btn sm danger x" aria-label="Remove relic Orrin's Ward">Remove</button></div>
+      <div class="relic"><div><b>Choirhold Bell</b>Friendly units within 6" add 1 to their Battle-shock tests.</div><button class="btn sm danger x" aria-label="Remove relic Choirhold Bell">Remove</button></div>
+    </div>
+    <div class="relicbar"><button class="btn sm primary">Roll a relic</button><span class="mono">+10 pts each</span></div>
+    <div class="acts"><button class="btn sm">Edit</button><button class="btn sm danger">Remove</button></div>
+  </article>
+
+  <!-- Compact non-Character -->
+  <article class="unit">
+    <div class="top"><div style="min-width:0">
+      <div class="k"><span>Assault Intercessor Squad</span></div>
+      <div class="t">Red Hand Assault</div></div>
+      <div class="pts"><b>165 pts</b><s>150 base</s> +15</div></div>
+    <div class="badges"><span class="badge">Blooded</span></div>
+    <div class="xp"><span>4 XP</span><div class="bar"><i style="width:20%"></i></div><span>4 to Veteran</span></div>
+    <div class="badges"><span class="badge hon">Brawlers</span></div>
+    <div class="career-sm">CAREER · 3 battles · 5 kills</div>
+    <div class="acts"><button class="btn sm">Edit</button><button class="btn sm danger">Remove</button></div>
+  </article>
+
+  <!-- Character at 3 relics -->
+  <article class="unit danger">
+    <div class="top"><div style="min-width:0">
+      <div class="k"><span>Chaplain</span></div>
+      <div class="t">Brother Kaeth Morrow<span class="title-sub">, Voice of the Ninth</span></div></div>
+      <div class="pts"><b>125 pts</b><s>90 base</s> +5 honour +30 relics</div></div>
+    <div class="badges"><span class="badge">Elite</span><span class="badge char">Character</span></div>
+    <div class="career"><span><b>11</b> battles</span><span class="sep">·</span><span><b>19</b> kills</span></div>
+    <div class="badges"><span class="badge hon">Voice of Command</span><span class="badge scar">Lost an Eye</span><span class="badge scar">Withered Arm</span></div>
+    <div class="warnline">2 scars. One more and this unit is gone.</div>
+    <details class="more">
+      <summary><span>Details · 3 relics</span></summary>
+      <div class="inner">
+        <div class="relics">
+          <div class="relic"><div><b>Tomb-Shard of Kell</b>Once per battle, the bearer may re-roll one hit, wound or damage roll.</div><button class="btn sm danger x">Remove</button></div>
+          <div class="relic"><div><b>Thessaly Blade</b>One of the bearer's melee weapons gains +1 Damage.</div><button class="btn sm danger x">Remove</button></div>
+          <div class="relic"><div><b>Vesk Rosary</b>Once per battle, when the bearer would be destroyed, roll a D6. On a 4+ it stays on 1 wound instead.</div><button class="btn sm danger x">Remove</button></div>
+        </div>
+      </div>
+    </details>
+    <div class="lbl">Relics · 3 of 3</div>
+    <div class="relicbar"><button class="btn sm primary" disabled>Roll a relic</button><span class="mono">At the limit: remove a relic to earn another.</span></div>
+    <div class="acts"><button class="btn sm">Edit</button><button class="btn sm danger">Remove</button></div>
+  </article>
+  </div>
+</section>
+
+<!-- ============ 2. EDITOR ============ -->
+<section class="mock" id="s2">
+  <div class="tag">2 · Unit editor sheet</div>
+  <p class="phone-note">New fields only; name, datasheet, base points, XP, role, honours and scars are unchanged. Title and Backstory show for Characters, Warlord trait for the Warlord, career fields for every unit.</p>
+  <div class="phone panel">
+    <h4>Edit unit</h4>
+    <p class="dim">Rank is worked out from XP. Effective points add 10% per honour, rounded to the nearest 5, plus 10 per relic.</p>
+    <div class="formgrid">
+      <div class="field"><label for="e_name">Unit name</label><input type="text" id="e_name" value="Captain Idris Valen"></div>
+      <div class="field"><label for="e_ds">Datasheet</label><input type="text" id="e_ds" value="Captain"></div>
+    </div>
+    <div class="mono" style="font-size:12px">RANK: <span style="color:var(--brass)">VETERAN</span> · 2 HONOUR SLOTS · EFFECTIVE 115 PTS (2 RELICS)</div>
+    <div class="sub"><div class="lbl">Role</div>
+      <div class="chips" style="margin-top:6px"><button class="chip" aria-pressed="true">Character</button><button class="chip" aria-pressed="true">Warlord</button></div>
+      <div class="field" style="margin-top:10px"><label for="e_enh">Enhancement (optional)</label><input type="text" id="e_enh" value="Gilded Standard of the Ninth: friendly units within 6&quot; re-roll Battle-shock tests."></div>
+    </div>
+    <div class="sub"><div class="lbl">Identity · Characters only</div>
+      <div class="field" style="margin-top:6px"><label for="e_title">Title (optional)</label><input type="text" id="e_title" value="the Unbroken" placeholder="e.g. the Unbroken"><span class="mono dim" style="font-size:11px">SHOWS AS "CAPTAIN IDRIS VALEN, THE UNBROKEN"</span></div>
+      <div class="field" style="margin-top:10px"><label for="e_story">Backstory (optional)</label>
+        <textarea id="e_story" maxlength="280" placeholder="A few lines of history. Plain text.">Last captain of the Ninth to leave Kharst alive. He carried the Standard through the Cinderfall breach with a shattered hand, and has not set it down since.</textarea>
+        <div class="counter" id="cnt">0 / 280</div></div>
+      <div class="field" style="margin-top:10px"><label for="e_wt">Warlord trait (optional) · Warlord only</label><input type="text" id="e_wt" value="Iron Resolve of the Ninth: while Idris lives, no Ninth Muster unit is ever Battle-shocked on a 1." placeholder="Trait name and effect"></div>
+    </div>
+    <div class="sub"><div class="lbl">Career record · every unit</div>
+      <div class="formgrid" style="margin-bottom:0">
+        <div class="field" style="flex:1 1 120px"><label for="e_b">Battles</label><input type="number" id="e_b" value="7" min="0" step="1"></div>
+        <div class="field" style="flex:1 1 120px"><label for="e_k">Kills</label><input type="number" id="e_k" value="12" min="0" step="1"></div>
+      </div>
+      <div class="mono dim" style="font-size:11px;margin-top:6px">THE POST-BATTLE HELPER ADDS TO THESE. EDIT ONLY TO CORRECT THEM.</div>
+    </div>
+    <div class="row sub"><button class="btn primary">Save changes</button><button class="btn">Cancel</button></div>
+  </div>
+</section>
+
+<!-- ============ 3. RELIC DIALOG ============ -->
+<section class="mock" id="s3">
+  <div class="tag">3 · Roll-a-relic dialog</div>
+  <p class="phone-note">Three states of one sheet. Idris already holds Orrin's Ward (1) and Choirhold Bell (5). Sources are honour-system and are not verified.</p>
+  <div class="phone">
+
+  <div class="panel">
+    <h4>Roll a relic</h4>
+    <p class="dim">Captain Idris Valen holds 2 of 3 relics. Each adds 10 pts.</p>
+    <div class="lbl">1. How was it earned?</div>
+    <div class="picklist">
+      <button class="opt" aria-pressed="true"><div><b>Claimed a Shrine</b><small>You claimed a Shrine province.</small></div></button>
+      <button class="opt" aria-pressed="false"><div><b>Played a Fate Card</b><small>A Fate Card granted a relic.</small></div></button>
+    </div>
+    <div class="lbl" style="margin-top:12px">2. Roll or pick</div>
+    <div class="row" style="margin-top:6px">
+      <span class="diebtn"><button class="btn sm">Roll D6</button>
+        <select aria-label="Enter relic D6 result"><option>or enter</option><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option></select>
+        <span class="die">3</span></span>
+      <select aria-label="Pick a relic"><option>Pick from list</option></select>
+    </div>
+    <div class="out">Rolled 3: <b>Thessaly Blade</b>. One of the bearer's melee weapons gains +1 Damage.</div>
+    <div class="row sub"><button class="btn primary">Add relic (+10 pts)</button><button class="btn">Cancel</button></div>
+    <div class="mono dim" style="font-size:11px;margin-top:8px">LOGS: "NINTH MUSTER: CAPTAIN IDRIS VALEN FINDS THESSALY BLADE (SHRINE)."</div>
+  </div>
+
+  <div class="panel">
+    <h4>Roll a relic</h4>
+    <p class="dim">Duplicate state.</p>
+    <div class="lbl">1. How was it earned?</div>
+    <div class="chips" style="margin-top:6px"><button class="chip" aria-pressed="false">Claimed a Shrine</button><button class="chip" aria-pressed="true">Played a Fate Card</button></div>
+    <div class="lbl" style="margin-top:12px">2. Roll or pick</div>
+    <div class="row" style="margin-top:6px">
+      <span class="diebtn"><button class="btn sm">Roll D6</button>
+        <select aria-label="Enter relic D6 result"><option>or enter</option></select><span class="die">5</span></span>
+      <select aria-label="Pick a relic"><option>Pick from list</option></select>
+    </div>
+    <div class="out bad">Rolled 5: Choirhold Bell, already held. Re-roll, or pick another from the list.</div>
+    <div class="row sub"><button class="btn primary" disabled>Add relic (+10 pts)</button><button class="btn">Cancel</button></div>
+  </div>
+
+  <div class="panel">
+    <h4>Roll a relic</h4>
+    <p class="dim">Pick-list state (opened via "Pick from list").</p>
+    <div class="picklist">
+      <button class="opt" disabled><div><b>1 · Orrin's Ward (held)</b><small>The bearer gains a 5+ invulnerable save, or improves an existing one by 1 (best 4+).</small></div></button>
+      <button class="opt" aria-pressed="false"><div><b>2 · Tomb-Shard of Kell</b><small>Once per battle, the bearer may re-roll one hit, wound or damage roll.</small></div></button>
+      <button class="opt" aria-pressed="false"><div><b>3 · Thessaly Blade</b><small>One of the bearer's melee weapons gains +1 Damage.</small></div></button>
+      <button class="opt" aria-pressed="true"><div><b>4 · Lantern of Cinderfall</b><small>The bearer's ranged attacks ignore the benefit of cover.</small></div></button>
+      <button class="opt" disabled><div><b>5 · Choirhold Bell (held)</b><small>Friendly units within 6" add 1 to their Battle-shock tests.</small></div></button>
+      <button class="opt" aria-pressed="false"><div><b>6 · Vesk Rosary</b><small>Once per battle, when the bearer would be destroyed, roll a D6. On a 4+ it stays on 1 wound instead.</small></div></button>
+    </div>
+    <div class="row sub"><button class="btn primary">Add relic (+10 pts)</button><button class="btn">Cancel</button></div>
+  </div>
+  </div>
+</section>
+
+<!-- ============ 4. POST-BATTLE ============ -->
+<section class="mock" id="s4">
+  <div class="tag">4 · Post-battle results (step 2)</div>
+  <p class="phone-note">Step 1 (who fought, kills, glory) is unchanged; fought units also gain +1 battle and their kills join the career record.</p>
+  <div class="phone">
+    <h2>Post-battle results</h2>
+    <p class="dim">Step 2 of 2. Roll the dice at the table and enter them, or let the app roll. Nothing is saved until you confirm.</p>
+    <div class="tbl"><table><thead><tr><th>Unit</th><th>XP</th><th>Rank</th><th>Career</th></tr></thead><tbody>
+      <tr><td>Captain Idris Valen</td><td class="n">+1 XP</td><td>Veteran</td><td class="n">8 · 14</td></tr>
+      <tr><td>Anvil Squad</td><td class="n">+2 XP</td><td>Blooded</td><td class="n">2 · 3</td></tr>
+    </tbody></table></div>
+
+    <h3 style="margin-top:6px">Rank-ups</h3>
+    <div class="res"><div class="rt">Brother Kaeth Morrow reaches Elite</div>
+      <div class="mono dim" style="font-size:12px">14 → 15 XP · NEW CHARACTER BATTLE HONOUR</div>
+      <div class="row" style="margin-top:8px">
+        <span class="diebtn"><button class="btn sm">Roll D6</button><select aria-label="Enter honour D6 result"><option>or enter</option></select><span class="die">4</span></span>
+        <select aria-label="Pick an honour"><option>Pick from list</option></select></div>
+      <div class="out">Rolled 4: Unyielding. Once per battle, ignore the damage from one wound allocated to this model. <button class="btn sm">Take it</button></div>
+      <div class="mono dim" style="font-size:11px;margin-top:6px">TABLE: CHARACTER BATTLE HONOURS (D6). NO DUPLICATES ACROSS CHARACTER AND GENERIC HONOURS.</div>
+    </div>
+    <div class="res"><div class="rt">Captain Idris Valen reaches Veteran</div>
+      <div class="mono dim" style="font-size:12px">8 → 9 XP · NEW CHARACTER BATTLE HONOUR</div>
+      <div class="row" style="margin-top:8px">
+        <span class="diebtn"><button class="btn sm">Roll D6</button><select aria-label="Enter honour D6 result"><option>or enter</option></select><span class="die">1</span></span>
+        <select aria-label="Pick an honour"><option>Pick from list</option></select></div>
+      <div class="out bad">Rolled 1: Tactical Genius, already held. Re-roll, or pick another from the list.</div>
+    </div>
+
+    <h3>Roll for the fallen</h3>
+    <div class="res"><div class="rt">Red Hand Assault was destroyed</div>
+      <div class="mono dim" style="font-size:12px">SCAR ON A 1 · HAS 0 SCARS</div>
+      <div class="row" style="margin-top:8px"><span class="diebtn"><button class="btn sm">Roll D6</button><select><option>or enter</option></select><span class="die">1</span></span></div>
+      <div class="out bad">D6 1: Scarred (needs 1 or less).</div>
+    </div>
+
+    <div class="warlord-row">
+      <div class="rt" style="font-family:var(--f-display);font-size:21px;line-height:1.1">Captain Idris Valen was destroyed</div>
+      <div class="mono" style="font-size:12px;color:var(--brass);margin-top:2px">WARLORD — TAKES A CHARACTER BATTLE SCAR</div>
+      <div class="mono dim" style="font-size:11px;margin-top:2px">NO ROLL FOR THE FALLEN. NEVER REMOVED. NO RP PENALTY. HAS 1 SCAR.</div>
+      <div class="row" style="margin-top:8px"><span class="lbl">Character Battle Scar</span>
+        <span class="diebtn"><button class="btn sm">Roll D3</button><select aria-label="Enter scar D3 result"><option>or enter</option></select><span class="die">2</span></span>
+        <select aria-label="Pick a scar"><option>Pick from list</option></select></div>
+      <div class="out bad">Rolled 2: <b>Lost an Eye</b>. −1 BS on its ranged weapons.</div>
+      <div class="mono dim" style="font-size:11px;margin-top:6px">AT THREE SCARS, A NEW SCAR REPLACES THE OLDEST. RE-ROLL SCARS IT ALREADY HOLDS.</div>
+    </div>
+
+    <div class="res"><div class="rt">Brother Kaeth Morrow</div>
+      <div class="out">Grievous Wound has healed after this battle and is removed.</div>
+    </div>
+
+    <div class="row sub"><button class="btn primary">Confirm and save</button><button class="btn">Back</button><button class="btn">Cancel</button></div>
+  </div>
+</section>
+
+<!-- ============ 5. REMOVE ============ -->
+<section class="mock" id="s5">
+  <div class="tag">5 · Remove a Character</div>
+  <p class="phone-note">Replaces the two-tap "Confirm remove" for Characters only (Non-Characters keep it). Also the cause for a third-scar removal is prefilled "Third Battle Scar" with no prompt. The Warlord can be removed manually here; it is never removed by scars.</p>
+  <div class="phone panel">
+    <h4>Why did they fall?</h4>
+    <p class="dim">Brother Kaeth Morrow, Voice of the Ninth will be moved to the Hall of Heroes as a memorial.</p>
+    <div class="field"><label for="r_cause">Cause (optional)</label>
+      <input type="text" id="r_cause" maxlength="80" placeholder="Retired from the roster"></div>
+    <div class="chips" style="margin-top:8px">
+      <button class="chip" aria-pressed="false">Slain at the Cinderfall breach</button>
+      <button class="chip" aria-pressed="false">Lost to the Warp</button>
+      <button class="chip" aria-pressed="false">Retired from the roster</button></div>
+    <div class="row sub"><button class="btn danger">Remove and remember</button><button class="btn">Cancel</button></div>
+  </div>
+</section>
+
+<!-- ============ 6. HALL ============ -->
+<section class="mock" id="s6">
+  <div class="tag">6 · Hall of Heroes</div>
+  <p class="phone-note">Sub-view inside the Roster tab. Visible to every member, all players. Toggle the segmented control, and the viewer role to see the owner-only delete.</p>
+  <div class="phone">
+    <h2>Roster</h2>
+    <div class="seg hallseg" role="group" aria-label="Roster view">
+      <button class="chip" aria-pressed="false" data-view="roster">Roster</button>
+      <button class="chip" aria-pressed="true" data-view="hall">Hall of Heroes</button>
+    </div>
+    <div class="row" style="margin-bottom:6px"><span class="lbl">Viewing as</span>
+      <button class="chip" aria-pressed="false" data-role="member">Member</button>
+      <button class="chip" aria-pressed="true" data-role="owner">Campaign owner</button></div>
+
+    <div id="v_roster" hidden>
+      <div class="rhead"><div class="lbl">Roster of</div>
+        <div class="pick"><button class="chip" aria-pressed="true"><span class="dot" style="background:var(--brass)"></span>Ninth Muster (you)</button></div></div>
+      <p class="dim">The usual roster view (cards as in section 1). Switch to Hall of Heroes above.</p>
+    </div>
+
+    <div id="v_hall">
+      <p class="dim">Every Character in the Reach, the living and the fallen.</p>
+      <h3 style="margin-top:12px">Living</h3>
+
+      <div class="hp"><span class="dot" style="background:var(--brass)"></span>Ninth Muster <small>Adeptus Astartes · 2 Characters</small></div>
+      <div class="hero-row" style="border-left-color:var(--brass)">
+        <div class="nm">Captain Idris Valen<span class="title-sub">, the Unbroken</span></div>
+        <div class="meta"><span>Captain</span><span>Veteran</span><span class="badge war" style="padding:0 6px">Warlord</span></div>
+        <div class="meta"><span><b>7</b> battles</span><span><b>12</b> kills</span><span><b>2</b> relics</span></div></div>
+      <div class="hero-row" style="border-left-color:var(--brass)">
+        <div class="nm">Brother Kaeth Morrow<span class="title-sub">, Voice of the Ninth</span></div>
+        <div class="meta"><span>Chaplain</span><span>Elite</span></div>
+        <div class="meta"><span><b>11</b> battles</span><span><b>19</b> kills</span><span><b>3</b> relics</span></div></div>
+
+      <div class="hp"><span class="dot" style="background:var(--blood)"></span>Grot-Hammer Boyz <small>Orks · 1 Character</small></div>
+      <div class="hero-row" style="border-left-color:var(--blood)">
+        <div class="nm">Big Mek Gutzgrind</div>
+        <div class="meta"><span>Big Mek</span><span>Blooded</span><span class="badge war" style="padding:0 6px">Warlord</span></div>
+        <div class="meta"><span><b>2</b> battles</span><span><b>1</b> kills</span><span><b>0</b> relics</span></div></div>
+
+      <div class="hp"><span class="dot" style="background:var(--verd)"></span>Tomb of Karesh <small>Necrons · 0 Characters</small></div>
+      <div class="ro">No living Characters.</div>
+
+      <h3>Fallen</h3>
+      <p class="dim" style="font-size:14px">Newest first.</p>
+
+      <div class="mem">
+        <div class="top"><div class="nm">Sergeant Oren Tal<span class="title-sub">, Last of Vesk</span></div><span class="rnd">ROUND 4</span></div>
+        <div class="meta mono dim" style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;display:flex;flex-wrap:wrap;gap:4px 12px"><span>Lieutenant</span><span>Veteran at death</span><span style="color:var(--ink)">Ninth Muster</span></div>
+        <div class="meta mono dim" style="font-size:11px;display:flex;gap:12px"><span>5 BATTLES</span><span>8 KILLS</span><span>1 RELIC</span></div>
+        <div class="cause">Third Battle Scar</div>
+        <div class="acts" data-ownonly style="display:flex;justify-content:flex-end"><button class="btn sm danger">Delete entry</button></div>
+      </div>
+      <div class="mem">
+        <div class="top"><div class="nm">Warboss Skarzog</div><span class="rnd">ROUND 2</span></div>
+        <div class="meta mono dim" style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;display:flex;flex-wrap:wrap;gap:4px 12px"><span>Warboss</span><span>Blooded at death</span><span style="color:var(--ink)">Grot-Hammer Boyz</span></div>
+        <div class="meta mono dim" style="font-size:11px;display:flex;gap:12px"><span>2 BATTLES</span><span>3 KILLS</span><span>0 RELICS</span></div>
+        <div class="cause">Slain at the Cinderfall breach</div>
+        <div class="acts" data-ownonly style="display:flex;justify-content:flex-end"><button class="btn sm danger">Delete entry</button></div>
+      </div>
+      <div class="ro" data-memberonly hidden>READ-ONLY: only the campaign owner can delete a memorial entry.</div>
+    </div>
+  </div>
+</section>
+</div>
+
+<script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+/* backstory counter */
+const st=$("#e_story"), cnt=$("#cnt");
+const upd=()=>{cnt.textContent=`${st.value.length} / 280`;cnt.classList.toggle("over",st.value.length>=280)};
+st.addEventListener("input",upd);upd();
+/* Hall: view + role toggles */
+function pressGroup(sel,btn){$$(sel).forEach(b=>b.setAttribute("aria-pressed",b===btn))}
+$("#s6").addEventListener("click",e=>{
+  const b=e.target.closest("button"); if(!b)return;
+  if(b.dataset.view){pressGroup("[data-view]",b);$("#v_roster").hidden=b.dataset.view!=="roster";$("#v_hall").hidden=b.dataset.view!=="hall"}
+  if(b.dataset.role){pressGroup("[data-role]",b);const o=b.dataset.role==="owner";
+    $$("[data-ownonly]").forEach(x=>x.hidden=!o);$$("[data-memberonly]").forEach(x=>x.hidden=o)}
+  if(b.textContent==="Delete entry"){b.closest(".mem").remove()}
+});
+/* chips in remove sheet fill the cause field */
+$("#s5").addEventListener("click",e=>{const c=e.target.closest(".chip");if(c){$("#r_cause").value=c.textContent}});
+</script>
+</body>
+</html>
