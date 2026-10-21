@@ -2,6 +2,7 @@ import { Fragment } from "react";
 import { ownerOf, polyCentroid, PTYPES, sizeOf, VTYPES } from "../game/index.ts";
 import type { CampaignState, Planet, Province } from "../game/index.ts";
 import { activateOnKey } from "./mapKeys.ts";
+import { textWidth } from "./mapText.ts";
 
 interface Props {
   state: CampaignState;
@@ -12,8 +13,9 @@ interface Props {
   onSelect(id: string): void;
 }
 
-const CX = 180;
-const CY = 180;
+const SIZE = 360;
+const CX = SIZE / 2;
+const CY = SIZE / 2;
 const R = 160;
 
 const cellPoints = (v: Province): string => v.cell.map((q) => `${(CX + q[0] * R).toFixed(1)},${(CY + q[1] * R).toFixed(1)}`).join(" ");
@@ -21,7 +23,7 @@ const cellPoints = (v: Province): string => v.cell.map((q) => `${(CX + q[0] * R)
 export function PlanetMap({ state, planet: p, provs: vs, selProv, colors, onSelect }: Props) {
   const planetColor = PTYPES[p.type].c;
   return (
-    <svg viewBox="0 0 360 360" role="img" aria-label="Campaign map of the Varkesh Reach">
+    <svg viewBox={`0 0 ${SIZE} ${SIZE}`} role="img" aria-label="Campaign map of the Varkesh Reach">
       <defs>
         <clipPath id="disc">
           <circle cx={CX} cy={CY} r={R} />
@@ -78,6 +80,10 @@ export function PlanetMap({ state, planet: p, provs: vs, selProv, colors, onSele
         const x = CX + ct[0] * R;
         const y = CY + ct[1] * R;
         const selected = v.id === selProv;
+        const typeLine = `${v.type === "capital" ? "◆ " : ""}${VTYPES[v.type].n.toUpperCase()} ${sizeOf(state, v)}`;
+        // Keep the desktop label inside the viewBox (the .pnum badge stays at the centroid).
+        const halfW = Math.max(textWidth(v.name, 15, "display"), textWidth(typeLine, 11.5, "mono")) / 2 + 2;
+        const lx = Math.min(Math.max(x, halfW + 4), SIZE - halfW - 4);
         return (
           <Fragment key={v.id}>
             {/* Phones: a numbered badge keyed to the province list below the map (CSS swaps .plabel / .pnum). */}
@@ -96,7 +102,7 @@ export function PlanetMap({ state, planet: p, provs: vs, selProv, colors, onSele
             </g>
             <g className="plabel" pointerEvents="none" fontFamily="Share Tech Mono,monospace" textAnchor="middle">
               <text
-                x={x}
+                x={lx}
                 y={y - 5}
                 fontFamily="Grenze Gothic,Georgia,serif"
                 fontSize="15"
@@ -107,9 +113,8 @@ export function PlanetMap({ state, planet: p, provs: vs, selProv, colors, onSele
               >
                 {v.name}
               </text>
-              <text x={x} y={y + 10} fontSize="11.5" fill="#f3ead8" paintOrder="stroke" stroke="#16120f" strokeWidth="3">
-                {v.type === "capital" ? "◆ " : ""}
-                {VTYPES[v.type].n.toUpperCase()} {sizeOf(state, v)}
+              <text x={lx} y={y + 10} fontSize="11.5" fill="#f3ead8" paintOrder="stroke" stroke="#16120f" strokeWidth="3">
+                {typeLine}
               </text>
             </g>
           </Fragment>
