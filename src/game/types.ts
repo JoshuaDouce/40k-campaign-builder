@@ -186,6 +186,7 @@ export interface BattleInfo {
   pts: number;
   notes: string[];
   cards: number;
+  lightForces: boolean;
   trait: { n: string; trait: string };
 }
 

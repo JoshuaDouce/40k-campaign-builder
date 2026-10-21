@@ -166,6 +166,11 @@ export function rollBattle(s: CampaignState, sel: { zone: string; def: string },
   return true;
 }
 
+/** Index of the Light Forces Mission Twist in TWISTS. */
+export const LIGHT_FORCES_TWIST = TWISTS.findIndex((t) => t.t === "Light Forces");
+/** Battles of this many points or fewer automatically use Light Forces. */
+export const LIGHT_FORCES_MAX_PTS = 750;
+
 /** Everything about the pending, rolled battle. Read-only. Null if there is none. */
 export function battleInfo(s: CampaignState): BattleInfo | null {
   const pd = s.pend;
@@ -203,7 +208,8 @@ export function battleInfo(s: CampaignState): BattleInfo | null {
         n: "Warp rift",
         trait: "Shifting ground. At the start of each round roll a D6: on a 1 move one terrain piece 3\". One Lord of War allowed.",
       };
-  return { v, a, d, pts, notes, cards, trait };
+  const lightForces = pts <= LIGHT_FORCES_MAX_PTS && !pd.twists.includes(LIGHT_FORCES_TWIST);
+  return { v, a, d, pts, notes, cards, lightForces, trait };
 }
 
 /** Record the pending battle's result and move on (mutates `s`). Returns false if there is no rolled battle. */

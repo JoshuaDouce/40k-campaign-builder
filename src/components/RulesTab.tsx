@@ -1,4 +1,4 @@
-import { ACTIONS, ORBITS, PTYPES, TWISTS, VTYPES } from "../game/index.ts";
+import { ACTIONS, LIGHT_FORCES_MAX_PTS, LIGHT_FORCES_TWIST, ORBITS, PTYPES, TWISTS, VTYPES } from "../game/index.ts";
 
 export function RulesTab() {
   return (
@@ -49,6 +49,7 @@ export function RulesTab() {
         </tbody>
       </table></div>
       <p>If either player's supply limit is lower than the battle size, play at the lower number. An attacker with fewer provinces than the defender is the <b>Underdog</b> and gets +10% points.</p>
+      <p>Battles of {LIGHT_FORCES_MAX_PTS} pts or fewer automatically use the <b>Light Forces</b> rule. {TWISTS[LIGHT_FORCES_TWIST].e}</p>
 
       <h3>Province types</h3>
       <div className="tbl"><table>

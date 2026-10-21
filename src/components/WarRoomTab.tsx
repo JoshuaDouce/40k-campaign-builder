@@ -8,6 +8,8 @@ import {
   getPlanet,
   getPlayer,
   getZone,
+  LIGHT_FORCES_MAX_PTS,
+  LIGHT_FORCES_TWIST,
   ownerOf,
   provsOf,
   PTYPES,
@@ -312,6 +314,15 @@ function BattleCard({ state, dispatch, can }: { state: CampaignState; dispatch(a
           {TWISTS[i].e}
         </div>
       ))}
+      {B.lightForces && (
+        <div className="twist" style={{ borderColor: "var(--verd)" }}>
+          <span className="mono" style={{ fontSize: 11, color: "var(--verd)" }}>
+            LIGHT FORCES · {LIGHT_FORCES_MAX_PTS} PTS OR FEWER
+          </span>
+          <br />
+          {TWISTS[LIGHT_FORCES_TWIST].e}
+        </div>
+      )}
       <div className="twist" style={{ borderColor: "var(--verd)" }}>
         <span className="mono" style={{ fontSize: 11, color: "var(--verd)" }}>
           WORLD · {B.trait.n.toUpperCase()}
