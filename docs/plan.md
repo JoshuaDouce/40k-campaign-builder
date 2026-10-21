@@ -152,3 +152,6 @@ through `/build-feature`.
 The owner chose to deploy the local-storage version to Amplify Hosting first (stage 5's hosting
 part) so friends can look at it, then do stage 4 (Cognito + shared campaigns) afterwards.
 `amplify.yml` is frontend-only until then.
+- **Live (2026-10-20):** https://main.d1ek4ko56d226t.amplifyapp.com — Amplify app `varkesh-reach`
+  (id d1ek4ko56d226t, eu-west-2), auto-deploys on push to `main`.
+- **Budget:** AWS Budget `varkesh-monthly`, $6/month (~£5), email alerts at 80% actual and 100% forecast.
