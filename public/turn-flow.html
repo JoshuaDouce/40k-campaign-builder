@@ -1,0 +1,559 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Turn Flow — The Varkesh Reach</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Grenze+Gothic:wght@500;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Share+Tech+Mono&display=swap">
+<style>
+/* Tokens copied verbatim from reference/index.html */
+:root{
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#16120f; --panel:#211a16; --panel2:#2a211c; --line:#3d312a;
+  --ink:#ebdfc8; --dim:#a8977f; --brass:#d0a952; --blood:#b8392e; --verd:#6f9a86;
+  --f-display:"Grenze Gothic","Palatino Linotype",Georgia,serif;
+  --f-body:"Alegreya Sans","Segoe UI",system-ui,sans-serif;
+  --f-mono:"Share Tech Mono",ui-monospace,Menlo,monospace;
+  /* Flag categories: three tokens used directly, the fourth is a mix of two tokens (no new hue) */
+  --c-dead:var(--blood);
+  --c-nochoice:var(--brass);
+  --c-manual:var(--verd);
+  --c-diverge:color-mix(in srgb,var(--blood) 45%,var(--ink));
+  /* Height of the filter bar, measured in JS (see the ResizeObserver at the end) */
+  --filters-h:150px;
+  /* Phone bottom-sheet height; the tree's spacer matches it so the last rows scroll clear */
+  --sheet-h:62vh;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.55;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.wrap{max-width:1100px;margin:0 auto}
+header.hero{padding-block:28px 18px;border-bottom:1px solid var(--line)}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass)}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(34px,9vw,56px);line-height:.98;margin:6px 0 10px;text-wrap:balance;letter-spacing:.01em}
+h1 span{color:var(--blood)}
+.lede{color:var(--dim);max-width:62ch;margin:0 0 8px}
+.snap{font-family:var(--f-mono);font-size:12px;color:var(--dim);margin:0}
+p{margin:0 0 12px;max-width:65ch}
+button{font:inherit;color:inherit}
+button:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+.btn{font-family:var(--f-mono);font-size:13px;letter-spacing:.05em;text-transform:uppercase;background:var(--panel2);color:var(--ink);border:1px solid var(--line);padding:9px 14px;min-height:40px;border-radius:2px;cursor:pointer}
+
+/* Filter bar: static on phones (the sheet needs the room), sticky from 960px up */
+.filters{background:var(--bg);padding-block:10px;border-bottom:1px solid var(--line)}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.fchip{display:flex;align-items:center;gap:8px;text-align:left;min-height:48px;padding:6px 10px;background:none;border:1px solid var(--line);border-radius:3px;cursor:pointer;font-size:14px;line-height:1.2}
+.fchip .sw{flex:none;width:12px;height:12px;border-radius:50%;border:2px solid var(--cat);background:transparent}
+.fchip .n{margin-left:auto;font-family:var(--f-mono);font-size:12px}
+.fchip[aria-pressed="true"]{border-color:var(--cat);background:var(--panel2)}
+.fchip[aria-pressed="true"] .sw{background:var(--cat)}
+.ctl{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;align-items:center}
+.ctl .hint{font-family:var(--f-mono);font-size:11px;color:var(--dim);margin-left:auto}
+[data-cat="dead"]{--cat:var(--c-dead)} [data-cat="nochoice"]{--cat:var(--c-nochoice)}
+[data-cat="manual"]{--cat:var(--c-manual)} [data-cat="diverge"]{--cat:var(--c-diverge)}
+
+/* Layout */
+.crumb{display:flex;flex-wrap:wrap;gap:2px 4px;align-items:center;font-family:var(--f-mono);font-size:12px;color:var(--dim);padding:12px 0 4px;min-height:44px}
+.crumb button{background:none;border:0;padding:6px 4px;min-height:40px;color:var(--brass);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.crumb .sep{opacity:.5}
+.crumb .cur{color:var(--ink)}
+
+/* Legend */
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;padding:8px 0 12px;font-size:13.5px;color:var(--dim)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+
+/* Type tags (rectangular) — distinct from category badges (round) */
+.tt{flex:none;font-family:var(--f-mono);font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;padding:1px 6px;border-radius:2px;border:1px solid var(--t);color:var(--t);white-space:nowrap}
+[data-type="decision"]{--t:var(--brass)} [data-type="decision"].tt{background:var(--brass);color:var(--bg)}
+[data-type="engine"]{--t:var(--dim)}
+[data-type="table"]{--t:var(--verd)} [data-type="table"].tt{border-style:dashed}
+[data-type="boundary"]{--t:var(--blood)} [data-type="boundary"].tt{background:var(--blood);color:var(--ink)}
+[data-type="edge"]{--t:var(--blood)} [data-type="edge"].tt{border-style:dotted;border-width:2px}
+
+/* Tree */
+ul.tree,ul.tree ul{list-style:none;margin:0;padding:0}
+ul.tree ul{margin-left:14px;border-left:1px solid var(--line)}
+.nrow{display:flex;align-items:stretch;min-height:44px;border-left:3px solid var(--t);border-radius:0 3px 3px 0}
+.chev{flex:none;width:40px;min-height:44px;background:none;border:0;cursor:pointer;color:var(--dim);display:flex;align-items:center;justify-content:center}
+.chev svg{width:14px;height:14px;transition:transform .12s}
+li.node.open > .nrow .chev svg{transform:rotate(90deg)}
+.chev.leaf{cursor:default;opacity:.3}
+.nmain{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:2px;text-align:left;background:none;border:0;padding:6px 8px 6px 0;cursor:pointer}
+.nline{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center}
+.ntitle{font-family:var(--f-display);font-size:19px;line-height:1.15}
+.navail{font-size:13px;color:var(--dim);font-style:italic}
+.badges{display:inline-flex;gap:3px;margin-left:auto}
+.bdg{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:var(--cat);color:var(--bg);font-family:var(--f-mono);font-size:11px;font-weight:700}
+li.node.onpath > .nrow{background:color-mix(in srgb,var(--brass) 8%,transparent)}
+li.node.onpath > .nrow .ntitle{color:var(--brass)}
+li.node.sel > .nrow{background:var(--panel2);box-shadow:inset 0 0 0 1px var(--brass)}
+li.node.faded > .nrow{opacity:.38}
+li.node:not(.open) > ul{display:none}
+.grp > .nrow .ntitle{font-size:17px;font-family:var(--f-mono);letter-spacing:.04em;text-transform:uppercase;color:var(--dim)}
+
+/* Detail panel (bottom sheet on phones) */
+.detail{position:fixed;left:0;right:0;bottom:0;z-index:8;max-height:var(--sheet-h);overflow:auto;background:var(--panel);border-top:2px solid var(--brass);padding:14px max(16px,env(safe-area-inset-left,0px)) calc(18px + env(safe-area-inset-bottom,0px));box-shadow:0 -10px 30px #000a}
+.detail h2{font-family:var(--f-display);font-weight:700;font-size:28px;line-height:1.05;margin:6px 0 8px}
+.detail h2:focus{outline:none}
+.dhead{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.x{width:40px;padding:0;font-size:18px;line-height:1}
+.ref{font-family:var(--f-mono);font-size:12.5px;color:var(--brass);background:var(--bg);border:1px solid var(--line);border-radius:2px;padding:6px 9px;display:inline-block;margin:0 0 12px;overflow-wrap:anywhere}
+.lbl{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin:12px 0 6px}
+.flag{border-left:3px solid var(--cat);background:var(--bg);padding:8px 12px;margin:0 0 8px;border-radius:0 3px 3px 0}
+.flag.off{opacity:.4}
+/* Same pill as the prototype's .chip, bordered in the flag's category colour */
+.cchip{display:inline-flex;align-items:center;gap:6px;font-family:var(--f-mono);font-size:12px;padding:4px 9px;border:1px solid var(--cat);border-radius:20px;color:var(--ink);margin-bottom:4px}
+.cchip i{width:8px;height:8px;border-radius:50%;background:var(--cat)}
+.flag p{margin:0;font-size:15px}
+.noflags{color:var(--dim);font-style:italic}
+.empty-msg{color:var(--dim)}
+
+/* Phones: the sheet is hidden until a step is selected, and the spacer lets the tree scroll clear of it */
+@media (max-width:599.98px){
+  ul.tree ul{margin-left:7px}   /* the default-open battle path is 12 levels deep */
+}
+@media (max-width:959.98px){
+  .detail.empty{display:none}
+  li.node{scroll-margin-top:8px}
+  .cols:has(.detail:not(.empty)) .spacer{height:var(--sheet-h)}
+}
+@media (min-width:960px){
+  .filters{position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+  .fgrid{grid-template-columns:repeat(4,1fr)}
+  .cols{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:28px;align-items:start}
+  /* top follows the measured filter bar height (--filters-h, set in JS) */
+  .detail{position:sticky;top:calc(var(--filters-h) + env(safe-area-inset-top,0px) + 12px);left:auto;right:auto;bottom:auto;
+    max-height:calc(100vh - var(--filters-h) - env(safe-area-inset-top,0px) - 12px - 20px);margin-top:12px;
+    border:1px solid var(--line);border-top:2px solid var(--brass);border-radius:3px;padding:16px;box-shadow:none}
+  .x{display:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+  <div class="eyebrow">Turn flow · read-only</div>
+  <h1>Turn Flow <span>—</span> anatomy of a War Round turn</h1>
+  <p class="lede">Explore one player's turn in a War Round as a decision tree, from the start of the turn to the next player or the end of the round. Open a branch to follow it, select a step to see where it lives in the code, and use the filters to focus on its flagged weak spots.</p>
+  <p class="snap">Snapshot of the rules as of 21 Oct 2026</p>
+</header>
+
+<div class="filters" id="filters" role="group" aria-label="Flag filters">
+  <div class="fgrid" id="fgrid"></div>
+  <div class="ctl">
+    <button class="btn" id="expAll">Expand all</button>
+    <button class="btn" id="colAll">Collapse all</button>
+    <span class="hint" id="hint" aria-live="polite"></span>
+  </div>
+</div>
+
+<div class="cols">
+  <main>
+    <nav class="crumb" id="crumb" aria-label="Path to selected step"></nav>
+    <div class="legend" id="legend" role="group" aria-label="Node type legend"></div>
+    <ul class="tree" id="tree"></ul>
+    <div class="spacer"></div>
+  </main>
+  <aside class="detail empty" id="detail" aria-label="Step detail"></aside>
+</div>
+</div>
+
+<script>
+/* ---------- Data (reusable shape) ----------
+   FLAGS: { id, cat, text }   one entry per unique flag; a flag may hang off several nodes
+   NODES: { id, parent, type, grp?, title, avail?, desc, ref, flags:[flagIds], open? }
+   type:  decision | engine | table | boundary | edge   (grp:true renders the "Group" tag)
+   cat:   dead | nochoice | manual | diverge
+   Child order in the tree = order in the NODES array.                                    */
+const CATS = [
+  {id:'dead',     label:'Dead ends & stuck states'},
+  {id:'nochoice', label:'No meaningful choice'},
+  {id:'manual',   label:'Manual / unenforced'},
+  {id:'diverge',  label:'Code vs rules divergence'}
+];
+const TYPES = [
+  {id:'decision', label:'Decision', note:'player chooses'},
+  {id:'engine',   label:'Engine',   note:'automatic'},
+  {id:'table',    label:'Table',    note:'resolved off-app'},
+  {id:'boundary', label:'Boundary', note:'turn / round end'},
+  {id:'edge',     label:'Edge case', note:'rare path'}
+];
+
+const FLAGS = [
+/* dead */
+{id:'f-homeless', cat:'dead', text:'A player holding no provinces can only Conquer unclaimed outer-world provinces. Once none are left they have only Recuperate, Muster and Scout (Raid needs a held target, Fortify needs a province) and there is no way back onto the map except an owner “Held by” override. There is no elimination rule. The War Room blurb still says they “can Conquer any unclaimed province on an outer world” even when none remain.'},
+{id:'f-nopass', cat:'dead', text:'There is no skip or pass. An absent player blocks the whole round until they act (or the owner acts for them). Recuperate works as a pass, but only that player or the owner can press it.'},
+{id:'f-committed', cat:'dead', text:'Once “Generate battle” is pressed there is no cancel and no change of action or target (cancelAction only works before the roll). The only ways out are Re-roll twists or recording a result; “Draw” is the only result with no winner, and it still pays out RP and supply.'},
+{id:'f-noundo', cat:'dead', text:'After a result is recorded nothing can be undone. The only repair is the owner hand-editing stats or a province’s “Held by”, and neither of those writes a log entry.'},
+{id:'f-leftpanel', cat:'dead', text:'The “That player has left” panel in the War Room looks unreachable: removePlayer() already ends the turn when the current player is removed and endTurn() skips missing players. If it ever did show, the only exit it offers is a full campaign reset (there is no skip).'},
+{id:'f-greyed', cat:'dead', text:'Unavailable actions are just greyed out (disabled, opacity 0.4) with no reason shown. “Not your turn”, “no legal target”, “fewer than 2 players” and “no province to fortify” all look identical.'},
+/* nochoice */
+{id:'f-forcedgarrison', cat:'nochoice', text:'In a 2-player campaign the garrison player for an unclaimed province is forced (the only other player), and a held province’s defender is always automatic. Once the battle is generated the attacker must fight the garrison.'},
+{id:'f-reroll', cat:'nochoice', text:'Re-roll twists is unlimited and free. Because Vanguard Only and Full Commitment change the multiplier, re-rolling can also change the battle size.'},
+{id:'f-quietfree', cat:'nochoice', text:'Recuperate, Muster and Scout are always available, free, and have no cooldown or cap, so the same one can be chosen every turn. Muster’s supply growth is unbounded, and Recuperate with nothing to recover is a de facto pass.'},
+{id:'f-alwayspays', cat:'nochoice', text:'Every battle is net positive for the people in it: attacker and defender both get +1 RP and +150 supply (via battles++) even on a loss or a draw. Losing a Raid or a Conquer costs the attacker nothing, so there is little reason not to attack.'},
+{id:'f-fortwaste', cat:'nochoice', text:'Fortify can be spent on a Fortress (which always counts as Fortified) or on a province that is already fortified. The province list does not show which ones are already fortified.'},
+{id:'f-hollnofort', cat:'nochoice', text:'The Hollowgate cannot be Fortified (Fortify only lists provinces from the map) and cannot be Raided, so its holder has no way to reinforce it even though it counts as a province for turn order and Underdog.'},
+{id:'f-singletarget', cat:'nochoice', text:'When only one province is a legal target the Province select is a single-option dropdown, so the target decision is no decision at all.'},
+{id:'f-capsilent', cat:'nochoice', text:'RP is capped at 10 and the hand at 5, and gains past the cap are silently lost. Recuperate at 10 RP, income at 10 RP, and Capital/Raid steals into a full bank all waste RP while the log still says “+1 RP” or “steals N RP”. Underdog’s grit with a full hand logs nothing at all (other draws log “hand is full”).'},
+/* manual */
+{id:'f-honour', cat:'manual', text:'The battle result is honour-system: the attacker, the defender (including the garrison player) or the owner can record it, with no confirmation from the other side.'},
+{id:'f-unchecked', cat:'manual', text:'Nothing checks that army lists match the battle size or supply limit, that the twists were applied, or the “1 Fate Card per 500 pts” limit (stated on the Deck tab and shown as “UP TO N EACH” on the battle card, but absent from the Rules tab).'},
+{id:'f-underdog', cat:'manual', text:'Underdog +10% is only a note on the battle card: it is not added to the points figure shown and nothing applies it. Only the attacker can be the Underdog (this matches the written rule).'},
+{id:'f-selfreported', cat:'manual', text:'Fortified (+1 CP, one extra terrain), Shrine XP, the Capital RP note and the garrison “Decisive win?” dropdown (attacker lost under 25% of their army) are shown as text or self-reported; the app does not check them.'},
+{id:'f-twistadvice', cat:'manual', text:'The Scout twist swap is resolved at the table, and Light Forces is an advisory card the app shows but does not enforce.'},
+{id:'f-cards', cat:'manual', text:'Fate Card effects are table-resolved. Play and Discard only remove the card from the hand: no log entry, no timing check (any time, even outside a battle or your own turn) and no effect applied, including cards that grant RP (Spoils of War, Salvage Protocol) and Supply Shortage’s one-card limit.'},
+{id:'f-uionly', cat:'manual', text:'Permissions and hidden hands are enforced in the UI only (permissions.ts says so). Anyone with access to the shared state can read every hand and send any action.'},
+{id:'f-paper', cat:'manual', text:'XP, ranks, Battle Honours and Battle Scars live on paper. Recuperate’s “remove up to 2 Battle Scars” and the “record XP, roll for the fallen” log line are reminders only.'},
+{id:'f-rpspend', cat:'manual', text:'Only Reinforcements can be bought in the app (“Draw card” stands in for Requisition the Deck but is free, see the Draw card step). Field Surgeon, Promotion and Seasoned Recruits (all in the Rules tab) have no button, and only the owner can change a player’s RP, so players must ask the owner to deduct it.'},
+{id:'f-unlogged', cat:'manual', text:'Owner overrides (RP, battles and wins +/-, and “Held by”) write no log entry. Changing Battles also changes supply, because supply is 750 + 150 × battles + bought and mustered supply.'},
+{id:'f-hollgarrison', cat:'manual', text:'Taking an unheld Hollowgate is a garrison battle: a 2000 pt, two-twist defence that depends on another player volunteering to play it as a favour (2000 pts before twists; the attacker gets +20%, capped by their own supply only).'},
+/* diverge */
+{id:'f-raidfloor', cat:'diverge', text:'Raid halves the size and then the 500 pt floor is applied, so Raids on small provinces are not halved: anything whose halved size comes out under about 525 (a 500 pt outpost, a 600 pt settlement, an outer 750 pt forge) plays at 500. The Rules and Raid text say “half size”.'},
+{id:'f-freedraw', cat:'diverge', text:'“Draw card” on the Players tab is free and repeatable until the hand is full. The Rules tab lists “Requisition the Deck” at 1 RP, but the drawCard action never charges RP.'},
+{id:'f-reinfbattle', cat:'diverge', text:'Reinforcements can be bought mid-battle. The Rules tab says RP is spent “outside a battle”, but buyReinforcements has no pending-battle check. Battle size is recomputed from live state on every render (it is not stored on the pending battle), so the figure can shift after it is shown.'},
+{id:'f-raidholl', cat:'diverge', text:'Raid cannot target the Hollowgate even when someone holds it (targets() excludes “holl”). The Raid text says “an enemy province you could reach” and the Rules tab does not mention the exception (the prototype does the same).'},
+{id:'f-startblurb', cat:'diverge', text:'The pre-round blurb says “Everyone draws a Fate Card”, but beginRound draws 1 plus 1 per Refinery held. The Rules tab lists the draw before income; the code does income then draw for each player in turn.'},
+{id:'f-scoutflag', cat:'diverge', text:'The Scout flag is only cleared when that player resolves a battle as the attacker (Conquer or Raid). It persists across quiet turns and is not used up by a battle they fight as defender or garrison. The Rules tab says “in your next battle”.'},
+{id:'f-stalefort', cat:'diverge', text:'The Fortify flag is only cleared by a battle in that province (any result, Conquer or Raid). An owner “Held by” override or a removed player’s provinces leave it in place, so the next holder inherits a stale fortification.'},
+{id:'f-anycapital', cat:'diverge', text:'The code treats every Capital you hold as “your Capital”: a captured enemy Capital gives you Planetfall from its world (targets()) and +1 RP income (beginRound()). The Conquer text and the Rules tab say “your Capital”.'},
+{id:'f-raidsteal', cat:'diverge', text:'A Raid win “steals a random Fate Card” per the rules, but the card is skipped when the attacker’s hand is full or the defender has none, and the log still reads “steals 0 RP” when the defender has no RP (a Capital sack logs “steals 0 RP” the same way).'}
+];
+
+const NODES = [
+{id:'start', parent:null, type:'boundary', title:'Player’s turn begins', open:true,
+ desc:'Any member presses Begin War Round (between rounds only). For each player in player order beginRound() adds +1 RP per Capital and Hive City they hold (RP capped at 10), then draws 1 Fate Card plus 1 per Refinery (hand limit 5). Then the order is fixed for the round: fewest provinces first (the Hollowgate counts as one), ties broken by a random roll. Provinces gained during the round do not re-sort it. It then becomes the first player’s turn and the War Room shows their action choices.',
+ ref:'src/game/engine.ts · beginRound()', flags:['f-nopass','f-startblurb','f-anycapital']},
+{id:'choose', parent:'start', type:'decision', title:'Choose an action', open:true, avail:'one action per turn; only the current player or the owner',
+ desc:'Pick one of six campaign actions. Conquer and Raid start a battle; Recuperate, Muster, Fortify and Scout resolve straight away. The chosen action sits in a pending state until confirmed.',
+ ref:'src/game/actions.ts · run() case "chooseAction"; src/components/WarRoomTab.tsx · TurnPanel', flags:['f-nopass','f-greyed']},
+{id:'change', parent:'choose', type:'decision', title:'Change action', avail:'before “Generate battle” or the quiet confirm only',
+ desc:'While the pending action is a quiet action, or a battle that has not been generated yet, a “Change action” button clears it and returns to the choice. After “Generate battle” (pend.rolled) it is gone.',
+ ref:'src/game/actions.ts · run() case "cancelAction"; src/components/WarRoomTab.tsx · TurnPanel', flags:['f-committed']},
+{id:'grpB', parent:'choose', type:'decision', grp:true, title:'Battle actions', open:true,
+ desc:'Conquer and Raid. Both need at least 2 players and at least one legal target; both then follow the same Fight the battle path.',
+ ref:'src/game/data.ts · ACTIONS; src/game/actions.ts · run() case "chooseAction"', flags:[]},
+{id:'conquer', parent:'grpB', type:'decision', title:'Conquer', avail:'needs 2+ players and a legal target',
+ desc:'Attack any reachable province that you do not hold, whether held by another player or unclaimed. Unclaimed means a garrison battle with +20% for the attacker. A win takes the province. Then follow Fight the battle.',
+ ref:'src/game/engine.ts · targets(); src/game/data.ts · ACTIONS.conquer', flags:['f-homeless']},
+{id:'raid', parent:'grpB', type:'decision', title:'Raid', avail:'needs 2+ players and a held target that is not the Hollowgate',
+ desc:'Same reach as Conquer, but only provinces held by another player, never the Hollowgate. Half size. A win steals 1 RP and a random Fate Card and the province does not change hands. Then follow Fight the battle.',
+ ref:'src/game/engine.ts · targets() (act === "raid" filter); src/game/data.ts · ACTIONS.raid', flags:['f-raidholl','f-raidfloor']},
+{id:'fight', parent:'grpB', type:'decision', grp:true, title:'Fight the battle (Conquer and Raid)', open:true,
+ desc:'The chain below is shared by Conquer and Raid. Differences between them are called out on the target, size and outcome nodes.',
+ ref:'src/components/WarRoomTab.tsx · BattleSetup, BattleCard', flags:[]},
+{id:'target', parent:'fight', type:'decision', title:'Choose a target province', open:true, avail:'overland, planetfall, the rift, or no foothold',
+ desc:'targets() builds the list. (1) Overland: any province bordering one you hold. (2) Planetfall: every province on a world linked by a warp lane to a world where you hold a Spaceport or a Capital (any Capital you hold, not only your own). (3) The rift: the Hollowgate, once hollOpen() is true and you hold any inner-world province. (4) No foothold: if you hold nothing, any unclaimed outer-world province. Own provinces are removed; Raid also removes unclaimed provinces and the Hollowgate. The War Room preselects the first target.',
+ ref:'src/game/engine.ts · targets(); src/components/WarRoomTab.tsx · BattleSetup', flags:['f-homeless','f-singletarget','f-raidholl','f-anycapital']},
+{id:'defender', parent:'target', type:'decision', title:'Defender or garrison player', open:true, avail:'automatic if held; the attacker picks if unclaimed',
+ desc:'If a player holds the province they are the defender, no choice. If it is unclaimed (Conquer only) the attacker chooses any other player to field the garrison. That player gains nothing from the fight (no RP, cards, wins or supply) beyond Underdog’s grit if they are on the minimum, and rollBattle() rejects the attacker or an unknown player. Pressing “Generate battle” (rollBattle) locks the choice and rolls the twists.',
+ ref:'src/game/engine.ts · rollBattle(); src/components/WarRoomTab.tsx · BattleSetup', flags:['f-forcedgarrison','f-hollgarrison','f-committed']},
+{id:'twists', parent:'defender', type:'engine', title:'Roll Mission Twists', open:true, avail:'outer and middle worlds: 1 twist; inner worlds and the Hollowgate: 2',
+ desc:'rollTwists() picks that many different results from the 12-entry Mission Twist table (D12, no repeats). Vanguard Only ×0.75 and Full Commitment ×1.25 change the battle size; the others are text.',
+ ref:'src/game/engine.ts · rollTwists(); src/game/data.ts · TWISTS, ORBITS', flags:['f-committed']},
+{id:'reroll', parent:'twists', type:'decision', title:'Re-roll twists', avail:'any number of times, before recording a result',
+ desc:'The “Re-roll twists” button replaces the twists with a fresh roll. There is no limit and no cost. Only the current player or the owner can press it.',
+ ref:'src/game/actions.ts · run() case "rerollTwists"; src/game/permissions.ts · canPerform()', flags:['f-reroll']},
+{id:'scoutswap', parent:'twists', type:'table', title:'Scout: swap one twist', avail:'only if the attacker’s Scout flag is set',
+ desc:'If the attacker scouted earlier, the battle card notes they may swap one rolled twist for any twist of their choice. The app does not change the twists; the players agree it at the table.',
+ ref:'src/game/engine.ts · battleInfo() (a.scout note)', flags:['f-twistadvice','f-scoutflag']},
+{id:'size', parent:'twists', type:'engine', title:'Battle size', open:true,
+ desc:'Base size = province base points × orbit multiplier (outer ×1, middle ×1.5, inner ×2; the Hollowgate is a flat 2000), multiplied by each twist, then halved for a Raid, rounded to 50 and floored at 500. Then capped at the lower of the two supply limits (a garrison battle: the attacker’s only), rounded down to 50. Supply limit = 750 + 150 per battle + Reinforcements and Muster supply, so it is never below 750. In a garrison battle the attacker’s own figure is then +20%, rounded to 5. Fate Cards each = 1 per 500 pts (minimum 1; exactly 1 if Supply Shortage was rolled).',
+ ref:'src/game/engine.ts · battleInfo(); src/game/selectors.ts · sizeOf(), supplyOf()', flags:['f-raidfloor','f-reinfbattle','f-unchecked']},
+{id:'mods', parent:'size', type:'engine', title:'Modifiers shown on the battle card', open:true,
+ desc:'battleInfo() adds notes for: Underdog (attacker holds fewer provinces than the defender; not in garrison battles), Fortified (defender holds the province and it is marked Fortify or is a Fortress), a defending Capital (Conquer win steals 2 RP), Shrine (Marked for Glory +1 XP), Scout, and the world’s trait. Light Forces is added automatically when the final size is 750 pts or fewer and Light Forces was not already rolled. The notes are text only; none change the points shown (except the garrison +20% line).',
+ ref:'src/game/engine.ts · battleInfo(), LIGHT_FORCES_MAX_PTS', flags:['f-underdog','f-selfreported','f-twistadvice','f-unchecked']},
+{id:'play', parent:'mods', type:'table', title:'Play the game', open:true, avail:'Fate Cards can be played from the Players tab at any time',
+ desc:'The players fight a normal game of 40k at the table. The app waits for a result and shows nothing in the meantime. Fate Cards, Reinforcements and the owner’s overrides are all still available while it waits.',
+ ref:'(off-app); src/components/WarRoomTab.tsx · BattleCard', flags:['f-cards','f-unchecked','f-paper']},
+{id:'result', parent:'play', type:'decision', title:'Record the result', open:true, avail:'attacker, defender (or garrison player) or owner',
+ desc:'Three buttons: attacker won, defender won (garrison won), or Draw. In a garrison battle a “Decisive win?” yes/no appears (attacker lost under 25% of their army); it only matters if the attacker wins.',
+ ref:'src/game/actions.ts · run() case "resolveBattle"; src/game/permissions.ts · canPerform()', flags:['f-honour','f-selfreported','f-noundo','f-alwayspays']},
+{id:'outcomes', parent:'result', type:'engine', title:'Outcomes applied: stage 1, both actions', open:true,
+ desc:'resolve() in this order. Each fighter (the attacker only, in a garrison battle) gets battles +1 (which is the “+150 supply”, because supply = 750 + 150 × battles) and +1 RP. The winner, if they are one of those fighters, gets wins +1 and +1 more RP. The result is written to the log. Then the action-specific step runs.',
+ ref:'src/game/engine.ts · resolve()', flags:['f-alwayspays','f-capsilent','f-noundo']},
+{id:'outConquer', parent:'outcomes', type:'engine', title:'Stage 2 (Conquer): province changes hands', avail:'Conquer only',
+ desc:'If the attacker won: if it was a Capital held by the defender, the attacker steals up to 2 of the defender’s RP (their own RP capped at 10); the province becomes theirs; if it was a garrison battle and the attacker marked it decisive, +1 RP. If the defender won a held province the log says they hold it. A garrison win, or a draw, leaves it as it was.',
+ ref:'src/game/engine.ts · resolve() (pd.act === "conquer")', flags:['f-capsilent','f-raidsteal']},
+{id:'outRaid', parent:'outcomes', type:'engine', title:'Stage 2 (Raid): steal RP and a card', avail:'Raid only',
+ desc:'If the attacker won: they take up to 1 RP from the defender, and a random Fate Card from the defender’s hand if they have one and the attacker’s hand has room. The province does not change hands. A Raid loss or draw costs the attacker nothing.',
+ ref:'src/game/engine.ts · resolve() (else branch, win === a)', flags:['f-raidsteal','f-capsilent','f-alwayspays']},
+{id:'outAfter', parent:'outcomes', type:'engine', title:'Stage 3 (both actions): clean-up, cards, grit',
+ desc:'In order: the province’s Fortify flag is deleted (any result). The rewarded winner draws 1 Fate Card (“victory”). Underdog’s grit: every player holding the fewest provinces (including non-combatants, after any change from this battle) draws 1 Fate Card, so in round 1 every player on the minimum draws, which is everyone unless the battle gave someone an extra province. The attacker’s Scout flag is cleared. A log reminder says to record XP, roll for the fallen and add supply. Then endTurn().',
+ ref:'src/game/engine.ts · resolve(); src/game/cards.ts · drawFor()', flags:['f-stalefort','f-scoutflag','f-capsilent','f-paper']},
+{id:'ends', parent:'outAfter', type:'boundary', title:'Turn ends',
+ desc:'endTurn() clears the pending action and moves to the next present player in the round’s fixed order, or ends the round.',
+ ref:'src/game/engine.ts · endTurn()', flags:[]},
+{id:'grpQ', parent:'choose', type:'decision', grp:true, title:'Quiet actions', open:true,
+ desc:'No battle. Each is confirmed with one button, applied by doQuiet(), and then the turn ends.',
+ ref:'src/game/engine.ts · doQuiet(); src/components/WarRoomTab.tsx · QuietConfirm', flags:['f-quietfree']},
+{id:'recup', parent:'grpQ', type:'decision', title:'Recuperate', avail:'always available',
+ desc:'+1 RP (cap 10). The “remove up to 2 Battle Scars” is only the log text; scars are on paper.',
+ ref:'src/game/engine.ts · doQuiet("recuperate")', flags:['f-quietfree','f-capsilent','f-paper']},
+{id:'muster', parent:'grpQ', type:'decision', title:'Muster', avail:'always available',
+ desc:'+250 supply, or +400 if you hold at least one Forge (more Forges do not stack), and draw 1 Fate Card (skipped, with a log line, if the hand is full).',
+ ref:'src/game/engine.ts · doQuiet("muster")', flags:['f-quietfree','f-capsilent']},
+{id:'fortify', parent:'grpQ', type:'decision', title:'Fortify', avail:'needs at least one held province',
+ desc:'Pick a province you hold (not the Hollowgate). It is flagged Fortified until any battle is fought there. The next defender there gets +1 CP and one extra piece of terrain, which the app only mentions as text.',
+ ref:'src/game/engine.ts · doQuiet("fortify"); src/game/actions.ts · run() case "chooseAction"', flags:['f-fortwaste','f-hollnofort','f-stalefort','f-selfreported']},
+{id:'scout', parent:'grpQ', type:'decision', title:'Scout', avail:'always available',
+ desc:'Draw 1 Fate Card and set the Scout flag. The Players tab shows “SCOUTED”, and the next battle where you are the attacker notes the twist swap.',
+ ref:'src/game/engine.ts · doQuiet("scout")', flags:['f-quietfree','f-scoutflag','f-twistadvice']},
+{id:'qends', parent:'grpQ', type:'boundary', title:'Turn ends (any quiet action)',
+ desc:'doQuiet() ends in endTurn(), the same as a battle.',
+ ref:'src/game/engine.ts · doQuiet(), endTurn()', flags:[]},
+{id:'any', parent:'start', type:'decision', grp:true, title:'Any time in the turn', open:true,
+ desc:'Side actions that do not use up the turn. They are not tied to whose turn it is or to the pending action: the owning player (or the owner) can press them at any time, including mid-battle. Most live on the Players tab; the owner’s “Held by” is on the Map tab.',
+ ref:'src/components/PlayersTab.tsx; src/game/actions.ts', flags:[]},
+{id:'card', parent:'any', type:'decision', title:'Play or discard a Fate Card', avail:'your own hand only (others see the count); hand limit 5',
+ desc:'Play or Discard removes the chosen card and shows a short on-screen message on the device that pressed it. There is no log entry and no effect is applied.',
+ ref:'src/game/actions.ts · run() case "playCard" / "discardCard"; src/components/PlayersTab.tsx', flags:['f-cards','f-uionly']},
+{id:'draw', parent:'any', type:'decision', title:'Draw card', avail:'until the hand is full; free',
+ desc:'Draws one random Fate Card from the generic deck plus two copies of each of your faction’s cards.',
+ ref:'src/game/actions.ts · run() case "drawCard"; src/game/cards.ts · drawCard()', flags:['f-freedraw']},
+{id:'reinf', parent:'any', type:'decision', title:'Reinforcements', avail:'1 RP; own RP or owner',
+ desc:'Spend 1 RP for +200 supply. This is the only requisition the app implements.',
+ ref:'src/game/actions.ts · run() case "buyReinforcements"', flags:['f-reinfbattle','f-rpspend']},
+{id:'overrides', parent:'any', type:'decision', title:'Owner overrides', avail:'campaign owner only',
+ desc:'The owner can act for any player (turn, cards, RP), adjust a player’s RP, battles or wins with +/-, set any province’s “Held by” from the Map tab, remove a player, chart a new Reach (War Round 0 only) or reset the campaign.',
+ ref:'src/game/permissions.ts · canPerform(); src/game/actions.ts', flags:['f-unlogged','f-stalefort','f-uionly','f-rpspend']},
+{id:'grpBnd', parent:'start', type:'boundary', grp:true, title:'Boundaries: next player and round end', open:true,
+ desc:'What happens when a turn finishes.', ref:'src/game/engine.ts · endTurn()', flags:[]},
+{id:'next', parent:'grpBnd', type:'boundary', title:'Next player’s turn', avail:'next present player in the fixed order',
+ desc:'endTurn() moves to the following player in the round’s order, skipping anyone no longer in the campaign. The order is not re-sorted mid-round.',
+ ref:'src/game/engine.ts · endTurn()', flags:['f-nopass']},
+{id:'roundEnd', parent:'grpBnd', type:'boundary', title:'War Round ends', avail:'after the last player’s turn',
+ desc:'turnIdx becomes null and the War Room goes back to “Begin War Round N+1”. Nothing happens automatically: any member must press the button.',
+ ref:'src/game/engine.ts · endTurn(), beginRound()', flags:['f-nopass']},
+{id:'hollcheck', parent:'roundEnd', type:'boundary', title:'Hollowgate win check',
+ desc:'At round end, if anyone holds the Hollowgate they win the Reach (state.won). It is checked only here, not the moment it is taken, so the last player in the order who takes it wins without anyone getting a reply. The win does not stop play: beginRound() clears it and the War Room offers “play on for a rematch”.',
+ ref:'src/game/engine.ts · endTurn(); src/game/selectors.ts · hollOpen()', flags:['f-hollnofort','f-hollgarrison']},
+{id:'grpE', parent:'start', type:'edge', grp:true, title:'Edge cases', open:true,
+ desc:'Rare paths. Open one to see how the code behaves.', ref:'src/game/actions.ts; src/game/engine.ts', flags:[]},
+{id:'ownerActs', parent:'grpE', type:'edge', title:'Owner acting for another player', avail:'campaign owner only',
+ desc:'canPerform() returns true for every action when the viewer is the owner, so they can take anyone’s turn, record any result, and play or discard anyone’s cards. Players with no linked user id (for example ones the owner added) are owner-only.',
+ ref:'src/game/permissions.ts · canPerform(), controls()', flags:['f-uionly','f-nopass']},
+{id:'absent', parent:'grpE', type:'edge', title:'Player absent mid-round',
+ desc:'There is no timer, skip or pass. The round waits until that player (or the owner) acts. A quiet action such as Recuperate is the quickest way to finish a turn.',
+ ref:'src/game/engine.ts · endTurn(); src/game/permissions.ts', flags:['f-nopass']},
+{id:'removed', parent:'grpE', type:'edge', title:'Player removed mid-round', avail:'owner only',
+ desc:'removePlayer() deletes the player, their provinces (they become unclaimed) and Capital record, clears a win they held, and clears a pending battle if they were the attacker or the defender (the current player goes back to choosing an action). If it was their turn the turn advances immediately. If they were later in the order they are skipped.',
+ ref:'src/game/actions.ts · run() case "removePlayer"', flags:['f-leftpanel','f-stalefort','f-noundo']},
+{id:'late', parent:'grpE', type:'edge', title:'Late joiner',
+ desc:'addPlayer() charts a new outer world with the joiner’s Capital on it. They start with 5 RP, no cards and 0 battles, and are not added to the current round’s order, so they take part from the next War Round. Existing provinces are untouched and the Reach is not re-charted.',
+ ref:'src/game/actions.ts · run() case "addPlayer"; src/game/map.ts · addWorld()', flags:[]},
+{id:'latch', parent:'grpE', type:'edge', title:'Hollowgate latch (hollOpened)',
+ desc:'hollOpen() is true once 60% of provinces are claimed or the round reaches 8. apply() sets state.hollOpened the first time that is true (before and after every action), so adding a world or removing a player cannot close it again. Charting a new Reach or resetting clears it.',
+ ref:'src/game/selectors.ts · hollOpen(); src/game/actions.ts · apply()', flags:[]},
+{id:'nobattle', parent:'grpE', type:'edge', title:'No legal battle action',
+ desc:'Conquer and Raid are greyed out if the player has no legal target, or there is only one player. They then have Recuperate, Muster, Scout and (if they hold a province) Fortify.',
+ ref:'src/game/actions.ts · run() case "chooseAction"; src/components/WarRoomTab.tsx · TurnPanel', flags:['f-greyed','f-quietfree']},
+{id:'homeless', parent:'grpE', type:'edge', title:'Player with no provinces', avail:'after losing their last province',
+ desc:'They still take their turn, and go first in the order (0 provinces). Their only battle is Conquer on an unclaimed outer province; Raid and Fortify are unavailable. Underdog’s grit gives them a card after every battle while they are on the minimum.',
+ ref:'src/game/engine.ts · targets(); src/game/actions.ts · run() case "chooseAction"', flags:['f-homeless','f-capsilent']},
+{id:'single', parent:'grpE', type:'edge', title:'Single-player campaign',
+ desc:'beginRound works with one player. Conquer and Raid are never available (they need 2+ players), and Underdog’s grit is skipped. Only Recuperate, Muster, Scout and Fortify can be played.',
+ ref:'src/game/actions.ts · run() case "chooseAction", run() case "beginRound"; src/game/engine.ts · resolve()', flags:['f-greyed','f-quietfree']}
+];
+
+/* ---------- State ---------- */
+const byId = Object.fromEntries(NODES.map(n => [n.id, n]));
+const flagById = Object.fromEntries(FLAGS.map(f => [f.id, f]));
+const catById = Object.fromEntries(CATS.map(c => [c.id, c]));
+const typeById = Object.fromEntries(TYPES.map(t => [t.id, t]));
+const children = new Map(NODES.map(n => [n.id, []]));     // child order = NODES order
+NODES.forEach(n => n.parent && children.get(n.parent).push(n));
+const rootNode = NODES.find(n => !n.parent);
+const active = new Set(CATS.map(c => c.id));            // categories currently shown
+const open = new Set(NODES.filter(n => n.open).map(n => n.id));
+let sel = null;                                          // selected node id
+const els = {};                                          // node id -> {li, chev, main, badges}
+const $ = s => document.querySelector(s);
+/* Every piece of data text goes through esc() before it reaches innerHTML */
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pathTo = id => { const p = []; for (let n = byId[id]; n; n = byId[n.parent]) p.unshift(n); return p; };
+const glyph = {decision:'◆', engine:'⚙', table:'▤', boundary:'■', edge:'⚠'};
+const typeLabel = n => n.grp ? 'Group' : typeById[n.type].label;
+/* Sheet mode follows the CSS (the panel is fixed only below 960px), so the breakpoint lives in one place */
+const sheetMode = () => getComputedStyle($('#detail')).position === 'fixed';
+
+/* Flag helpers. Flags are unique; a node only holds ids. */
+const nodeFlags = n => n.flags.map(id => flagById[id]);
+/* Ids of nodes that have a visible flag on themselves or any descendant (one bottom-up walk) */
+function relevantIds(){
+  const ids = new Set();
+  const walk = n => {
+    const kidHit = children.get(n.id).map(walk).some(Boolean);   // map first so every subtree is visited
+    const hit = kidHit || nodeFlags(n).some(f => active.has(f.cat));
+    if (hit) ids.add(n.id);
+    return hit;
+  };
+  walk(rootNode);
+  return ids;
+}
+
+/* ---------- Render ----------
+   The filter chips and the tree are built once. After that, state changes only update
+   classes and attributes on the existing elements, so keyboard focus stays where it is. */
+function buildFilters(){
+  $('#fgrid').innerHTML = CATS.map(c =>
+    `<button class="fchip" data-cat="${c.id}" aria-pressed="true">
+       <span class="sw"></span><span>${esc(c.label)}</span><span class="n">${FLAGS.filter(f => f.cat === c.id).length}</span></button>`).join('');
+}
+function buildLegend(){
+  $('#legend').innerHTML = TYPES.map(t =>
+    `<span><span class="tt" data-type="${t.id}">${glyph[t.id]} ${esc(t.label)}</span>${esc(t.note)}</span>`).join('');
+}
+/* Nested <ul>/<li>. A chevron button discloses each branch (aria-expanded + aria-controls);
+   the selected step's main button carries aria-current. Leaves get a decorative dot. */
+function nodeHTML(n){
+  const k = children.get(n.id), id = esc(n.id);
+  return `<li class="node${n.grp ? ' grp' : ''}" data-type="${n.type}" data-id="${id}">
+    <div class="nrow">
+      ${k.length
+        ? `<button class="chev" data-chev="${id}" aria-controls="ch-${id}" aria-label="${esc(n.title)}"><svg viewBox="0 0 10 10" aria-hidden="true"><path d="M3 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button>`
+        : `<span class="chev leaf" aria-hidden="true"><svg viewBox="0 0 10 10"><circle cx="5" cy="5" r="1.6" fill="currentColor"/></svg></span>`}
+      <button class="nmain" data-sel="${id}">
+        <span class="nline">
+          <span class="ntitle">${esc(n.title)}</span>
+          <span class="tt" data-type="${n.type}">${glyph[n.type]} ${esc(typeLabel(n))}</span>
+          <span class="badges"></span>
+        </span>
+        ${n.avail ? `<span class="navail">${esc(n.avail)}</span>` : ''}
+      </button>
+    </div>
+    ${k.length ? `<ul id="ch-${id}">${k.map(nodeHTML).join('')}</ul>` : ''}
+  </li>`;
+}
+function buildTree(){
+  $('#tree').innerHTML = nodeHTML(rootNode);
+  $('#tree').querySelectorAll('li.node').forEach(li => {
+    const row = li.querySelector(':scope > .nrow');
+    els[li.dataset.id] = {li, chev: row.querySelector('[data-chev]'), main: row.querySelector('.nmain'), badges: row.querySelector('.badges')};
+  });
+}
+/* Sync open / path / selected / faded state and the badges onto the existing tree */
+function syncTree(){
+  const path = new Set(sel ? pathTo(sel).map(p => p.id) : []);
+  const relevant = active.size < CATS.length ? relevantIds() : null;   // null = not filtering
+  NODES.forEach(n => {
+    const e = els[n.id], isOpen = open.has(n.id);
+    e.li.classList.toggle('open', isOpen);
+    e.li.classList.toggle('onpath', path.has(n.id) && n.id !== sel);
+    e.li.classList.toggle('sel', n.id === sel);
+    e.li.classList.toggle('faded', !!relevant && !relevant.has(n.id));
+    if (e.chev){
+      e.chev.setAttribute('aria-expanded', isOpen);
+    }
+    if (n.id === sel) e.main.setAttribute('aria-current', 'true'); else e.main.removeAttribute('aria-current');
+    e.badges.innerHTML = CATS.filter(c => active.has(c.id))
+      .map(c => [c, nodeFlags(n).filter(f => f.cat === c.id).length]).filter(([, v]) => v)
+      .map(([c, v]) => `<span class="bdg" data-cat="${c.id}" title="${esc(c.label)}" aria-label="${v} ${esc(c.label)} flag${v > 1 ? 's' : ''}">${v}</span>`).join('');
+  });
+}
+function renderCrumb(){
+  if (!sel){ $('#crumb').innerHTML = '<span>Select a step to trace its path from the start of the turn.</span>'; return; }
+  const p = pathTo(sel);
+  $('#crumb').innerHTML = p.map((n,i) => i === p.length - 1
+    ? `<span class="cur">${esc(n.title)}</span>`
+    : `<button data-go="${esc(n.id)}">${esc(n.title)}</button><span class="sep" aria-hidden="true">›</span>`).join('');
+}
+function renderDetail(){
+  const d = $('#detail');
+  d.classList.toggle('empty', !sel);
+  if (!sel){
+    d.innerHTML = '<p class="empty-msg">Select a step in the tree to see what it does, where it lives in the code, and what is flagged.</p>';
+    return;
+  }
+  const n = byId[sel], fl = nodeFlags(n);
+  d.innerHTML = `
+    <div class="dhead"><span class="tt" data-type="${n.type}">${glyph[n.type]} ${esc(typeLabel(n))}</span>
+      <button class="btn x" id="closeD" aria-label="Close detail">✕</button></div>
+    <h2 id="detailH" tabindex="-1">${esc(n.title)}</h2>
+    ${n.avail ? `<p class="navail">${esc(n.avail)}</p>` : ''}
+    <p>${esc(n.desc)}</p>
+    <div class="lbl">Source</div>
+    <code class="ref">${esc(n.ref)}</code>
+    <div class="lbl">Flags (${fl.length})</div>
+    ${fl.length ? fl.map(f => `<div class="flag ${active.has(f.cat) ? '' : 'off'}" data-cat="${f.cat}">
+        <span class="cchip" data-cat="${f.cat}"><i></i>${esc(catById[f.cat].label)}</span><p>${esc(f.text)}</p></div>`).join('')
+      : '<p class="noflags">No flags on this step.</p>'}`;
+}
+function renderHint(){
+  const shown = FLAGS.filter(f => active.has(f.cat)).length;   // unique flags in active categories
+  $('#hint').textContent = shown + ' of ' + FLAGS.length + ' flags shown';
+}
+
+/* Select a step (or null). On phones, tapping the selected step again closes the sheet.
+   Selecting a step opens all its ancestors; in sheet mode focus moves onto the sheet's heading. */
+function select(id){
+  if (id === sel && sheetMode()) id = null;
+  const changed = id !== sel;
+  sel = id;
+  if (sel) pathTo(sel).forEach(p => p.id !== sel && open.add(p.id));
+  syncTree(); renderCrumb(); renderDetail();
+  if (changed) $('#detail').scrollTop = 0;
+  if (sel && sheetMode()){
+    // the sheet covers the lower part of the screen: bring the selected row up above it
+    if (els[sel].li.getBoundingClientRect().top > innerHeight * 0.3) els[sel].li.scrollIntoView({block:'start'});
+    $('#detailH').focus({preventScroll:true});
+  }
+}
+/* Close the sheet and hand focus back to the node button that opened it */
+function closeSheet(){
+  const from = sel;
+  select(null);
+  if (from) els[from].main.focus({preventScroll:true});
+}
+
+/* ---------- Controls (delegated, attached once) ---------- */
+$('#tree').addEventListener('click', e => {
+  const chev = e.target.closest('[data-chev]');
+  if (chev){
+    const id = chev.dataset.chev;
+    open.has(id) ? open.delete(id) : open.add(id);
+    syncTree();
+    return;
+  }
+  const main = e.target.closest('[data-sel]');
+  if (main) select(main.dataset.sel);
+});
+$('#fgrid').addEventListener('click', e => {
+  const b = e.target.closest('.fchip');
+  if (!b) return;
+  const c = b.dataset.cat;
+  active.has(c) ? active.delete(c) : active.add(c);
+  b.setAttribute('aria-pressed', active.has(c));
+  syncTree(); renderHint();
+  // the open panel only needs its flags dimmed or restored, so its scroll position is kept
+  $('#detail').querySelectorAll('.flag').forEach(f => f.classList.toggle('off', !active.has(f.dataset.cat)));
+});
+/* A crumb button is replaced when it becomes the current step, so focus its tree node instead */
+$('#crumb').addEventListener('click', e => {
+  const b = e.target.closest('[data-go]');
+  if (!b) return;
+  const id = b.dataset.go;
+  select(id);
+  if (!sheetMode()) els[id].main.focus({preventScroll:true});
+});
+$('#detail').addEventListener('click', e => { if (e.target.closest('#closeD')) closeSheet(); });
+$('#expAll').onclick = () => { NODES.forEach(n => children.get(n.id).length && open.add(n.id)); syncTree(); };
+$('#colAll').onclick = () => { open.clear(); open.add(rootNode.id); syncTree(); };
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && sel && sheetMode()) closeSheet();
+});
+
+/* Keep the desktop side panel just below the sticky filter bar, whatever its height.
+   ResizeObserver fires on observe() and on every size change (viewport, font swap). */
+new ResizeObserver(() => {
+  document.documentElement.style.setProperty('--filters-h', $('#filters').offsetHeight + 'px');
+}).observe($('#filters'));
+
+buildLegend(); buildFilters(); buildTree();
+syncTree(); renderCrumb(); renderDetail(); renderHint();
+</script>
+</body>
+</html>
