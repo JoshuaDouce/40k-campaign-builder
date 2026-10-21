@@ -7,6 +7,7 @@ import type { MapViewState } from "./components/MapTab.tsx";
 import { PitchTab } from "./components/PitchTab.tsx";
 import { PlayersTab } from "./components/PlayersTab.tsx";
 import { RulesTab } from "./components/RulesTab.tsx";
+import { TurnGuideTab } from "./components/turnGuide/TurnGuideTab.tsx";
 import { WarRoomTab } from "./components/WarRoomTab.tsx";
 import { CampaignProvider } from "./store/CampaignProvider.tsx";
 import { useCampaign, useLocalCampaign } from "./store/useCampaign.ts";
@@ -18,6 +19,7 @@ const TABS: ReadonlyArray<{ id: TabId; label: string }> = [
   { id: "war", label: "War Room" },
   { id: "map", label: "Map" },
   { id: "rules", label: "Rules" },
+  { id: "turn", label: "Turn Guide" },
   { id: "cards", label: "Fate Deck" },
   { id: "factions", label: "Factions" },
   { id: "tracker", label: "Players" },
@@ -75,6 +77,7 @@ function Shell() {
       {tab === "war" && <WarRoomTab colors={colors} />}
       {tab === "map" && <MapTab colors={colors} map={map} />}
       {tab === "rules" && <RulesTab />}
+      {tab === "turn" && <TurnGuideTab />}
       {tab === "cards" && <DeckTab />}
       {tab === "factions" && <FactionsTab />}
       {tab === "tracker" && <PlayersTab colors={colors} />}

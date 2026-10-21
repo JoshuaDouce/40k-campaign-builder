@@ -130,3 +130,65 @@ select,input[type=text]{font:inherit;background:var(--panel2);color:var(--ink);b
 .win b{font-family:var(--f-display);font-size:30px;display:block}
 .stats{grid-template-columns:repeat(4,1fr)}
 @media (max-width:440px){.stats{grid-template-columns:repeat(2,1fr)}}
+
+/* Turn Guide: a practice run of one turn. Reuses .turn, .act, .chip, .stats, .twist and the :root tokens. */
+.tg-tap{min-height:44px}
+.tg-top{margin:14px 0 8px;justify-content:space-between}
+.tg-seg{display:inline-flex;border:1px solid var(--line);border-radius:3px;overflow:hidden}
+.tg-seg button{font-family:var(--f-mono);font-size:13px;letter-spacing:.06em;text-transform:uppercase;background:var(--panel2);color:var(--dim);border:0;padding:8px 14px;cursor:pointer}
+.tg-seg button[aria-pressed="true"]{background:var(--brass);color:var(--bg)}
+.tg-top .chip{font-size:13px}
+.tg-scenario{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:10px 12px;margin:8px 0 12px}
+.tg-scsum{margin:0;font-size:12px}
+.tg-scform{margin-top:10px;border-top:1px solid var(--line);padding-top:10px}
+.tg-scform input[type=number]{width:100%;min-height:44px}
+.tg-checks{display:grid;gap:2px;margin:12px 0}
+.tg-check{display:flex;align-items:center;gap:10px;min-height:44px;cursor:pointer}
+.tg-check input{width:22px;height:22px;accent-color:var(--brass);flex:none}
+.tg-crumbs{list-style:none;margin:0 0 8px;padding:0;display:flex;flex-wrap:wrap;gap:4px 0;font-family:var(--f-mono);font-size:12px;color:var(--dim)}
+.tg-crumbs li+li::before{content:"›";margin:0 8px;color:var(--brass)}
+.tg-crumbs li:last-child{color:var(--ink)}
+.tg-tally .stats{margin:8px 0 4px}
+.tg-tally .stat .v.gain{color:var(--verd)}
+.tg-tally .stat .v.loss{color:var(--blood)}
+.tg-now{font-size:12px;margin:0 0 4px}
+.tg-warn{font-size:14px;color:var(--blood);margin:0 0 4px}
+.tg-walk .turn h3:focus{outline:none}
+.tg-walk .turn h3:focus-visible{outline:2px solid var(--brass);outline-offset:4px}
+.tg-walk .turn h3{font-family:var(--f-display);font-size:28px;font-weight:700;margin:0;line-height:1.05}
+.tg-walk .acts-grid{grid-template-columns:repeat(auto-fill,minmax(180px,1fr))}
+.tg-walk .act:disabled{opacity:.5;cursor:not-allowed}
+.tg-walk .act:disabled:hover{border-color:var(--line)}
+.tg-walk .act:disabled .ad{color:var(--blood)}
+.tg-roll{margin-top:12px}
+.tg-side{margin-top:12px}
+.tg-nav{margin-top:14px}
+.tg-end h5{font-family:var(--f-mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--brass);font-weight:400;margin:14px 0 4px}
+.tg-list{margin:0 0 8px;padding-left:20px}
+.tg-notes{margin-top:14px;display:grid;gap:8px}
+.tg-note{border-left:3px solid var(--dim);padding:2px 0 2px 10px;font-size:14px;color:var(--dim)}
+.tg-note p{margin:2px 0 0;font-size:14px}
+.tg-note .tg-cat{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+.tg-note.dead{border-color:var(--blood)} .tg-note.dead .tg-cat{color:var(--blood)}
+.tg-note.nochoice{border-color:var(--brass)} .tg-note.nochoice .tg-cat{color:var(--brass)}
+.tg-note.nodown{border-color:var(--verd)} .tg-note.nodown .tg-cat{color:var(--verd)}
+.tg-note.judged{border-color:var(--ink)} .tg-note.judged .tg-cat{color:var(--ink)}
+.tg-note.quirk{border-color:color-mix(in srgb,var(--blood) 45%,var(--ink))} .tg-note.quirk .tg-cat{color:color-mix(in srgb,var(--blood) 45%,var(--ink))}
+.tg-badge{font-family:var(--f-mono);font-size:11px;color:var(--bg);background:var(--dim);border-radius:10px;padding:1px 8px;white-space:nowrap}
+.tg-summary{font-size:14px}
+/* flow tree */
+.tg-node{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:6px 10px 10px;margin-top:8px}
+.tg-node.end{border-color:var(--brass)}
+.tg-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px;width:100%;min-height:44px;text-align:left;background:none;border:0;color:var(--ink);font:inherit;padding:6px 0;cursor:pointer}
+.tg-kind{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--brass)}
+.tg-ntitle{font-family:var(--f-display);font-size:20px;line-height:1.1}
+.tg-blurb{flex-basis:100%;font-size:14px;color:var(--dim)}
+.tg-nbody{border-top:1px solid var(--line);margin-top:4px;padding-top:8px;font-size:15px}
+.tg-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.tg-chip{min-height:44px;font-size:13px;padding:6px 12px;text-align:left}
+.tg-chip:disabled{opacity:.4;cursor:not-allowed}
+.tg-hint{font-size:14px;margin:6px 0 0}
+.tg-why{font-size:13px;margin:8px 0 0;padding-left:18px}
+.tg-branch{margin-top:6px;padding-left:10px;border-left:2px solid var(--line)}
+.tg-via{font-size:11px;color:var(--brass);letter-spacing:.06em}
+.tg-stub{font-size:14px;margin:6px 0 0}
