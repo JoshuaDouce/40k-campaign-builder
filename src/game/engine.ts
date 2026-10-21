@@ -17,6 +17,7 @@ import {
   orbitOf,
   ownerOf,
   provsOf,
+  r5,
   r50,
   sizeOf,
   supplyOf,
@@ -162,6 +163,7 @@ export function rollBattle(s: CampaignState, sel: { zone: string; def: string },
   } else if (sel.def === actor.id || !getPlayer(s, sel.def)) return false;
   pd.zone = sel.zone;
   pd.def = sel.def;
+  pd.garrison = pd.act === "conquer" && !holder;
   rollTwists(s, rng);
   return true;
 }
@@ -187,12 +189,22 @@ export function battleInfo(s: CampaignState): BattleInfo | null {
     notes.push("Raid: half size.");
   }
   pts = Math.max(500, r50(pts));
-  const cap = Math.min(supplyOf(a), supplyOf(d));
+  const garrison = !!pd.garrison;
+  const cap = garrison ? supplyOf(a) : Math.min(supplyOf(a), supplyOf(d));
   if (cap < pts) {
-    notes.push(`Capped at the lower supply limit (${supplyOf(a) <= supplyOf(d) ? a.name : d.name}).`);
+    notes.push(
+      garrison
+        ? `Capped at the attacker's supply limit (${a.name}).`
+        : `Capped at the lower supply limit (${supplyOf(a) <= supplyOf(d) ? a.name : d.name}).`,
+    );
     pts = Math.floor(cap / 50) * 50;
   }
-  if (count(s, a) < count(s, d)) notes.push(`${a.name} is the Underdog: +10% (${Math.round((pts * 1.1) / 5) * 5} pts).`);
+  const attackerPts = garrison ? r5(pts * 1.2) : pts;
+  if (garrison)
+    notes.push(
+      `Garrison battle: ${d.name} fields the unclaimed province's garrison and gains nothing from it. ${a.name} must fight it, with +20% points.`,
+    );
+  else if (count(s, a) < count(s, d)) notes.push(`${a.name} is the Underdog: +10% (${r5(pts * 1.1)} pts).`);
   const held = s.terr[v.id] === d.id;
   if (held && (s.fort[v.id] || v.type === "fortress"))
     notes.push(`Fortified: ${d.name} gets +1 CP and one extra piece of terrain.`);
@@ -209,33 +221,46 @@ export function battleInfo(s: CampaignState): BattleInfo | null {
         trait: "Shifting ground. At the start of each round roll a D6: on a 1 move one terrain piece 3\". One Lord of War allowed.",
       };
   const lightForces = pts <= LIGHT_FORCES_MAX_PTS && !pd.twists.includes(LIGHT_FORCES_TWIST);
-  return { v, a, d, pts, notes, cards, lightForces, trait };
+  return { v, a, d, pts, attackerPts, garrison, notes, cards, lightForces, trait };
 }
 
 /** Record the pending battle's result and move on (mutates `s`). Returns false if there is no rolled battle. */
-export function resolve(s: CampaignState, res: "a" | "d" | "x", rng: Rng): boolean {
+export function resolve(s: CampaignState, res: "a" | "d" | "x", rng: Rng, decisive?: boolean): boolean {
   const pd = s.pend;
   const info = battleInfo(s);
   if (!pd || !info) return false;
   const { v, a, d } = info;
   const win = res === "a" ? a : res === "d" ? d : null;
-  [a, d].forEach((p) => {
+  // A garrison player fields the defence as a favour: only the attacker takes part in the campaign.
+  const sides = info.garrison ? [a] : [a, d];
+  const rewarded = win && sides.includes(win) ? win : null;
+  sides.forEach((p) => {
     p.battles++;
     p.rp = Math.min(10, p.rp + 1);
   });
-  if (win) {
-    win.wins++;
-    win.rp = Math.min(10, win.rp + 1);
+  if (rewarded) {
+    rewarded.wins++;
+    rewarded.rp = Math.min(10, rewarded.rp + 1);
   }
   const pl = v.type === "rift" ? undefined : getPlanet(s, v.pl);
   const where = pl ? `${v.name} on ${pl.name}` : v.name;
-  log(
-    s,
-    B(a.name),
-    ` ${pd.act === "raid" ? "raided" : "attacked"} ${where} against `,
-    B(d.name),
-    `: ${win ? win.name + " won" : "a draw"}.`,
-  );
+  if (info.garrison)
+    log(
+      s,
+      B(a.name),
+      ` attacked ${where}, garrisoned by `,
+      B(d.name),
+      ": ",
+      ...(win === a ? [B(a.name), " won."] : win === d ? [B(d.name), "'s garrison won."] : ["a draw."]),
+    );
+  else
+    log(
+      s,
+      B(a.name),
+      ` ${pd.act === "raid" ? "raided" : "attacked"} ${where} against `,
+      B(d.name),
+      `: ${win ? win.name + " won" : "a draw"}.`,
+    );
   if (pd.act === "conquer") {
     if (win === a) {
       if (v.type === "capital" && s.terr[v.id] === d.id) {
@@ -246,6 +271,10 @@ export function resolve(s: CampaignState, res: "a" | "d" | "x", rng: Rng): boole
       }
       s.terr[v.id] = a.id;
       log(s, B(a.name), ` takes ${v.name}.`);
+      if (info.garrison && decisive) {
+        a.rp = Math.min(10, a.rp + 1);
+        log(s, "Decisive win: ", B(a.name), " gains 1 extra RP.");
+      }
     } else if (win === d && s.terr[v.id] === d.id) log(s, B(d.name), ` holds ${v.name}.`);
   } else if (win === a) {
     const rp = Math.min(1, d.rp);
@@ -258,7 +287,7 @@ export function resolve(s: CampaignState, res: "a" | "d" | "x", rng: Rng): boole
     } else log(s, B(a.name), ` steals ${rp} RP.`);
   }
   delete s.fort[v.id];
-  if (win) drawFor(s, win, 1, "victory", rng);
+  if (rewarded) drawFor(s, rewarded, 1, "victory", rng);
   // Underdog's grit: every player on the campaign minimum draws, not only the combatants.
   if (s.players.length > 1) {
     const min = Math.min(...s.players.map((p) => count(s, p)));
@@ -267,7 +296,9 @@ export function resolve(s: CampaignState, res: "a" | "d" | "x", rng: Rng): boole
     });
   }
   a.scout = false;
-  log(s, "Both players: record XP, roll for the fallen, +150 supply.");
+  if (info.garrison)
+    log(s, B(a.name), ": record XP, roll for the fallen, +150 supply. ", B(d.name), " fielded the garrison and gains nothing.");
+  else log(s, "Both players: record XP, roll for the fallen, +150 supply.");
   endTurn(s);
   return true;
 }
