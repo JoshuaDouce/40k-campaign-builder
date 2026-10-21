@@ -40,6 +40,11 @@ export function EndSummary({ step, env, crumbs }: { step: Step; env: Env; crumbs
               <li key={r}>{r}</li>
             ))}
           </ul>
+          {env.ctx.result && (
+            <button className="btn sm tg-tap" onClick={() => (location.hash = "roster")}>
+              Open the Roster tab
+            </button>
+          )}
         </>
       )}
       <h5>What happens next</h5>

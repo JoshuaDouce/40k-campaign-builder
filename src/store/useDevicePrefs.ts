@@ -3,7 +3,7 @@ import { useCallback, useState } from "react";
 import { FACTIONS } from "../game/index.ts";
 import type { FactionName } from "../game/index.ts";
 
-export const TAB_IDS = ["pitch", "war", "map", "rules", "turn", "cards", "factions", "tracker"] as const;
+export const TAB_IDS = ["pitch", "war", "map", "roster", "rules", "turn", "cards", "factions", "tracker"] as const;
 export type TabId = (typeof TAB_IDS)[number];
 
 const TAB_KEY = "varkesh-tab";

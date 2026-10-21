@@ -1,4 +1,4 @@
-import { ACTIONS, LIGHT_FORCES_MAX_PTS, LIGHT_FORCES_TWIST, ORBITS, PTYPES, TWISTS, VTYPES } from "../game/index.ts";
+import { ACTIONS, HONOURS, LIGHT_FORCES_MAX_PTS, LIGHT_FORCES_TWIST, ORBITS, PTYPES, SCARS, TWISTS, VTYPES } from "../game/index.ts";
 
 export function RulesTab() {
   return (
@@ -15,6 +15,9 @@ export function RulesTab() {
         <li><div><b>End of round</b>If someone holds the Hollowgate, they win the Reach. Otherwise start the next War Round.</div></li>
       </ol>
       <p className="dim">Can't get every game played in one evening? Fine. A War Round can stretch over a couple of weeks. Non-battle turns take a minute and can be done over the group chat.</p>
+
+      <h3>Characters</h3>
+      <p>Your warband starts with exactly one Character: your Warlord. More only through Promotion, or by adding them later as your supply limit grows. One Warlord per roster.</p>
 
       <h3>Campaign actions</h3>
       <div className="tbl"><table>
@@ -86,7 +89,7 @@ export function RulesTab() {
       <h3>After each battle</h3>
       <ol className="steps">
         <li><div><b>Award XP</b>+1 to every unit that fought and was not destroyed. +1 per enemy unit it destroyed. +2 to one unit you <i>Marked for Glory</i> before the game.</div></li>
-        <li><div><b>Roll for the fallen</b>Every unit destroyed rolls a D6. On a 1 it gains a Battle Scar. Characters roll on a 1–2.</div></li>
+        <li><div><b>Roll for the fallen</b>Every unit destroyed rolls a D6 (Hard to Kill adds 1). On a 1 it gains a Battle Scar; Characters on a 1–2. Roll a D3 on the Battle Scars table.</div></li>
         <li><div><b>Requisition</b>+1 RP to both players, +1 more to the winner. Bank up to 10. (Garrison battles: the attacker only.)</div></li>
         <li><div><b>Supply</b>Both players' supply limits grow by 150 pts. (Garrison battles: the attacker only.)</div></li>
         <li><div><b>Spoils</b>The winner draws 1 Fate Card. A Conquer winner takes the province. A Raid winner steals 1 RP and a random Fate Card.</div></li>
@@ -104,18 +107,16 @@ export function RulesTab() {
           <tr><td>Legend of the Reach</td><td className="n">25</td><td>4, and the unit gets a name in the campaign log</td></tr>
         </tbody>
       </table></div>
-      <p>Each Battle Honour adds 10% of the unit's points (round to nearest 5) to its cost, so veterans take up real space in your list.</p>
+      <p>Each Battle Honour adds 10% of the unit's base points to its cost, worked out on the total and rounded to the nearest 5, so veterans take up real space in your list.</p>
+      <p>When a unit reaches a new rank, roll or pick 1 Battle Honour for each rank gained, straight after the battle. A unit can't hold the same honour twice: re-roll, or pick another.</p>
 
       <h3>Battle Honours (roll D6 or pick)</h3>
       <div className="tbl"><table>
         <thead><tr><th>D6</th><th>Honour</th><th>Effect</th></tr></thead>
         <tbody>
-          <tr><td className="n">1</td><td>Steady Aim</td><td>Re-roll hit rolls of 1 with ranged attacks.</td></tr>
-          <tr><td className="n">2</td><td>Brawlers</td><td>Re-roll wound rolls of 1 in melee.</td></tr>
-          <tr><td className="n">3</td><td>Grizzled</td><td>+1 to Battle-shock and Leadership tests.</td></tr>
-          <tr><td className="n">4</td><td>Fleet</td><td>+1" to Move.</td></tr>
-          <tr><td className="n">5</td><td>Hard to Kill</td><td>+1 to its roll for the fallen after battle.</td></tr>
-          <tr><td className="n">6</td><td>Objective Hunters</td><td>+1 OC.</td></tr>
+          {HONOURS.map((h, i) => (
+            <tr key={h.n}><td className="n">{i + 1}</td><td>{h.n}</td><td>{h.e}</td></tr>
+          ))}
         </tbody>
       </table></div>
 
@@ -123,12 +124,15 @@ export function RulesTab() {
       <div className="tbl"><table>
         <thead><tr><th>D3</th><th>Scar</th><th>Effect</th></tr></thead>
         <tbody>
-          <tr><td className="n">1</td><td>Shaken</td><td>−1 to Battle-shock tests.</td></tr>
-          <tr><td className="n">2</td><td>Crippled</td><td>−1" Move, cannot Advance and charge.</td></tr>
-          <tr><td className="n">3</td><td>Worn Gear</td><td>Worsen BS or WS of one weapon by 1.</td></tr>
+          {SCARS.map((s, i) => (
+            <tr key={s.n}><td className="n">{i + 1}</td><td>{s.n}</td><td>{s.e}</td></tr>
+          ))}
         </tbody>
       </table></div>
-      <p className="dim">Three scars and the unit is gone: remove it from your roster. That's the cost of a long war.</p>
+      <p>A unit can't hold the same scar twice: re-roll duplicates. Worn Gear: choose the weapon when the scar is gained and note it on your roster. Scars never change a unit's points.</p>
+      <p className="dim">Three scars and the unit is gone: remove it from your roster. That's the cost of a long war. A Character's third scar removes it like any other unit.</p>
+      <p className="dim">Example: Breach Team Seven is destroyed and rolls a 1: a scar. The D3 comes up 2: Crippled. With one scar already, one more and the squad is gone.</p>
+      <p className="dim">The Roster tab tracks all of this: XP, ranks, honours, scars and points, with a post-battle helper for the rolls.</p>
 
       <h3>Spending Requisition</h3>
       <div className="tbl"><table>
@@ -137,8 +141,8 @@ export function RulesTab() {
           <tr><td className="n">1 RP</td><td>Reinforcements</td><td>+200 pts to your supply limit.</td></tr>
           <tr><td className="n">1 RP</td><td>Field Surgeon</td><td>Remove one Battle Scar.</td></tr>
           <tr><td className="n">1 RP</td><td>Requisition the Deck</td><td>Draw one Fate Card.</td></tr>
-          <tr><td className="n">1 RP</td><td>Promotion</td><td>Give a Character an enhancement, or make a Veteran unit's sergeant a Character.</td></tr>
-          <tr><td className="n">2 RP</td><td>Seasoned Recruits</td><td>Add a new unit that starts at 3 XP (Blooded).</td></tr>
+          <tr><td className="n">1 RP</td><td>Promotion</td><td>Give a Character an enhancement, or make a Veteran (8+ XP) unit's sergeant a Character.</td></tr>
+          <tr><td className="n">2 RP</td><td>Seasoned Recruits</td><td>Add a new unit that starts at 3 XP (Blooded), with its first Battle Honour.</td></tr>
         </tbody>
       </table></div>
       <p className="dim">Spend RP at any time outside a battle.</p>

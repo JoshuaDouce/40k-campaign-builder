@@ -186,8 +186,11 @@ export function afterReminders(ctx: Ctx, sc: Scenario): string[] {
     return [];
   }
   const l = [
-    "XP: +1 to every unit that fought and was not destroyed, +1 per enemy unit it destroyed, and +2 to the unit you Marked for Glory.",
-    "Roll for the fallen: each destroyed unit rolls a D6. On a 1 it gains a Battle Scar (Characters on a 1–2). Three scars and the unit is gone.",
+    "1. XP: +1 to every unit that fought and was not destroyed, +1 per enemy unit it destroyed, and +2 to the unit you Marked for Glory.",
+    "2. Rank-up and honour: a unit that reaches a new rank rolls a D6 (or picks) for 1 Battle Honour per rank gained. No duplicates: re-roll or pick another.",
+    "3. Roll for the fallen: each destroyed unit rolls a D6 (Hard to Kill adds 1). On a 1 it gains a Battle Scar; Characters on a 1–2.",
+    "4. Battle Scar: roll a D3 on the Battle Scars table and re-roll duplicates. Three scars and the unit is gone.",
+    "5. RP, supply and spoils: collect your Requisition, supply growth and spoils as listed above.",
     "Underdog's grit: any player now holding the fewest provinces draws 1 Fate Card, which may include you and players who didn't fight.",
   ];
   if (ctx.prov === "shrine") l.push("Shrine: both players' Marked for Glory units also get +1 XP.");
