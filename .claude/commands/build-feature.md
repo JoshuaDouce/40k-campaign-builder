@@ -6,7 +6,18 @@ description: Full feature delivery from rough idea to reviewed code.
 
 Build the following feature: $ARGUMENTS
 
-0. Regenerate PROJECT_STRUCTURE.md so every agent in this pipeline has accurate file paths.
+Every feature is built on its own branch and delivered as a pull request. Never commit
+feature work directly to `main`.
+
+0a. Create the feature branch before any agent writes files (the designer writes to `design/` too):
+   - Run `git status --porcelain`. If there are uncommitted changes, stop and ask the user
+     whether to commit, stash, or carry them onto the new branch. Do not discard them.
+   - `git checkout main && git pull --ff-only`
+   - Pick a short kebab-case slug from the feature idea and run `git checkout -b feature/<slug>`.
+     If that branch already exists, ask the user whether to reuse it or pick a new name.
+   - Tell the user the branch name.
+
+0b. Regenerate PROJECT_STRUCTURE.md so every agent in this pipeline has accurate file paths.
    Read CLAUDE.md for the repo layout, then run:
    ```
    find src/ amplify/ design/ e2e/ -type f -not -path '*/node_modules/*' -not -path '*/.amplify/*' 2>/dev/null | sort
@@ -30,4 +41,16 @@ Build the following feature: $ARGUMENTS
    Pause and tell the user which command to run, then wait for confirmation before continuing.
 9. Once the user confirms tests pass, run /simplify against all changed files to clean up structure, readability, and file size for both human and AI readability — runs autonomously, do not pause for user input
 10. Once simplify is done, delegate to code-reviewer agent to review all output — the reviewer runs autonomously, do not pause for user input
-11. Report back with: what was built, files changed, tests written, simplify changes made, reviewer findings, any open questions
+11. Fix any blocking reviewer findings, then verify with `npm run build` and `npm run lint`.
+    If either fails, fix it (delegating to the right specialist) before continuing.
+12. Commit and raise the pull request — runs autonomously, do not pause for user input:
+    - Stage only the files this feature changed (never `amplify_outputs.json` from a sandbox,
+      `PROJECT_STRUCTURE.md` or `CLAUDE.local.md`). Commit with a conventional-commit message
+      (`feat:`, `fix:`, `chore:`); split into several commits if the changes are clearly separate.
+    - `git push -u origin feature/<slug>`
+    - `gh pr create --base main --head feature/<slug>` with a conventional-commit title and a body
+      covering: summary, what changed (by area: game module / frontend / backend / design),
+      how to test it manually in the browser, reviewer findings left open, and open questions.
+    - Do not merge the PR — merging to `main` deploys to live, so that is the user's call.
+13. Report back with: the PR link, branch name, what was built, files changed, tests written,
+    simplify changes made, reviewer findings, any open questions

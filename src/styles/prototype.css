@@ -58,6 +58,16 @@ td.n{font-family:var(--f-mono);color:var(--brass);white-space:nowrap;font-varian
 .terr:focus-visible .ring,polygon.terr:focus-visible{stroke:var(--brass);stroke-width:3}
 .terr .hit{fill:transparent}
 .mapbox.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+/* planet map: full labels on wide screens; numbered badges + a tappable key on phones */
+.pnum,.provkey{display:none}
+.provkey{list-style:none;margin:10px 0 0;padding:0;grid-template-columns:1fr;gap:4px}
+.provkey button{width:100%;display:grid;grid-template-columns:28px 1fr auto 10px;align-items:center;gap:8px;text-align:left;font:inherit;font-size:15px;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:8px 10px;min-height:44px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.provkey button[aria-pressed="true"]{border-color:var(--brass);background:var(--panel2)}
+.provkey .n{font-family:var(--f-mono);color:var(--brass);font-size:15px;text-align:center}
+.provkey button[aria-pressed="true"] .n{color:var(--bg);background:var(--brass);border-radius:50%;line-height:24px;width:24px;justify-self:center}
+.provkey .nm{font-family:var(--f-display);font-size:18px;line-height:1.1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.provkey .t{font-size:11px}
+@media (max-width:600px){.plabel{display:none}.pnum{display:inline}.provkey{display:grid}}
 @media (max-width:480px){.mapbox{padding:2px;margin-inline:-8px}}
 .info{margin-top:12px;background:var(--panel);border:1px solid var(--line);padding:14px;border-radius:3px}
 .info h4{font-family:var(--f-display);font-size:24px;margin:0 0 2px}

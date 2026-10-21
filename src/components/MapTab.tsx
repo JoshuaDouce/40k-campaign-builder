@@ -13,7 +13,7 @@ import {
   stageText,
   VTYPES,
 } from "../game/index.ts";
-import type { Planet } from "../game/index.ts";
+import type { Planet, Province } from "../game/index.ts";
 import { useCampaign } from "../store/useCampaign.ts";
 import { PlanetMap } from "./PlanetMap.tsx";
 import { SystemMap } from "./SystemMap.tsx";
@@ -59,6 +59,7 @@ export function MapTab({ colors, map }: Props) {
           <SystemMap state={state} colors={colors} onOpenPlanet={openPlanet} />
         )}
       </div>
+      {planet && selId ? <ProvinceKey provs={provs} selProv={selId} colors={colors} onSelect={map.setSelProv} /> : null}
       <div className="info">
         {planet && selId ? (
           <ProvinceInfo provId={selId} planet={planet} />
@@ -75,6 +76,46 @@ export function MapTab({ colors, map }: Props) {
         ))}
       </div>
     </section>
+  );
+}
+
+/** Phone-only key for the numbered badges on the planet map; tapping a row selects that province. */
+function ProvinceKey({
+  provs,
+  selProv,
+  colors,
+  onSelect,
+}: {
+  provs: Province[];
+  selProv: string;
+  colors: Record<string, string>;
+  onSelect(id: string): void;
+}) {
+  const { state } = useCampaign();
+  return (
+    <ol className="provkey">
+      {provs.map((v, i) => {
+        const o = ownerOf(state, v.id);
+        return (
+          <li key={v.id}>
+            <button aria-pressed={v.id === selProv} onClick={() => onSelect(v.id)}>
+              <span className="n">{i + 1}</span>
+              <span className="nm">
+                {v.type === "capital" ? "◆ " : ""}
+                {v.name}
+              </span>
+              <span className="mono dim t">
+                {VTYPES[v.type].n.toUpperCase()} {sizeOf(state, v)}
+              </span>
+              <span
+                className="dot"
+                style={{ background: o ? colors[o.id] : "transparent", border: o ? "none" : "1px solid var(--line)" }}
+              ></span>
+            </button>
+          </li>
+        );
+      })}
+    </ol>
   );
 }
 
