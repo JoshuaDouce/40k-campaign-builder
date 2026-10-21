@@ -108,3 +108,27 @@ export const ACTIONS: readonly ActionDef[] = [
   {id:"fortify",n:"Fortify",battle:false,d:"Mark a province you hold. The next defender there gets +1 CP and one extra piece of terrain."},
   {id:"scout",n:"Scout",battle:false,d:"Draw 1 Fate Card. In your next battle you may swap one rolled twist for any twist you choose."}];
 export const ALT: readonly string[] = ["#c9c2b2","#5a8fd6","#d65a8f","#e0a23c","#58b8a8","#9c7ad6","#cc6b3d"];
+
+/** Unit ranks by XP: [name, XP needed, Battle Honour slots]. Index order is rank order. */
+export const RANKS: readonly { n: string; xp: number; slots: number }[] = [
+  { n: "Green", xp: 0, slots: 0 },
+  { n: "Blooded", xp: 3, slots: 1 },
+  { n: "Veteran", xp: 8, slots: 2 },
+  { n: "Elite", xp: 15, slots: 3 },
+  { n: "Legend of the Reach", xp: 25, slots: 4 },
+];
+/** Battle Honours, in D6 order (index 0 = a roll of 1). */
+export const HONOURS: readonly { n: string; e: string }[] = [
+  { n: "Steady Aim", e: "Re-roll hit rolls of 1 with ranged attacks." },
+  { n: "Brawlers", e: "Re-roll wound rolls of 1 in melee." },
+  { n: "Grizzled", e: "+1 to Battle-shock and Leadership tests." },
+  { n: "Fleet", e: '+1" to Move.' },
+  { n: "Hard to Kill", e: "+1 to its roll for the fallen after battle." },
+  { n: "Objective Hunters", e: "+1 OC." },
+];
+/** Battle Scars, in D3 order (index 0 = a roll of 1). */
+export const SCARS: readonly { n: string; e: string }[] = [
+  { n: "Shaken", e: "−1 to Battle-shock tests." },
+  { n: "Crippled", e: '−1" Move, cannot Advance and charge.' },
+  { n: "Worn Gear", e: "Worsen BS or WS of one weapon by 1." },
+];

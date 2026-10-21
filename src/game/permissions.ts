@@ -39,6 +39,15 @@ export function canPerform(state: CampaignState, action: Action, ctx: Permission
     case "playCard":
     case "discardCard":
     case "buyReinforcements":
+    case "addUnit":
+    case "updateUnit":
+    case "removeUnit":
+    case "applyPostBattle":
+    case "addExamples":
+    case "clearExamples":
+    case "fieldSurgeon":
+    case "promotion":
+    case "seasonedRecruits":
     case "updatePlayer":
       return controls(state, action.playerId, userId);
 

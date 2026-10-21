@@ -150,6 +150,52 @@ export interface LogEntry {
   segs: LogSeg[];
 }
 
+/**
+ * One unit on a player's roster. Scars are plain strings: the scar name from `SCARS`, or for Worn Gear
+ * `"Worn Gear (melta rifles)"` (name, space, weapon in brackets). Use `scarName` / `scarWeapon` / `makeScar`
+ * from roster.ts rather than parsing by hand.
+ */
+export interface Unit {
+  id: string;
+  name: string;
+  datasheet: string;
+  /** Base points, before honours. */
+  points: number;
+  xp: number;
+  /** Honour names from `HONOURS`, no duplicates. */
+  honours: string[];
+  scars: string[];
+  isCharacter: boolean;
+  /** At most one per roster; requires `isCharacter`. */
+  isWarlord: boolean;
+  enhancement?: string;
+  /** True for example units added by "Add example units". Examples never log a Legend. */
+  ex?: boolean;
+  /** Set once "becomes a Legend of the Reach" has been logged, so it is only logged once. */
+  legendLogged?: boolean;
+}
+
+/** One unit's line in a post-battle report. The UI resolves every die and passes the finished result. */
+export interface PostBattleResult {
+  unitId: string;
+  fought: boolean;
+  /** Only valid if `fought`. */
+  destroyed: boolean;
+  kills: number;
+  /** True for the one unit Marked for Glory (+2 XP). At most one per report. */
+  glory: boolean;
+  /** Replaces the computed XP gain when set. */
+  xpOverride?: number;
+  /** New honours chosen/rolled (names, none already held). Count must not exceed `honoursOwed`. */
+  honours?: string[];
+  /** The D6 for the fallen. Required if `destroyed`. */
+  fallenRoll?: number;
+  /** Scar name from `SCARS`; required when the fallen roll leaves the unit scarred, ignored otherwise. */
+  scar?: string;
+  /** Weapon for a Worn Gear scar. */
+  scarWeapon?: string;
+}
+
 export interface Pending {
   act: ActionId;
   actor: string;
@@ -179,6 +225,8 @@ export interface CampaignState {
   players: Player[];
   /** Latched once the Hollowgate has opened, so adding worlds can never close it. */
   hollOpened: boolean;
+  /** Unit rosters keyed by player id. Missing on old saves = every roster empty. */
+  rosters?: Record<string, Unit[]>;
 }
 
 export interface BattleInfo {
@@ -212,6 +260,15 @@ export type Action =
   | { type: "updatePlayer"; playerId: string; name?: string; faction?: FactionName }
   | { type: "addPlayer"; id: string; name: string; faction: FactionName; userId?: string }
   | { type: "removePlayer"; playerId: string }
+  | { type: "addUnit"; playerId: string; unit: Unit }
+  | { type: "updateUnit"; playerId: string; unit: Unit }
+  | { type: "removeUnit"; playerId: string; unitId: string }
+  | { type: "applyPostBattle"; playerId: string; results: PostBattleResult[] }
+  | { type: "addExamples"; playerId: string }
+  | { type: "clearExamples"; playerId: string }
+  | { type: "fieldSurgeon"; playerId: string; unitId: string; scar: string }
+  | { type: "promotion"; playerId: string; unitId: string; enhancement?: string }
+  | { type: "seasonedRecruits"; playerId: string; unit: Unit }
   | { type: "regen" }
   | { type: "reset" };
 

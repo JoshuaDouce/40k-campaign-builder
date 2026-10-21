@@ -5,6 +5,18 @@ import { beginRound, doQuiet, endTurn, fresh, regen, resolve, rollBattle, rollTw
 import { B, log } from "./log.ts";
 import { addWorld } from "./map.ts";
 import type { Rng } from "./rng.ts";
+import {
+  addExamplesTo,
+  addUnitTo,
+  applyPostBattleTo,
+  clearExamplesFrom,
+  fieldSurgeonOn,
+  promoteUnit,
+  recruitUnit,
+  removePlayerRoster,
+  removeUnitFrom,
+  updateUnitIn,
+} from "./roster.ts";
 import { currentActor, getPlayer, getZone, hollOpen, provsOf } from "./selectors.ts";
 import type { Action, CampaignState, Player } from "./types.ts";
 
@@ -80,6 +92,25 @@ function run(s: CampaignState, a: Action, rng: Rng): boolean {
       return true;
     }
 
+    case "addUnit":
+      return addUnitTo(s, a.playerId, a.unit);
+    case "updateUnit":
+      return updateUnitIn(s, a.playerId, a.unit);
+    case "removeUnit":
+      return removeUnitFrom(s, a.playerId, a.unitId);
+    case "applyPostBattle":
+      return applyPostBattleTo(s, a.playerId, a.results);
+    case "addExamples":
+      return addExamplesTo(s, a.playerId, rng);
+    case "clearExamples":
+      return clearExamplesFrom(s, a.playerId);
+    case "fieldSurgeon":
+      return fieldSurgeonOn(s, a.playerId, a.unitId, a.scar);
+    case "promotion":
+      return promoteUnit(s, a.playerId, a.unitId, a.enhancement);
+    case "seasonedRecruits":
+      return recruitUnit(s, a.playerId, a.unit);
+
     case "adjustStat": {
       const p = getPlayer(s, a.playerId);
       if (!p || !Number.isFinite(a.delta)) return false;
@@ -130,6 +161,7 @@ function run(s: CampaignState, a: Action, rng: Rng): boolean {
         if (s.terr[k] === a.playerId) delete s.terr[k];
       });
       delete s.cap[a.playerId];
+      removePlayerRoster(s, a.playerId);
       if (s.won === a.playerId) s.won = null;
       if (s.pend && (s.pend.actor === a.playerId || s.pend.def === a.playerId)) s.pend = null;
       if (wasActor) endTurn(s);

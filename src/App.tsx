@@ -6,6 +6,7 @@ import { MapTab } from "./components/MapTab.tsx";
 import type { MapViewState } from "./components/MapTab.tsx";
 import { PitchTab } from "./components/PitchTab.tsx";
 import { PlayersTab } from "./components/PlayersTab.tsx";
+import { RosterTab } from "./components/roster/RosterTab.tsx";
 import { RulesTab } from "./components/RulesTab.tsx";
 import { TurnGuideTab } from "./components/turnGuide/TurnGuideTab.tsx";
 import { WarRoomTab } from "./components/WarRoomTab.tsx";
@@ -18,6 +19,7 @@ const TABS: ReadonlyArray<{ id: TabId; label: string }> = [
   { id: "pitch", label: "Pitch" },
   { id: "war", label: "War Room" },
   { id: "map", label: "Map" },
+  { id: "roster", label: "Roster" },
   { id: "rules", label: "Rules" },
   { id: "turn", label: "Turn Guide" },
   { id: "cards", label: "Fate Deck" },
@@ -76,6 +78,7 @@ function Shell() {
       {tab === "pitch" && <PitchTab />}
       {tab === "war" && <WarRoomTab colors={colors} />}
       {tab === "map" && <MapTab colors={colors} map={map} />}
+      {tab === "roster" && <RosterTab colors={colors} />}
       {tab === "rules" && <RulesTab />}
       {tab === "turn" && <TurnGuideTab />}
       {tab === "cards" && <DeckTab />}

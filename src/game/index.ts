@@ -5,6 +5,7 @@ export * from "./log.ts";
 export * from "./map.ts";
 export * from "./selectors.ts";
 export * from "./cards.ts";
+export * from "./roster.ts";
 export * from "./engine.ts";
 export * from "./actions.ts";
 export * from "./permissions.ts";
