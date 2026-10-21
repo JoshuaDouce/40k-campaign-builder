@@ -192,7 +192,8 @@ If testing comes back: Vitest for `src/game/` first (seeded RNG), see the `test-
 
 ## Git
 - Commit straight to `main` is fine; every push to `main` deploys to the live site
-- Use a `feature/<name>` branch only for risky or multi-session work
+- `/build-feature` always works on a `feature/<name>` branch and ends by raising a PR to `main`
+  (not merged automatically). For ad-hoc work, use a branch only for risky or multi-session changes
 - Commit messages: conventional commits (`feat:`, `fix:`, `chore:`)
 
 ## Project structure index
