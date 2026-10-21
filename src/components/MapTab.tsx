@@ -52,7 +52,7 @@ export function MapTab({ colors, map }: Props) {
       <div style={{ marginBottom: 10 }}>
         {planet ? <PlanetHead planet={planet} onBack={() => map.setView("system")} /> : <SystemHead />}
       </div>
-      <div className="mapbox">
+      <div className={planet ? "mapbox" : "mapbox scroll"}>
         {planet && selId ? (
           <PlanetMap state={state} planet={planet} provs={provs} selProv={selId} colors={colors} onSelect={map.setSelProv} />
         ) : (

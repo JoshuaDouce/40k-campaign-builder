@@ -16,6 +16,9 @@ function arcPath(cx: number, cy: number, r: number, a0: number, a1: number): str
   return `M${x0.toFixed(1)} ${y0.toFixed(1)} A${r} ${r} 0 ${a1 - a0 > Math.PI ? 1 : 0} 1 ${x1.toFixed(1)} ${y1.toFixed(1)}`;
 }
 
+/** Below this many CSS px per map unit, labels get too small on a phone; the map scrolls sideways instead. */
+const MIN_PX_PER_UNIT = 0.85;
+
 export function SystemMap({ state, colors, onOpenPlanet }: Props) {
   const sy = state.sys;
   const size = sy.size;
@@ -25,7 +28,12 @@ export function SystemMap({ state, colors, onOpenPlanet }: Props) {
   const ho = ownerOf(state, "holl");
 
   return (
-    <svg viewBox={`0 0 ${size} ${size}`} role="img" aria-label="Campaign map of the Varkesh Reach">
+    <svg
+      viewBox={`0 0 ${size} ${size}`}
+      role="img"
+      aria-label="Campaign map of the Varkesh Reach"
+      style={{ minWidth: Math.round(size * MIN_PX_PER_UNIT) }}
+    >
       <defs>
         <radialGradient id="riftg">
           <stop offset="0" stopColor="#b8392e" stopOpacity=".95" />
@@ -70,7 +78,7 @@ export function SystemMap({ state, colors, onOpenPlanet }: Props) {
           />
         ))}
       <g aria-label="The Hollowgate">
-        <circle cx={c} cy={c} r="13" fill={ho ? (colors[ho.id] ?? "#16120f") : "#16120f"} stroke="#b8392e" strokeWidth="2" />
+        <circle className="ring" cx={c} cy={c} r="13" fill={ho ? (colors[ho.id] ?? "#16120f") : "#16120f"} stroke="#b8392e" strokeWidth="2" />
       </g>
       {sy.planets.map((p) => {
         const r = p.orbit === "inner" ? 14 : p.orbit === "middle" ? 16 : 18;
@@ -111,7 +119,8 @@ export function SystemMap({ state, colors, onOpenPlanet }: Props) {
             onClick={open1}
             onKeyDown={activateOnKey(open1)}
           >
-            <circle cx={p.x} cy={p.y} r={r} fill={PTYPES[p.type].c} />
+            <circle className="hit" cx={p.x} cy={p.y} r={r + 14} />
+            <circle className="ring" cx={p.x} cy={p.y} r={r} fill={PTYPES[p.type].c} />
             <circle cx={p.x - r * 0.35} cy={p.y - r * 0.35} r={r * 0.55} fill="#fff" opacity=".08" />
             {segs}
             <text
@@ -119,7 +128,7 @@ export function SystemMap({ state, colors, onOpenPlanet }: Props) {
               y={ly}
               textAnchor="middle"
               fontFamily="Grenze Gothic,Georgia,serif"
-              fontSize="14"
+              fontSize="15"
               fill="#ebdfc8"
               paintOrder="stroke"
               stroke="#211a16"

@@ -54,8 +54,11 @@ td.n{font-family:var(--f-mono);color:var(--brass);white-space:nowrap;font-varian
 /* map */
 .mapbox{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:8px}
 .mapbox svg{display:block;width:100%;height:auto;max-width:100%}
-.terr{cursor:pointer}
-.terr:focus-visible circle.ring{stroke:var(--brass);stroke-width:3}
+.terr{cursor:pointer;outline:none;-webkit-tap-highlight-color:transparent}
+.terr:focus-visible .ring,polygon.terr:focus-visible{stroke:var(--brass);stroke-width:3}
+.terr .hit{fill:transparent}
+.mapbox.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+@media (max-width:480px){.mapbox{padding:2px;margin-inline:-8px}}
 .info{margin-top:12px;background:var(--panel);border:1px solid var(--line);padding:14px;border-radius:3px}
 .info h4{font-family:var(--f-display);font-size:24px;margin:0 0 2px}
 .chip{display:inline-flex;align-items:center;gap:6px;font-family:var(--f-mono);font-size:12px;padding:4px 9px;border:1px solid var(--line);border-radius:20px;color:var(--dim);background:none;cursor:pointer}

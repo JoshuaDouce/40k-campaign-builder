@@ -80,9 +80,9 @@ export function PlanetMap({ state, planet: p, provs: vs, selProv, colors, onSele
           <g key={v.id} pointerEvents="none" fontFamily="Share Tech Mono,monospace" textAnchor="middle">
             <text
               x={x}
-              y={y - 4}
+              y={y - 5}
               fontFamily="Grenze Gothic,Georgia,serif"
-              fontSize="13.5"
+              fontSize="15"
               fill="#f3ead8"
               paintOrder="stroke"
               stroke="#16120f"
@@ -90,7 +90,7 @@ export function PlanetMap({ state, planet: p, provs: vs, selProv, colors, onSele
             >
               {v.name}
             </text>
-            <text x={x} y={y + 10} fontSize="10" fill="#f3ead8" paintOrder="stroke" stroke="#16120f" strokeWidth="3">
+            <text x={x} y={y + 10} fontSize="11.5" fill="#f3ead8" paintOrder="stroke" stroke="#16120f" strokeWidth="3">
               {v.type === "capital" ? "◆ " : ""}
               {VTYPES[v.type].n.toUpperCase()} {sizeOf(state, v)}
             </text>
