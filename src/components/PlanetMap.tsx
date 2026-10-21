@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import { ownerOf, polyCentroid, PTYPES, sizeOf, VTYPES } from "../game/index.ts";
 import type { CampaignState, Planet, Province } from "../game/index.ts";
 import { activateOnKey } from "./mapKeys.ts";
@@ -72,29 +73,46 @@ export function PlanetMap({ state, planet: p, provs: vs, selProv, colors, onSele
           />
         );
       })}
-      {vs.map((v) => {
+      {vs.map((v, i) => {
         const ct = polyCentroid(v.cell);
         const x = CX + ct[0] * R;
         const y = CY + ct[1] * R;
+        const selected = v.id === selProv;
         return (
-          <g key={v.id} pointerEvents="none" fontFamily="Share Tech Mono,monospace" textAnchor="middle">
-            <text
-              x={x}
-              y={y - 5}
-              fontFamily="Grenze Gothic,Georgia,serif"
-              fontSize="15"
-              fill="#f3ead8"
-              paintOrder="stroke"
-              stroke="#16120f"
-              strokeWidth="3.5"
-            >
-              {v.name}
-            </text>
-            <text x={x} y={y + 10} fontSize="11.5" fill="#f3ead8" paintOrder="stroke" stroke="#16120f" strokeWidth="3">
-              {v.type === "capital" ? "◆ " : ""}
-              {VTYPES[v.type].n.toUpperCase()} {sizeOf(state, v)}
-            </text>
-          </g>
+          <Fragment key={v.id}>
+            {/* Phones: a numbered badge keyed to the province list below the map (CSS swaps .plabel / .pnum). */}
+            <g className="pnum" pointerEvents="none" textAnchor="middle" aria-hidden="true">
+              <circle
+                cx={x}
+                cy={y}
+                r="15"
+                fill={selected ? "#d0a952" : "#16120f"}
+                stroke={selected ? "#16120f" : "#ebdfc8"}
+                strokeWidth="2"
+              />
+              <text x={x} y={y + 6.5} fontFamily="Share Tech Mono,monospace" fontSize="19" fill={selected ? "#16120f" : "#f3ead8"}>
+                {i + 1}
+              </text>
+            </g>
+            <g className="plabel" pointerEvents="none" fontFamily="Share Tech Mono,monospace" textAnchor="middle">
+              <text
+                x={x}
+                y={y - 5}
+                fontFamily="Grenze Gothic,Georgia,serif"
+                fontSize="15"
+                fill="#f3ead8"
+                paintOrder="stroke"
+                stroke="#16120f"
+                strokeWidth="3.5"
+              >
+                {v.name}
+              </text>
+              <text x={x} y={y + 10} fontSize="11.5" fill="#f3ead8" paintOrder="stroke" stroke="#16120f" strokeWidth="3">
+                {v.type === "capital" ? "◆ " : ""}
+                {VTYPES[v.type].n.toUpperCase()} {sizeOf(state, v)}
+              </text>
+            </g>
+          </Fragment>
         );
       })}
     </svg>
