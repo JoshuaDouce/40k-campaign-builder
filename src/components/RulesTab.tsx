@@ -49,6 +49,7 @@ export function RulesTab() {
         </tbody>
       </table></div>
       <p>If either player's supply limit is lower than the battle size, play at the lower number. An attacker with fewer provinces than the defender is the <b>Underdog</b> and gets +10% points.</p>
+      <p><b>Garrison battles.</b> Attacking an unclaimed province means fighting its garrison, played by another player (never the attacker). You must fight it. Only your supply limit caps the size, Underdog doesn't apply, and you get +20% points. The garrison is a favour: that player gains no RP, Fate Cards, wins or supply. Light Forces still goes by the base size, before the +20%. If you win and lost under 25% of your army, it's a <b>Decisive win</b>: +1 RP.</p>
       <p>Battles of {LIGHT_FORCES_MAX_PTS} pts or fewer automatically use the <b>Light Forces</b> rule. {TWISTS[LIGHT_FORCES_TWIST].e}</p>
 
       <h3>Province types</h3>
@@ -86,8 +87,8 @@ export function RulesTab() {
       <ol className="steps">
         <li><div><b>Award XP</b>+1 to every unit that fought and was not destroyed. +1 per enemy unit it destroyed. +2 to one unit you <i>Marked for Glory</i> before the game.</div></li>
         <li><div><b>Roll for the fallen</b>Every unit destroyed rolls a D6. On a 1 it gains a Battle Scar. Characters roll on a 1–2.</div></li>
-        <li><div><b>Requisition</b>+1 RP to both players, +1 more to the winner. Bank up to 10.</div></li>
-        <li><div><b>Supply</b>Both players' supply limits grow by 150 pts.</div></li>
+        <li><div><b>Requisition</b>+1 RP to both players, +1 more to the winner. Bank up to 10. (Garrison battles: the attacker only.)</div></li>
+        <li><div><b>Supply</b>Both players' supply limits grow by 150 pts. (Garrison battles: the attacker only.)</div></li>
         <li><div><b>Spoils</b>The winner draws 1 Fate Card. A Conquer winner takes the province. A Raid winner steals 1 RP and a random Fate Card.</div></li>
         <li><div><b>Underdog's grit</b>Any player now holding the fewest provinces in the campaign draws 1 Fate Card.</div></li>
       </ol>

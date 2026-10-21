@@ -52,7 +52,8 @@ function run(s: CampaignState, a: Action, rng: Rng): boolean {
 
     case "resolveBattle":
       if (a.result !== "a" && a.result !== "d" && a.result !== "x") return false;
-      return resolve(s, a.result, rng);
+      if (a.decisive !== undefined && typeof a.decisive !== "boolean") return false;
+      return resolve(s, a.result, rng, a.decisive);
 
     case "confirmQuiet":
       return doQuiet(s, a.fortZone, rng);

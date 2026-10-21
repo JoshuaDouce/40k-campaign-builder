@@ -196,7 +196,7 @@ function TurnPanel({ state, dispatch, actor, can }: { state: CampaignState; disp
           </div>
           {def.battle ? (
             pd.rolled ? (
-              <BattleCard state={state} dispatch={dispatch} can={can} />
+              <BattleCard key={`${state.round}-${state.turnIdx}`} state={state} dispatch={dispatch} can={can} />
             ) : (
               <BattleSetup key={`${state.round}-${state.turnIdx}-${pd.act}`} state={state} dispatch={dispatch} actor={actor} act={def.id} can={can} />
             )
@@ -252,7 +252,7 @@ function BattleSetup({ state, dispatch, actor, act, can }: { state: CampaignStat
           </select>
         </div>
         <div className="field">
-          <label htmlFor="defSel">Defender</label>
+          <label htmlFor="defSel">{holder ? "Defender" : "Garrison player"}</label>
           {holder ? (
             <div style={{ padding: "7px 0" }}>{holder.name} (holds it)</div>
           ) : (
@@ -266,9 +266,9 @@ function BattleSetup({ state, dispatch, actor, act, can }: { state: CampaignStat
           )}
         </div>
       </div>
-      {holder ? null : (
+      {holder || act !== "conquer" ? null : (
         <p className="dim" style={{ fontSize: 14, marginTop: 8 }}>
-          Unclaimed province: the defender plays the local resistance. Pick whoever is free to play.
+          Unclaimed province: another player fields the garrison. They gain no RP, Fate Cards or stats from this fight, so pick whoever is free to play. You fight with +20% points.
         </p>
       )}
       {zv ? (
@@ -287,21 +287,28 @@ function BattleSetup({ state, dispatch, actor, act, can }: { state: CampaignStat
 function BattleCard({ state, dispatch, can }: { state: CampaignState; dispatch(a: Action): void; can(a: Action): boolean }) {
   const B = battleInfo(state);
   const pd = state.pend;
+  const [decisive, setDecisive] = useState(false);
   if (!B || !pd) return null;
   const planet = B.v.type !== "rift" ? getPlanet(state, B.v.pl) : undefined;
   const results: Array<{ result: "a" | "d" | "x"; label: string; primary: boolean }> = [
     { result: "a", label: `${B.a.name} won`, primary: true },
-    { result: "d", label: `${B.d.name} won`, primary: true },
+    { result: "d", label: `${B.d.name} won${B.garrison ? " (garrison)" : ""}`, primary: true },
     { result: "x", label: "Draw", primary: false },
   ];
   return (
     <div className="battle">
       <div className="eyebrow">
         {planet && B.v.type !== "rift" ? `${planet.name} · ${VTYPES[B.v.type].n}` : "The Hollowgate"} · {B.v.name}
+        {B.garrison ? " · Garrison battle" : ""}
       </div>
       <div className="size">{B.pts} pts</div>
+      {B.garrison && (
+        <p className="mono dim" style={{ fontSize: 12 }}>
+          GARRISON {B.pts} PTS · {B.a.name.toUpperCase()} {B.attackerPts} PTS (+20%)
+        </p>
+      )}
       <p className="mono dim" style={{ fontSize: 12 }}>
-        {B.a.name.toUpperCase()} (ATTACKER) VS {B.d.name.toUpperCase()} (DEFENDER) · FATE CARDS: UP TO {B.cards} EACH
+        {B.a.name.toUpperCase()} (ATTACKER) VS {B.d.name.toUpperCase()} ({B.garrison ? "GARRISON" : "DEFENDER"}) · FATE CARDS: UP TO {B.cards} EACH
       </p>
       {(pd.twists ?? []).map((i) => (
         <div className="twist" key={i}>
@@ -338,9 +345,23 @@ function BattleCard({ state, dispatch, can }: { state: CampaignState; dispatch(a
       <p className="mono" style={{ fontSize: 12, color: "var(--brass)", marginTop: 12 }}>
         PLAY THE BATTLE WITH NORMAL FORCE RULES, THEN RECORD THE RESULT
       </p>
+      {B.garrison && (
+        <>
+          <div className="field">
+            <label htmlFor="decisiveSel">Decisive win? (attacker lost under 25% of their army)</label>
+            <select id="decisiveSel" value={decisive ? "yes" : "no"} onChange={(e) => setDecisive(e.target.value === "yes")}>
+              <option value="no">No</option>
+              <option value="yes">Yes</option>
+            </select>
+          </div>
+          <p className="dim" style={{ fontSize: 14 }}>
+            Only counts if {B.a.name} wins. Yes gives {B.a.name} +1 extra RP.
+          </p>
+        </>
+      )}
       <div className="row">
         {results.map((r) => {
-          const a: Action = { type: "resolveBattle", result: r.result };
+          const a: Action = { type: "resolveBattle", result: r.result, decisive };
           return (
             <button key={r.result} className={r.primary ? "btn primary" : "btn"} disabled={!can(a)} onClick={() => dispatch(a)}>
               {r.label}

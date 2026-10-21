@@ -3,6 +3,7 @@ import { ALT, FACTIONS, HOLL, ORBITS, VTYPES } from "./data.ts";
 import type { CampaignState, OrbitDef, Planet, Player, Province, Zone } from "./types.ts";
 
 export const r50 = (n: number): number => Math.round(n / 50) * 50;
+export const r5 = (n: number): number => Math.round(n / 5) * 5;
 
 export function getPlayer(s: CampaignState, id: string | null | undefined): Player | undefined {
   return id ? s.players.find((p) => p.id === id) : undefined;

@@ -157,6 +157,8 @@ export interface Pending {
   def?: string;
   twists?: number[];
   rolled?: boolean;
+  /** Set when the battle is against an unheld province's garrison. Missing on old saves = normal battle. */
+  garrison?: boolean;
 }
 
 export interface CampaignState {
@@ -184,6 +186,9 @@ export interface BattleInfo {
   a: Player;
   d: Player;
   pts: number;
+  /** Attacker's points: equals `pts` unless this is a garrison battle (+20%). */
+  attackerPts: number;
+  garrison: boolean;
   notes: string[];
   cards: number;
   lightForces: boolean;
@@ -196,7 +201,7 @@ export type Action =
   | { type: "cancelAction" }
   | { type: "rollBattle"; zone: string; def: string }
   | { type: "rerollTwists" }
-  | { type: "resolveBattle"; result: "a" | "d" | "x" }
+  | { type: "resolveBattle"; result: "a" | "d" | "x"; decisive?: boolean }
   | { type: "confirmQuiet"; fortZone?: string }
   | { type: "drawCard"; playerId: string }
   | { type: "playCard"; playerId: string; index: number }
