@@ -1,4 +1,4 @@
-import { HONOURS, rankOf, SCARS } from "../../game/index.ts";
+import { GRIEVOUS_WOUND, honourEffect, honourTableFor, rankOf, scarEffect, scarLabel, scarTableFor } from "../../game/index.ts";
 import type { Dispatch, SetStateAction } from "react";
 import { DieControl } from "./DieControl.tsx";
 import type { Evaluation, Rolls, UnitView } from "./pbLogic.ts";
@@ -16,6 +16,7 @@ export function PostBattleResults({ ev, rolls, setRolls, onBack, onCancel, onCon
   const put = <K extends keyof Rolls>(kind: K, key: string, v: Rolls[K][string]) => setRolls((r) => ({ ...r, [kind]: { ...r[kind], [key]: v } }));
   const rankUps = ev.views.filter((v) => v.slots.length > 0);
   const fallen = ev.views.filter((v) => v.fallen);
+  const healed = ev.views.filter((v) => v.heals);
 
   return (
     <>
@@ -28,6 +29,7 @@ export function PostBattleResults({ ev, rolls, setRolls, onBack, onCancel, onCon
               <th>Unit</th>
               <th>XP</th>
               <th>Rank</th>
+              <th>Battles · Kills</th>
             </tr>
           </thead>
           <tbody>
@@ -36,6 +38,9 @@ export function PostBattleResults({ ev, rolls, setRolls, onBack, onCancel, onCon
                 <td>{v.unit.name}</td>
                 <td className="n">+{v.gain} XP</td>
                 <td>{rankOf(v.newXp)}</td>
+                <td className="n">
+                  {v.battles} · {v.kills}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -52,6 +57,14 @@ export function PostBattleResults({ ev, rolls, setRolls, onBack, onCancel, onCon
       {fallen.length === 0 && <p className="dim">No units were destroyed.</p>}
       {fallen.map((v) => (
         <Fallen key={v.unit.id} v={v} rolls={rolls} put={put} />
+      ))}
+
+      {healed.length > 0 && <h3>Healed</h3>}
+      {healed.map((v) => (
+        <div className="res" key={v.unit.id}>
+          <div className="rt">{v.unit.name}</div>
+          <div className="out">{GRIEVOUS_WOUND} has healed after this battle and is removed.</div>
+        </div>
       ))}
 
       <div className="row sub">
@@ -78,6 +91,7 @@ type Put = <K extends keyof Rolls>(kind: K, key: string, v: Rolls[K][string]) =>
 
 function HonourSlots({ v, rolls, put }: { v: UnitView; rolls: Rolls; put: Put }) {
   const { unit } = v;
+  const table = honourTableFor(unit);
   return (
     <>
       {v.slots.map((s) => {
@@ -89,8 +103,13 @@ function HonourSlots({ v, rolls, put }: { v: UnitView; rolls: Rolls; put: Put })
               {unit.name} reaches {rankOf(v.newXp)}
             </div>
             <div className="mono dim" style={{ fontSize: 12 }}>
-              {unit.xp} → {v.newXp} XP · NEW BATTLE HONOUR {v.slots.length > 1 ? `${s.index + 1} of ${v.slots.length}` : ""}
+              {unit.xp} → {v.newXp} XP · NEW {unit.isCharacter ? "CHARACTER " : ""}BATTLE HONOUR {v.slots.length > 1 ? `${s.index + 1} of ${v.slots.length}` : ""}
             </div>
+            {unit.isCharacter && s.index === 0 && (
+              <div className="mono dim" style={{ fontSize: 11 }}>
+                TABLE: CHARACTER BATTLE HONOURS (D6). NO DUPLICATES ACROSS CHARACTER AND GENERIC HONOURS.
+              </div>
+            )}
             <div className="row" style={{ marginTop: 8 }}>
               <DieControl
                 faces={6}
@@ -103,7 +122,7 @@ function HonourSlots({ v, rolls, put }: { v: UnitView; rolls: Rolls; put: Put })
               />
               <select aria-label="Pick an honour" value={pick ?? ""} onChange={(e) => put("honPick", s.key, e.target.value || undefined)}>
                 <option value="">Pick from list</option>
-                {HONOURS.map((h) => {
+                {table.map((h) => {
                   const held = s.held.includes(h.n);
                   return (
                     <option key={h.n} value={h.n} disabled={held}>
@@ -121,7 +140,7 @@ function HonourSlots({ v, rolls, put }: { v: UnitView; rolls: Rolls; put: Put })
             )}
             {s.rolledName && !s.dupRoll && !s.chosen && !badPick && (
               <div className="out">
-                Rolled {s.roll}: {s.rolledName}. {HONOURS[(s.roll ?? 1) - 1].e}{" "}
+                Rolled {s.roll}: {s.rolledName}. {honourEffect(s.rolledName)}{" "}
                 <button type="button" className="btn sm" onClick={() => put("honPick", s.key, s.rolledName)}>
                   Take it
                 </button>
@@ -130,7 +149,7 @@ function HonourSlots({ v, rolls, put }: { v: UnitView; rolls: Rolls; put: Put })
             {badPick && <div className="out bad">{pick} is already held. Pick another.</div>}
             {s.chosen && (
               <div className="out">
-                Gains <b>{s.chosen}</b>. {HONOURS.find((h) => h.n === s.chosen)?.e}
+                Gains <b>{s.chosen}</b>. {honourEffect(s.chosen)}
               </div>
             )}
           </div>
@@ -144,13 +163,71 @@ function Fallen({ v, rolls, put }: { v: UnitView; rolls: Rolls; put: Put }) {
   const { unit } = v;
   const f = v.fallen;
   if (!f) return null;
-  const n = unit.scars.length;
+  const n = f.warlord ? f.scarsAfter : unit.scars.length;
+  const table = scarTableFor(unit);
+  const scarNote = `HAS ${n} SCAR${n === 1 ? "" : "S"}`;
+  const replaces = f.replaces ? scarLabel(f.replaces) : undefined;
+
+  const scarOutcome = (
+    <>
+      {f.scarName && f.scarDup && (
+        <div className="out bad">
+          Rolled {f.scarRoll}: {f.scarName}, which the unit already has. Duplicates don't stack: {f.warlord ? "re-roll the D3, or pick another from the list." : "re-roll the D3."}
+        </div>
+      )}
+      {f.scarName && !f.scarDup && (
+        <div className="out bad">
+          {f.warlord ? "Takes" : `Rolled ${f.scarRoll}:`} <b>{f.scarName}</b>. {scarEffect(f.scarName)}
+        </div>
+      )}
+      {f.scarName && !f.scarDup && f.needsWeapon && (
+        <div className="field" style={{ marginTop: 8 }}>
+          <label htmlFor={`wg_${unit.id}`}>Which weapon is worn?</label>
+          <input type="text" id={`wg_${unit.id}`} value={rolls.weapon[unit.id] ?? ""} placeholder="e.g. bolt rifles" onChange={(e) => put("weapon", unit.id, e.target.value)} />
+        </div>
+      )}
+    </>
+  );
+
+  if (f.warlord) {
+    return (
+      <div className="warlord-row">
+        <div className="rt">{unit.name} was destroyed</div>
+        <div className="mono" style={{ fontSize: 12, color: "var(--brass)" }}>
+          WARLORD — TAKES A CHARACTER BATTLE SCAR
+        </div>
+        <div className="mono dim" style={{ fontSize: 12 }}>
+          NO ROLL FOR THE FALLEN. NEVER REMOVED. NO RP PENALTY. {scarNote}.
+        </div>
+        <div className="lbl" style={{ marginTop: 8 }}>
+          Character Battle Scar
+        </div>
+        <div className="row" style={{ marginTop: 4 }}>
+          <DieControl faces={3} value={f.scarRoll} label="scar D3" onChange={(d) => put("scar", unit.id, d)} />
+          <select aria-label="Pick a scar" value={f.scarRoll ?? ""} onChange={(e) => put("scar", unit.id, e.target.value ? Number(e.target.value) : undefined)}>
+            <option value="">Pick a scar</option>
+            {table.map((t, i) => (
+              <option key={t.n} value={i + 1}>
+                {t.n}
+              </option>
+            ))}
+          </select>
+        </div>
+        {scarOutcome}
+        {replaces && f.scarName && !f.scarDup && <div className="out bad">Replaces {replaces}.</div>}
+        <div className="mono dim" style={{ fontSize: 11, marginTop: 8 }}>
+          AT THREE SCARS, A NEW SCAR REPLACES THE OLDEST. RE-ROLL SCARS IT ALREADY HOLDS.
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="res">
       <div className="rt">{unit.name} was destroyed</div>
       <div className="mono dim" style={{ fontSize: 12 }}>
         {unit.isCharacter ? "CHARACTER: SCAR ON 1–2" : "SCAR ON A 1"}
-        {f.mod ? " · HARD TO KILL: +1 TO THE ROLL" : ""} · HAS {n} SCAR{n === 1 ? "" : "S"}
+        {f.mod ? " · HARD TO KILL: +1 TO THE ROLL" : ""} · {scarNote}
       </div>
       <div className="row" style={{ marginTop: 8 }}>
         <DieControl faces={6} value={f.d6} label="fallen D6" onChange={(d) => put("fallen", unit.id, d)} />
@@ -164,26 +241,15 @@ function Fallen({ v, rolls, put }: { v: UnitView; rolls: Rolls; put: Put }) {
       {f.scarred && (
         <>
           <div className="row" style={{ marginTop: 8 }}>
-            <span className="lbl">Battle Scar</span>
+            <span className="lbl">{unit.isCharacter ? "Character Battle Scar" : "Battle Scar"}</span>
             <DieControl faces={3} value={f.scarRoll} label="scar D3" onChange={(d) => put("scar", unit.id, d)} />
           </div>
-          {f.scarName && f.scarDup && (
-            <div className="out bad">
-              Rolled {f.scarRoll}: {f.scarName}, which the unit already has. Duplicates don't stack: re-roll the D3.
+          {scarOutcome}
+          {f.gone && (
+            <div className="out gone">
+              THIRD SCAR: {unit.name} is removed from your roster.{unit.isCharacter ? " It is remembered in the Hall of Heroes." : ""}
             </div>
           )}
-          {f.scarName && !f.scarDup && (
-            <div className="out bad">
-              Rolled {f.scarRoll}: <b>{f.scarName}</b>. {SCARS[(f.scarRoll ?? 1) - 1].e}
-            </div>
-          )}
-          {f.scarName && !f.scarDup && f.needsWeapon && (
-            <div className="field" style={{ marginTop: 8 }}>
-              <label htmlFor={`wg_${unit.id}`}>Which weapon is worn?</label>
-              <input type="text" id={`wg_${unit.id}`} value={rolls.weapon[unit.id] ?? ""} placeholder="e.g. bolt rifles" onChange={(e) => put("weapon", unit.id, e.target.value)} />
-            </div>
-          )}
-          {f.gone && <div className="out gone">THIRD SCAR: {unit.name} is removed from your roster.</div>}
         </>
       )}
     </div>

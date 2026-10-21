@@ -169,6 +169,17 @@ export interface Unit {
   /** At most one per roster; requires `isCharacter`. */
   isWarlord: boolean;
   enhancement?: string;
+  /** Characters only. Shown as "Name, the Title". */
+  title?: string;
+  /** Characters only. Plain text, at most 280 characters. */
+  backstory?: string;
+  /** The Warlord only. Free text. */
+  warlordTrait?: string;
+  /** Characters only. Names from `RELICS`, at most 3, no duplicates. */
+  relics?: string[];
+  /** Career record, every unit. Missing = 0. */
+  battles?: number;
+  kills?: number;
   /** True for example units added by "Add example units". Examples never log a Legend. */
   ex?: boolean;
   /** Set once "becomes a Legend of the Reach" has been logged, so it is only logged once. */
@@ -188,12 +199,36 @@ export interface PostBattleResult {
   xpOverride?: number;
   /** New honours chosen/rolled (names, none already held). Count must not exceed `honoursOwed`. */
   honours?: string[];
-  /** The D6 for the fallen. Required if `destroyed`. */
+  /** The D6 for the fallen. Required if `destroyed`, except for the Warlord (which never rolls; ignored). */
   fallenRoll?: number;
-  /** Scar name from `SCARS`; required when the fallen roll leaves the unit scarred, ignored otherwise. */
+  /**
+   * Scar name. Characters: from `CHAR_SCARS` (or legacy `SCARS`); others: `SCARS`. Required when the fallen roll
+   * leaves the unit scarred, and ALWAYS required when a destroyed unit is the Warlord (no fallenRoll needed).
+   * Ignored otherwise.
+   */
   scar?: string;
   /** Weapon for a Worn Gear scar. */
   scarWeapon?: string;
+}
+
+/** A Character remembered in the Hall of Heroes. A snapshot: it does not change after it is stored. */
+export interface FallenCharacter {
+  id: string;
+  playerId: string;
+  playerName: string;
+  name: string;
+  title?: string;
+  datasheet: string;
+  /** Rank name at death. */
+  rank: string;
+  battles: number;
+  kills: number;
+  relics: string[];
+  cause: string;
+  /** War Round it fell in. */
+  round: number;
+  /** True for example entries added by "Add example units". */
+  ex?: true;
 }
 
 export interface Pending {
@@ -227,6 +262,8 @@ export interface CampaignState {
   hollOpened: boolean;
   /** Unit rosters keyed by player id. Missing on old saves = every roster empty. */
   rosters?: Record<string, Unit[]>;
+  /** Hall of Heroes memorial, oldest first (show newest first). Missing on old saves = none. */
+  fallen?: FallenCharacter[];
 }
 
 export interface BattleInfo {
@@ -262,7 +299,10 @@ export type Action =
   | { type: "removePlayer"; playerId: string }
   | { type: "addUnit"; playerId: string; unit: Unit }
   | { type: "updateUnit"; playerId: string; unit: Unit }
-  | { type: "removeUnit"; playerId: string; unitId: string }
+  | { type: "removeUnit"; playerId: string; unitId: string; cause?: string }
+  | { type: "addRelic"; playerId: string; unitId: string; relic: string; source: "shrine" | "fate" }
+  | { type: "removeRelic"; playerId: string; unitId: string; relic: string }
+  | { type: "deleteFallen"; id: string }
   | { type: "applyPostBattle"; playerId: string; results: PostBattleResult[] }
   | { type: "addExamples"; playerId: string }
   | { type: "clearExamples"; playerId: string }

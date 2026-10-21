@@ -1,4 +1,18 @@
-import { ACTIONS, HONOURS, LIGHT_FORCES_MAX_PTS, LIGHT_FORCES_TWIST, ORBITS, PTYPES, SCARS, TWISTS, VTYPES } from "../game/index.ts";
+import { ACTIONS, CHAR_HONOURS, CHAR_SCARS, HONOURS, LIGHT_FORCES_MAX_PTS, LIGHT_FORCES_TWIST, ORBITS, PTYPES, RELICS, SCARS, TWISTS, VTYPES } from "../game/index.ts";
+
+/** A D6/D3 table of named results: honours, scars, relics. */
+function RollTable({ die, label, rows }: { die: string; label: string; rows: readonly { n: string; e: string }[] }) {
+  return (
+    <div className="tbl"><table>
+      <thead><tr><th>{die}</th><th>{label}</th><th>Effect</th></tr></thead>
+      <tbody>
+        {rows.map((r, i) => (
+          <tr key={r.n}><td className="n">{i + 1}</td><td>{r.n}</td><td>{r.e}</td></tr>
+        ))}
+      </tbody>
+    </table></div>
+  );
+}
 
 export function RulesTab() {
   return (
@@ -18,6 +32,7 @@ export function RulesTab() {
 
       <h3>Characters</h3>
       <p>Your warband starts with exactly one Character: your Warlord. More only through Promotion, or by adding them later as your supply limit grows. One Warlord per roster.</p>
+      <p>Characters use their own Battle Honour and Battle Scar tables, and can carry up to three relics. Give your Character a title and a few lines of backstory; its battles and kills are kept on its record. Fallen Characters are remembered in the Hall of Heroes.</p>
 
       <h3>Campaign actions</h3>
       <div className="tbl"><table>
@@ -89,7 +104,7 @@ export function RulesTab() {
       <h3>After each battle</h3>
       <ol className="steps">
         <li><div><b>Award XP</b>+1 to every unit that fought and was not destroyed. +1 per enemy unit it destroyed. +2 to one unit you <i>Marked for Glory</i> before the game.</div></li>
-        <li><div><b>Roll for the fallen</b>Every unit destroyed rolls a D6 (Hard to Kill adds 1). On a 1 it gains a Battle Scar; Characters on a 1–2. Roll a D3 on the Battle Scars table.</div></li>
+        <li><div><b>Roll for the fallen</b>Every unit destroyed rolls a D6 (Hard to Kill adds 1). On a 1 it gains a Battle Scar; Characters on a 1–2. Roll a D3 on the Battle Scars table. The Warlord never rolls: see Battle Scars.</div></li>
         <li><div><b>Requisition</b>+1 RP to both players, +1 more to the winner. Bank up to 10. (Garrison battles: the attacker only.)</div></li>
         <li><div><b>Supply</b>Both players' supply limits grow by 150 pts. (Garrison battles: the attacker only.)</div></li>
         <li><div><b>Spoils</b>The winner draws 1 Fate Card. A Conquer winner takes the province. A Raid winner steals 1 RP and a random Fate Card.</div></li>
@@ -111,28 +126,27 @@ export function RulesTab() {
       <p>When a unit reaches a new rank, roll or pick 1 Battle Honour for each rank gained, straight after the battle. A unit can't hold the same honour twice: re-roll, or pick another.</p>
 
       <h3>Battle Honours (roll D6 or pick)</h3>
-      <div className="tbl"><table>
-        <thead><tr><th>D6</th><th>Honour</th><th>Effect</th></tr></thead>
-        <tbody>
-          {HONOURS.map((h, i) => (
-            <tr key={h.n}><td className="n">{i + 1}</td><td>{h.n}</td><td>{h.e}</td></tr>
-          ))}
-        </tbody>
-      </table></div>
+      <RollTable die="D6" label="Honour" rows={HONOURS} />
 
       <h3>Battle Scars (roll D3)</h3>
-      <div className="tbl"><table>
-        <thead><tr><th>D3</th><th>Scar</th><th>Effect</th></tr></thead>
-        <tbody>
-          {SCARS.map((s, i) => (
-            <tr key={s.n}><td className="n">{i + 1}</td><td>{s.n}</td><td>{s.e}</td></tr>
-          ))}
-        </tbody>
-      </table></div>
+      <RollTable die="D3" label="Scar" rows={SCARS} />
       <p>A unit can't hold the same scar twice: re-roll duplicates. Worn Gear: choose the weapon when the scar is gained and note it on your roster. Scars never change a unit's points.</p>
-      <p className="dim">Three scars and the unit is gone: remove it from your roster. That's the cost of a long war. A Character's third scar removes it like any other unit.</p>
+      <p className="dim">Three scars and the unit is gone: remove it from your roster. That's the cost of a long war. A Character's third scar removes it like any other unit, except the Warlord, which is never removed.</p>
       <p className="dim">Example: Breach Team Seven is destroyed and rolls a 1: a scar. The D3 comes up 2: Crippled. With one scar already, one more and the squad is gone.</p>
-      <p className="dim">The Roster tab tracks all of this: XP, ranks, honours, scars and points, with a post-battle helper for the rolls.</p>
+      <p className="dim">The Roster tab tracks all of this: XP, ranks, honours, scars, relics, each unit's career record and points, with a post-battle helper for the rolls. Fallen Characters are kept in its Hall of Heroes.</p>
+
+      <h3>Character Battle Honours (roll D6 or pick)</h3>
+      <RollTable die="D6" label="Honour" rows={CHAR_HONOURS} />
+      <p className="dim">Characters use this table. Other units use the one above. No duplicates across both lists.</p>
+
+      <h3>Character Battle Scars (roll D3)</h3>
+      <RollTable die="D3" label="Scar" rows={CHAR_SCARS} />
+      <p className="dim">Grievous Wound is the only temporary scar: it counts toward the three-scar limit until it heals, after the next battle the unit fights.</p>
+      <p>Your Warlord never rolls for the fallen. If it is destroyed, it automatically takes a Character Battle Scar: roll a D3 on the Character Battle Scars table (re-roll scars it already holds). A Warlord is never removed, and there is no RP penalty. A Warlord that already holds three scars and is destroyed again replaces its oldest scar with the new one. Other Characters still roll for the fallen on a 1–2, and a third scar removes them.</p>
+
+      <h3>Relics (roll D6 or pick)</h3>
+      <p>A Character can earn a relic when its player claims a Shrine province, or plays a Fate Card. A Character holds at most three relics, never the same one twice (re-roll or pick another). Each relic adds 10 pts to the Character's cost, after Battle Honours are counted.</p>
+      <RollTable die="D6" label="Relic" rows={RELICS} />
 
       <h3>Spending Requisition</h3>
       <div className="tbl"><table>

@@ -1,4 +1,4 @@
-import { computeXpGain, fallenModifier, fallenThreshold, HONOURS, honoursOwed, isScarred, SCARS, SCARS_TO_REMOVE, scarName } from "../../game/index.ts";
+import { computeXpGain, fallenModifier, fallenThreshold, healsGrievous, honoursOwed, honourTableFor, isScarred, scarName, scarOutcome, scarTableFor, WORN_GEAR } from "../../game/index.ts";
 import type { PostBattleResult, Unit } from "../../game/index.ts";
 
 export interface Row {
@@ -45,12 +45,23 @@ export interface FallenView {
   weapon: string;
   needsWeapon: boolean;
   gone: boolean;
+  /** The Warlord never rolls for the fallen: it takes a Character scar directly. */
+  warlord: boolean;
+  /** Scars held once Grievous Wound has healed (what a new scar is added to). */
+  scarsAfter: number;
+  /** Warlord at three scars: the scar a new one replaces (as stored, e.g. "Worn Gear (bolters)"). */
+  replaces?: string;
 }
 
 export interface UnitView {
   unit: Unit;
   gain: number;
   newXp: number;
+  /** Career after this battle. */
+  battles: number;
+  kills: number;
+  /** Holds Grievous Wound before the battle, so it heals now. */
+  heals: boolean;
   slots: SlotView[];
   fallen?: FallenView;
   done: boolean;
@@ -89,10 +100,11 @@ export function evaluate(roster: readonly Unit[], rows: Record<string, Row | und
     const held = new Set(unit.honours);
     const taken: string[] = [];
     const slots: SlotView[] = [];
+    const honTable = honourTableFor(unit);
     for (let i = 0; i < owed; i++) {
       const key = `${unit.id}:${i}`;
       const roll = rolls.honRoll[key];
-      const rolledName = roll ? HONOURS[roll - 1]?.n : undefined;
+      const rolledName = roll ? honTable[roll - 1]?.n : undefined;
       const pick = rolls.honPick[key];
       const chosen = pick && !held.has(pick) ? pick : undefined;
       slots.push({ key, index: i, roll, rolledName, held: [...held], chosen, dupRoll: !!rolledName && held.has(rolledName) && !pick });
@@ -106,14 +118,16 @@ export function evaluate(roster: readonly Unit[], rows: Record<string, Row | und
     let scar: string | undefined;
     let scarWeapon: string | undefined;
     if (row.destroyed) {
-      const d6 = rolls.fallen[unit.id];
+      const warlord = unit.isWarlord;
+      const d6 = warlord ? undefined : rolls.fallen[unit.id];
       const mod = fallenModifier(unit);
-      const scarred = d6 !== undefined && isScarred(unit, d6);
+      const scarred = warlord || (d6 !== undefined && isScarred(unit, d6));
       const scarRoll = scarred ? rolls.scar[unit.id] : undefined;
-      const sName = scarRoll ? SCARS[scarRoll - 1]?.n : undefined;
-      const scarDup = !!sName && unit.scars.some((s) => scarName(s) === sName);
+      const sName = scarRoll ? scarTableFor(unit)[scarRoll - 1]?.n : undefined;
+      const outcome = scarOutcome(unit);
+      const scarDup = !!sName && outcome.kept.some((s) => scarName(s) === sName);
       const weapon = rolls.weapon[unit.id] ?? "";
-      const needsWeapon = sName === "Worn Gear";
+      const needsWeapon = sName === WORN_GEAR;
       const scarOk = !!sName && !scarDup && (!needsWeapon || weapon.trim() !== "");
       fallen = {
         d6,
@@ -126,16 +140,20 @@ export function evaluate(roster: readonly Unit[], rows: Record<string, Row | und
         scarDup,
         weapon,
         needsWeapon,
-        gone: scarOk && unit.scars.length + 1 >= SCARS_TO_REMOVE,
+        gone: scarOk && outcome.gone,
+        warlord,
+        scarsAfter: outcome.kept.length,
+        replaces: outcome.replaces,
       };
-      if (d6 === undefined || (scarred && !scarOk)) done = false;
+      if (!warlord && d6 === undefined) done = false;
+      else if (scarred && !scarOk) done = false;
       else if (scarred) {
         scar = sName;
         scarWeapon = needsWeapon ? weapon.trim() : undefined;
       }
     }
 
-    views.push({ unit, gain, newXp, slots, fallen, done });
+    views.push({ unit, gain, newXp, battles: (unit.battles ?? 0) + 1, kills: (unit.kills ?? 0) + row.kills, heals: healsGrievous(unit), slots, fallen, done });
     const ov = validOv(row.ov);
     const result: PostBattleResult = { unitId: unit.id, fought: true, destroyed: row.destroyed, kills: row.kills, glory: isGlory };
     if (ov !== null) result.xpOverride = ov;

@@ -28,7 +28,7 @@ export function PostBattleHelper({ playerId, roster, onClose }: Props) {
   const confirm = () => {
     if (ev.blocked || !ev.results.length) return;
     dispatch({ type: "applyPostBattle", playerId, results: ev.results });
-    onClose("Battle recorded: XP, honours and scars saved." + (ev.anyGone ? " A unit was lost to its third scar." : ""));
+    onClose("Battle recorded: XP, career, honours and scars saved." + (ev.anyGone ? " A unit was lost to its third scar." : ""));
   };
 
   if (step === 2) {

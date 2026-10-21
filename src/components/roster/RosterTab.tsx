@@ -2,18 +2,21 @@ import { useState } from "react";
 import { canPerform, PROMOTION_COST, RECRUITS_COST, rosterOf, SURGEON_COST, supplyOf, totalEffective } from "../../game/index.ts";
 import type { Unit } from "../../game/index.ts";
 import { useCampaign } from "../../store/useCampaign.ts";
+import { HallOfHeroes } from "./HallOfHeroes.tsx";
 import { PostBattleHelper } from "./PostBattleHelper.tsx";
 import { FieldSurgeonDialog, PromotionDialog, SeasonedRecruitsDialog } from "./RpDialogs.tsx";
+import { RelicDialog } from "./RelicDialog.tsx";
 import { UnitCard } from "./UnitCard.tsx";
 import { UnitFormSheet } from "./UnitFormSheet.tsx";
 
-type Dialog = { kind: "add" } | { kind: "edit"; unit: Unit } | { kind: "surgeon" | "promo" | "recruits" } | null;
+type Dialog = { kind: "add" } | { kind: "edit"; unit: Unit } | { kind: "relic"; unit: Unit } | { kind: "surgeon" | "promo" | "recruits" } | null;
 
 export function RosterTab({ colors }: { colors: Record<string, string> }) {
   const { state, dispatch, viewer } = useCampaign();
   const [picked, setPicked] = useState<string | null>(null);
   const [dialog, setDialog] = useState<Dialog>(null);
   const [helper, setHelper] = useState(false);
+  const [view, setView] = useState<"roster" | "hall">("roster");
   const [toast, setToast] = useState<{ pid: string; text: string } | null>(null);
 
   const own = state.players.find((p) => viewer.userId !== null && p.userId === viewer.userId);
@@ -67,6 +70,19 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
     <section className="tab" id="roster">
       <h2>Roster</h2>
       <p className="dim">Your units, their XP, honours and scars. The War Room doesn't track these; this is your paper roster made digital. Points over supply only warn, they never block.</p>
+      <div className="seg hallseg" role="group" aria-label="Roster view">
+        <button type="button" className="chip" aria-pressed={view === "roster"} onClick={() => setView("roster")}>
+          Roster
+        </button>
+        <button type="button" className="chip" aria-pressed={view === "hall"} onClick={() => setView("hall")}>
+          Hall of Heroes
+        </button>
+      </div>
+
+      {view === "hall" ? (
+        <HallOfHeroes colors={colors} />
+      ) : (
+        <>
 
       <div className="rhead">
         <div className="lbl">Roster of</div>
@@ -156,9 +172,14 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
             unit={u}
             editable={editable}
             onEdit={() => setDialog({ kind: "edit", unit: u })}
-            onRemove={() => {
-              dispatch({ type: "removeUnit", playerId: pid, unitId: u.id });
-              say("Unit removed.");
+            onRollRelic={() => setDialog({ kind: "relic", unit: u })}
+            onRemoveRelic={(relic) => {
+              dispatch({ type: "removeRelic", playerId: pid, unitId: u.id, relic });
+              say(`${relic} removed from ${u.name}.`);
+            }}
+            onRemove={(cause) => {
+              dispatch({ type: "removeUnit", playerId: pid, unitId: u.id, cause });
+              say(u.isCharacter ? `${u.name} moved to the Hall of Heroes.` : "Unit removed.");
             }}
           />
         ))
@@ -182,6 +203,10 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
         </div>
       )}
 
+        </>
+      )}
+
+      {editable && dialog?.kind === "relic" && <RelicDialog playerId={pid} unit={dialog.unit} onDone={done} onClose={closeDialog} />}
       {editable && dialog?.kind === "add" && (
         <UnitFormSheet
           mode="add"
