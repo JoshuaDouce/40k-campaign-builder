@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Varkesh Reach - Battle Undo and History (design mock)</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Grenze+Gothic:wght@500;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Share+Tech+Mono&display=swap">
+<style>
+/* ===== Tokens and base: copied from reference/index.html and src/styles/prototype.css ===== */
+[hidden]{display:none!important}
+body{margin:0}
+:root{
+  --bg:#16120f; --panel:#211a16; --panel2:#2a211c; --line:#3d312a;
+  --ink:#ebdfc8; --dim:#a8977f; --brass:#d0a952; --blood:#b8392e; --verd:#6f9a86;
+  --f-display:"Grenze Gothic","Palatino Linotype",Georgia,serif;
+  --f-body:"Alegreya Sans","Segoe UI",system-ui,sans-serif;
+  --f-mono:"Share Tech Mono",ui-monospace,Menlo,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.55;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px}
+.wrap{max-width:520px;margin:0 auto}
+header.hero{padding-block:28px 18px;border-bottom:1px solid var(--line)}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass)}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(40px,11vw,68px);line-height:.95;margin:6px 0 10px;text-wrap:balance;letter-spacing:.01em}
+h1 span{color:var(--blood)}
+.lede{color:var(--dim);max-width:62ch;margin:0}
+button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible,a:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+h2{font-family:var(--f-display);font-weight:700;font-size:34px;line-height:1.05;margin:0 0 6px;text-wrap:balance}
+h3{font-family:var(--f-display);font-weight:500;font-size:23px;margin:26px 0 6px;color:var(--brass);text-wrap:balance}
+p{margin:0 0 12px;max-width:65ch}
+a{color:var(--brass)}
+.dim{color:var(--dim)}
+.mono{font-family:var(--f-mono)}
+.btn{font-family:var(--f-mono);font-size:13px;letter-spacing:.05em;text-transform:uppercase;background:var(--panel2);color:var(--ink);border:1px solid var(--line);padding:9px 14px;border-radius:2px;cursor:pointer}
+.btn.primary{background:var(--brass);color:var(--bg);border-color:var(--brass)}
+.btn.danger{color:var(--blood)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.sm{padding:5px 9px;font-size:11px;min-height:44px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.note{border-left:3px solid var(--blood);padding:8px 12px;background:var(--panel);margin:14px 0;max-width:65ch}
+.note b{color:var(--blood)}
+.chip{display:inline-flex;align-items:center;gap:6px;font-family:var(--f-mono);font-size:12px;padding:4px 9px;border:1px solid var(--line);border-radius:20px;color:var(--dim);background:none;cursor:pointer}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex:none}
+select,input[type=text]{font:inherit;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:2px;padding:7px 9px;max-width:100%}
+.player{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:14px;margin:12px 0}
+.player .top{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.player .top input{flex:1 1 140px;min-width:0}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}
+@media (max-width:440px){.stats{grid-template-columns:repeat(2,1fr)}}
+.stat{background:var(--panel2);padding:8px;border-radius:2px;text-align:center}
+.stat .l{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+.stat .v{font-family:var(--f-display);font-size:28px;line-height:1;font-variant-numeric:tabular-nums}
+.handbar{display:flex;gap:4px;margin:4px 0 2px}
+.handbar i{flex:1;height:5px;background:var(--line);border-radius:1px}
+.handbar i.on{background:var(--brass)}
+.strip{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 4px}
+.strip .chip{cursor:default}
+.strip .chip.done{opacity:.45;text-decoration:line-through}
+.strip .chip.cur{border-color:var(--brass);color:var(--ink);background:var(--panel2)}
+.turn{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:16px;margin-top:12px}
+.turn h4{font-family:var(--f-display);font-size:28px;font-weight:700;margin:0;line-height:1.05}
+.acts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px;margin:12px 0}
+.act{text-align:left;background:var(--panel2);border:1px solid var(--line);border-radius:3px;padding:12px;color:var(--ink);font:inherit;display:flex;flex-direction:column;gap:3px}
+.act .an{font-family:var(--f-display);font-size:22px;line-height:1}
+.act .at{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+.act .at.b{color:var(--blood)} .act .at.q{color:var(--verd)}
+.act .ad{font-size:14.5px;color:var(--dim)}
+.battle{border:1px solid var(--brass);border-radius:3px;padding:14px;margin-top:12px;background:var(--bg)}
+.battle .size{font-family:var(--f-display);font-size:46px;line-height:1;color:var(--brass)}
+.twist{border-left:3px solid var(--blood);padding:4px 10px;margin:8px 0}
+.twist b{font-family:var(--f-display);font-size:19px;font-weight:500}
+.log{list-style:none;padding:0;margin:8px 0;font-size:14.5px}
+.log li{padding:6px 0;border-top:1px solid var(--line);color:var(--dim)}
+.log li b{color:var(--ink);font-weight:500}
+.log .r{font-family:var(--f-mono);font-size:11px;color:var(--brass);margin-right:6px}
+.hint{font-family:var(--f-mono);font-size:12px;color:var(--dim);margin-top:8px;line-height:1.4}
+.more{border:1px solid var(--line);border-radius:3px;background:var(--bg)}
+.more>summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:8px;padding:8px 10px;font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);min-height:44px;align-items:center}
+.more>summary::-webkit-details-marker{display:none}
+.more>summary::after{content:"+";color:var(--brass);font-size:14px;line-height:1}
+.more[open]>summary::after{content:"\2212"}
+.more .inner{padding:0 10px 10px;display:grid;gap:8px}
+.empty{text-align:center;border:1px dashed var(--line);border-radius:3px;padding:28px 16px;margin:14px 0;background:var(--panel)}
+
+/* ===== Battle Undo and History additions (new, "bh-" prefix, built from the same tokens) ===== */
+/* Undo: sits under the turn panel as a quiet strip, below the main next action */
+.bh-undo{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;border:1px dashed var(--line);border-radius:3px;padding:6px 10px;margin-top:10px}
+.bh-undo .hint{flex:1 1 200px;margin:0}
+/* Confirm: same shape as the Reset campaign inline confirm, with a title and body */
+.bh-confirm{border:1px solid var(--blood);border-left-width:3px;border-radius:3px;background:var(--panel);padding:10px 12px;margin-top:10px;display:grid;gap:6px}
+.bh-confirm .bh-ttl{font-family:var(--f-display);font-size:21px;line-height:1.1;margin:0}
+.bh-confirm p{font-size:14.5px;margin:0}
+/* History: record line is the summary of a details block (reuses .more) */
+.bh-hist{margin-top:10px}
+.bh-hist>summary{text-transform:none;letter-spacing:.04em;font-size:13px;color:var(--ink)}
+.bh-rec{padding:8px 10px;min-height:44px;display:flex;align-items:center;font-family:var(--f-mono);font-size:13px;letter-spacing:.04em;color:var(--dim)}
+.bh-hist .inner{padding-top:2px}
+.bh-sum{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.bh-sum .stat{padding:6px}
+.bh-sum .stat .v{font-size:24px}
+.bh-sum .wide{grid-column:span 2}
+.bh-list{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.bh-entry{border-left:3px solid var(--dim);background:var(--panel);padding:6px 10px;font-size:14.5px;line-height:1.4;min-width:0}
+.bh-entry.won{border-left-color:var(--verd)}
+.bh-entry.lost{border-left-color:var(--blood)}
+.bh-entry .r{font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--brass)}
+.bh-entry .o{font-family:var(--f-mono);font-size:12px;letter-spacing:.04em;text-transform:uppercase}
+.bh-entry.won .o{color:var(--verd)}
+.bh-entry.lost .o{color:var(--blood)}
+.bh-entry.draw .o{color:var(--dim)}
+.bh-toggle{justify-self:start}
+
+/* mock-only: labels (not part of the product) */
+.mock{margin:28px 0 0}
+.mocklabel{display:flex;gap:8px;align-items:baseline;font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--brass);border-bottom:1px dashed var(--line);padding-bottom:6px;margin-bottom:4px}
+.mocklabel b{font-weight:400;color:var(--ink)}
+.mocknote{font-family:var(--f-mono);font-size:12px;color:var(--dim);margin:6px 0 10px;line-height:1.45}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+  <div class="eyebrow">Design mock · War Room and Players tab</div>
+  <h1>Battle <span>Undo</span> and History</h1>
+  <p class="lede">Take back a result recorded by mistake, and see each player's battle record. Undo stays secondary to the next turn. History is collapsed by default on each player card.</p>
+</header>
+
+<section class="mock" id="war">
+  <h2>War Room (undo)</h2>
+
+  <div class="mocklabel" style="margin-top:16px"><span>A</span><b>Result just recorded</b></div>
+  <p class="mocknote">Next player's turn is open as normal. The Undo strip sits under the turn panel, quiet and dashed. Shown to attacker, defender and owner only.</p>
+  <div id="stA"></div>
+
+  <div class="mocklabel" style="margin-top:22px"><span>A2</span><b>Result ended the round</b></div>
+  <p class="mocknote">Same strip under the "War Round complete" panel.</p>
+  <div id="stA2"></div>
+
+  <div class="mocklabel" style="margin-top:22px"><span>B</span><b>Confirm step</b></div>
+  <p class="mocknote">The strip is replaced in place by an inline confirm (same idea as Reset campaign: danger button plus a plain one).</p>
+  <div id="stB"></div>
+
+  <div class="mocklabel" style="margin-top:22px"><span>C</span><b>Blocked</b></div>
+  <p class="mocknote">A post-battle report was filed. Note only, no button.</p>
+  <div id="stC"></div>
+
+  <div class="mocklabel" style="margin-top:22px"><span>D</span><b>After undo</b></div>
+  <p class="mocknote">Unchanged battle card: same province, defender and twists, result buttons live again. The Undo strip is gone. The result's log lines are gone.</p>
+  <div id="stD"></div>
+</section>
+
+<section class="mock" id="players">
+  <h2>Players tab (history)</h2>
+
+  <div class="mocklabel" style="margin-top:16px"><span>E</span><b>Collapsed record, and zero state</b></div>
+  <p class="mocknote">One tappable line under the empire line on each player card. A player with no battles shows plain text and does not expand.</p>
+  <div id="stE"></div>
+
+  <div class="mocklabel" style="margin-top:22px"><span>F</span><b>Expanded</b></div>
+  <p class="mocknote">Summary, then newest first, 10 shown. "Show all" reveals the rest. The totals note appears only when the owner's +/- made the stats above disagree with the list.</p>
+  <div id="stF"></div>
+</section>
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const COL={a:"#d0a952",b:"#6f9a86",c:"#b8392e",d:"#8a7fb8"};
+const HINT="Recorded by mistake? You can take it back until the next action.";
+const NAMES=["Ninth Muster","Ironhand","Void Choir"];
+
+/* ---------- War Room pieces ---------- */
+const strip=(cur)=>`<div class="strip">${NAMES.map((n,i)=>`<span class="chip ${i<cur?"done":i===cur?"cur":""}"><span class="dot" style="background:${[COL.a,COL.b,COL.c][i]}"></span>${n}</span>`).join("")}</div>`;
+const acts=`<div class="acts-grid">
+  <button class="act"><span class="at b">Battle</span><span class="an">Conquer</span><span class="ad">Attack a province to take it.</span></button>
+  <button class="act"><span class="at b">Battle</span><span class="an">Raid</span><span class="ad">Hit a rival for RP or a card.</span></button>
+  <button class="act"><span class="at q">No battle</span><span class="an">Recuperate</span><span class="ad">Quiet action.</span></button></div>`;
+const turn=`<div class="turn"><div class="eyebrow">War Round 3 · Turn 2 of 3</div><h4>Ironhand</h4>
+  <p class="dim mono" style="font-size:12px;margin-top:4px">ORKS · 6 RP · SUPPLY 1200 · 3 PROVINCES · HAND 2/5</p>
+  <p style="margin:10px 0 0">Choose a campaign action.</p>${acts}</div>`;
+const between=`<div class="turn"><div class="eyebrow">War Round 3 complete</div><h4>War Round 4</h4>
+  <p>Everyone draws a Fate Card and collects RP from Capitals and Hive Cities. Then each player takes a turn, fewest provinces first.</p>
+  <button class="btn primary">Begin War Round 4</button></div>`;
+const undoBtn=`<div class="bh-undo"><button class="btn sm">Undo result</button><p class="hint">${HINT}</p></div>`;
+const confirm=`<div class="bh-confirm" role="group" aria-label="Undo this result?">
+  <h4 class="bh-ttl">Undo this result?</h4>
+  <p>Ninth Muster vs Ironhand at Hive Alpha goes back to unresolved. RP, provinces, Fate Cards and the log return to how they were.</p>
+  <div class="row"><button class="btn sm danger">Undo result</button><button class="btn sm">Keep result</button></div></div>`;
+const blocked=`<div class="note">This result can't be undone because a post-battle report has been filed since it was recorded.</div>`;
+const log=(extra)=>`<h3 style="margin-top:18px">Campaign log</h3><ul class="log">${extra||""}
+  <li><span class="r">R3</span><b>Void Choir</b> took <b>Quarry Ridge</b> on Ash Moon.</li>
+  <li><span class="r">R3</span><b>Void Choir</b> drew a Fate Card.</li></ul>`;
+const resultLog=`<li><span class="r">R3</span><b>Ninth Muster</b> beat <b>Ironhand</b> and took <b>Hive Alpha</b> on Varkesh Prime.</li>`;
+
+$("#stA").innerHTML=strip(1)+turn+undoBtn+log(resultLog);
+$("#stA2").innerHTML=between+undoBtn;
+$("#stB").innerHTML=strip(1)+turn+confirm+log(resultLog);
+$("#stC").innerHTML=strip(1)+turn+blocked+log(resultLog);
+$("#stD").innerHTML=`<div class="strip"><span class="chip cur"><span class="dot" style="background:${COL.a}"></span>Ninth Muster</span><span class="chip"><span class="dot" style="background:${COL.b}"></span>Ironhand</span><span class="chip"><span class="dot" style="background:${COL.c}"></span>Void Choir</span></div>
+  <div class="turn"><div class="eyebrow">War Round 3 · Turn 1 of 3</div><h4>Ninth Muster</h4>
+  <p class="dim mono" style="font-size:12px;margin-top:4px">ADEPTUS ASTARTES · 5 RP · SUPPLY 1000 · 2 PROVINCES · HAND 3/5</p>
+  <div class="row" style="justify-content:space-between;margin-top:10px"><span style="font-family:var(--f-display);font-size:24px;color:var(--brass)">Conquer</span></div>
+  <div class="battle"><div class="eyebrow">Varkesh Prime · Hive City · Hive Alpha</div><div class="size">1350 pts</div>
+    <p class="mono dim" style="font-size:12px">NINTH MUSTER (ATTACKER) VS IRONHAND (DEFENDER) · FATE CARDS: UP TO 2 EACH</p>
+    <div class="twist"><span class="mono" style="font-size:11px;color:var(--blood)">TWIST · D12 5</span><br><b>(Same twist as before)</b></div>
+    <p class="mono" style="font-size:12px;color:var(--brass);margin-top:12px">PLAY THE BATTLE WITH NORMAL FORCE RULES, THEN RECORD THE RESULT</p>
+    <div class="row"><button class="btn primary">Ninth Muster won</button><button class="btn primary">Ironhand won</button><button class="btn">Draw</button><button class="btn sm">Re-roll twists</button></div></div></div>`
+  +log("");
+
+/* ---------- Players tab pieces ---------- */
+function pcard(name,color,faction,rec,hist){
+  return `<div class="player"><div class="top"><span class="dot" style="background:${color};width:14px;height:14px"></span>
+    <input type="text" value="${esc(name)}" aria-label="Player name"><select aria-label="Faction"><option>${faction}</option></select></div>
+    <div class="mono dim" style="font-size:12px;margin-top:10px">EMPIRE: 3 PROVINCES · CAPITAL HOLLOW LANDING, VARKESH PRIME</div>
+    ${hist}
+    <p class="dim mono" style="font-size:12px;margin:10px 0 0">(Stats, supply, fate hand and Draw card continue here, unchanged.)</p></div>`;
+}
+const zero=`<div class="more bh-hist none"><div class="bh-rec">No battles yet</div></div>`;
+$("#stE").innerHTML=
+  pcard("Ninth Muster",COL.a,"Adeptus Astartes","",
+   `<details class="more bh-hist"><summary aria-label="Battle record. Tap to expand.">5 battles · 3W 1D 1L</summary></details>`)
+ +pcard("Void Choir",COL.c,"Necrons","",zero);
+
+/* F: data is newest first. t = Conquer/Raid/null(garrison), took = province taken */
+const H=[
+ [8,"Void Choir","Choir Spire on Ninth Vault","Conquer","W",1],
+ [7,"Ash Marauders","Gutter Reach on Dross","Raid","W",0],
+ [6,"Ironhand","Hive Alpha on Varkesh Prime","Conquer","L",0],
+ [5,"Void Choir","Choir Spire on Ninth Vault","Conquer","W",1],
+ [4,"Ironhand","Hollowgate","Raid","L",0],
+ [4,"Ash Marauders","Gutter Reach on Dross","Conquer","W",1],
+ [3,"Ironhand","Hive Alpha on Varkesh Prime","Conquer","W",1],
+ [3,"Void Choir","Choir Spire on Ninth Vault","Raid","L",0],
+ [2,null,"Quarry Ridge on Ash Moon",null,"D",0],
+ [2,"Ash Marauders","Gutter Reach on Dross","Conquer","W",0],
+ [1,"Ironhand","Hive Alpha on Varkesh Prime","Raid","D",0],
+ [1,"Void Choir","Choir Spire on Ninth Vault","Conquer","W",1]];
+const OUT={W:["won","Won"],L:["lost","Lost"],D:["draw","Draw"]};
+function entry(e,i){
+  const [r,opp,loc,t,o,took]=e, [cls,txt]=OUT[o];
+  const mid=opp?`vs ${esc(opp)} · ${esc(loc)} · ${t}`:`Garrison · ${esc(loc)}`;
+  return `<li class="bh-entry ${cls}"${i>=10?' data-extra hidden':""}><span class="r">Round ${r}</span> · ${mid} · <span class="o">${txt}${took?", took the province":""}</span></li>`;
+}
+const cnt=k=>H.filter(e=>e[4]===k).length;
+$("#stF").innerHTML=pcard("Ninth Muster",COL.a,"Adeptus Astartes","",
+ `<details class="more bh-hist" open><summary aria-label="Battle record. Tap to collapse.">${H.length} battles · ${cnt("W")}W ${cnt("D")}D ${cnt("L")}L</summary>
+  <div class="inner">
+   <div class="bh-sum">
+     <div class="stat"><div class="l">Battles</div><div class="v">${H.length}</div></div>
+     <div class="stat"><div class="l">Wins</div><div class="v">${cnt("W")}</div></div>
+     <div class="stat"><div class="l">Draws</div><div class="v">${cnt("D")}</div></div>
+     <div class="stat"><div class="l">Losses</div><div class="v">${cnt("L")}</div></div>
+     <div class="stat wide"><div class="l">Provinces taken</div><div class="v">${H.filter(e=>e[5]).length}</div></div>
+   </div>
+   <ul class="bh-list" id="bhList">${H.map(entry).join("")}</ul>
+   <button class="btn sm bh-toggle" id="bhTog" aria-expanded="false">Show all</button>
+   <p class="hint" style="margin:0">Totals above were adjusted by hand, so they may not match this list.</p>
+  </div></details>`);
+$("#bhTog").onclick=e=>{
+  const open=e.target.getAttribute("aria-expanded")==="true";
+  document.querySelectorAll("[data-extra]").forEach(li=>li.hidden=open);
+  e.target.setAttribute("aria-expanded",String(!open));
+  e.target.textContent=open?"Show all":"Show fewer";
+};
+</script>
+</body>
+</html>
