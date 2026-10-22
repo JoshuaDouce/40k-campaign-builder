@@ -86,26 +86,32 @@ Buttons you can't use are hidden or disabled, with a short reason.
 - Sign-in, campaign list and join screens match the prototype's look (designed under `design/`).
 - The keyboard doesn't hide the invite-code or name field.
 
-## Next up (post-MVP), ordered by value
+## Next up (post-MVP)
 
-1. **Catch-up mechanic for late joiners** (Med) — owner to choose:
-   - **A. Starter bonus (recommended):** joiner starts with the other players' average supply
-     limit minus 150, plus 1 extra Fate Card. One-off, no new rule to remember.
-   - **B. Wider Underdog:** Underdog bonus +20% (not +10%) for anyone with under half the
-     leader's provinces. Helps in battle, not in building up.
-   - **C. Catch-up RP:** each War Round the player with the fewest provinces gets +1 RP until
-     they reach the median. Ongoing, but one more rule.
-2. **Undo a battle result** (Med) — owner can revert the last battle. Mis-taps will happen at the table.
-3. **"It's your turn" notifications** (Med) — email first. Keeps long campaigns moving.
-4. **Campaign archive and rematch** (Low) — read-only after the Hollowgate falls; new campaign, same players.
-5. **Owner transfer** (Low) — an absent owner stalls the game.
-6. **Unit rosters and XP tracking** (High) — the main thing still on paper.
-7. **Battle history per player** (Low) — bragging rights from the existing log.
-8. **Rename/delete/leave a campaign** (Low) — housekeeping.
-9. **Real hidden hands** (High) — only if the group grows beyond friends.
-10. **Server-enforced turns** (High) — same.
-11. **Install to home screen / offline rules** (Low) — game stores have poor signal.
-12. **Shareable invite link** (Low) — one tap instead of typing a code.
+Gameplay first: flesh out and test the campaign before the accounts work in Stage 4.
+
+**Campaign and gameplay (no accounts needed)**
+- Campaign setup (PR #10)
+- "Build roster" opens the chosen player's roster
+- Undo a battle result
+- Battle history per player
+- Install to home screen / offline rules
+
+**Done**
+- Catch-up bonus for late joiners
+- Unit rosters, with force organisation and character customisation
+
+**Needs user accounts (Stage 4)**
+- Sign-up, My campaigns, invite codes, live sync
+- Shareable invite link
+- Rename, delete or leave a campaign
+- Owner transfer
+- Campaign archive and rematch
+- "It's your turn" notifications
+
+**Only if the group grows beyond friends**
+- Real hidden hands
+- Server-enforced turns
 
 ## Out of scope
 Unit rosters/XP (for now), images and uploads, chat, notifications, admin tools, payments,
