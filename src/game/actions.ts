@@ -1,7 +1,7 @@
 // The single entry point for every state change.
 import { drawCard } from "./cards.ts";
 import { ACTIONS, FACTIONS } from "./data.ts";
-import { beginRound, doQuiet, endTurn, fresh, regen, resolve, rollBattle, rollTwists, targets } from "./engine.ts";
+import { beginRound, doQuiet, endTurn, fresh, lateArrivalBonus, regen, resolve, rollBattle, rollTwists, targets } from "./engine.ts";
 import { B, log } from "./log.ts";
 import { addWorld } from "./map.ts";
 import type { Rng } from "./rng.ts";
@@ -159,6 +159,7 @@ function run(s: CampaignState, a: Action, rng: Rng): boolean {
       if (a.userId !== undefined) p.userId = a.userId;
       s.players.push(p);
       addWorld(s, p.id, rng);
+      if (s.round > 0) lateArrivalBonus(s, p, rng);
       return true;
     }
 
