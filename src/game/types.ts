@@ -267,6 +267,8 @@ export interface CampaignState {
   rosters?: Record<string, Unit[]>;
   /** Hall of Heroes memorial, oldest first (show newest first). Missing on old saves = none. */
   fallen?: FallenCharacter[];
+  /** Round-0 setup: players who ticked Ready. Missing = nobody ready. */
+  ready?: Record<string, true>;
 }
 
 export interface BattleInfo {
@@ -309,6 +311,7 @@ export type Action =
   | { type: "applyPostBattle"; playerId: string; results: PostBattleResult[] }
   | { type: "addExamples"; playerId: string }
   | { type: "clearExamples"; playerId: string }
+  | { type: "setReady"; playerId: string; ready: boolean }
   | { type: "fieldSurgeon"; playerId: string; unitId: string; scar: string }
   | { type: "promotion"; playerId: string; unitId: string; enhancement?: string }
   | { type: "seasonedRecruits"; playerId: string; unit: Unit }

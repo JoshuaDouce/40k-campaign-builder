@@ -62,6 +62,7 @@ export function fresh(players: Player[] | undefined, rng: Rng): CampaignState {
     hollOpened: false,
     rosters: {},
     fallen: [],
+    ready: {},
   };
 }
 
@@ -101,6 +102,7 @@ export function beginRound(s: CampaignState, rng: Rng): void {
   s.round++;
   s.won = null;
   s.pend = null;
+  s.ready = {};
   log(s, B(`War Round ${s.round} begins.`));
   s.players.forEach((p) => {
     const inc = holdsType(s, p, "capital") + holdsType(s, p, "hive");

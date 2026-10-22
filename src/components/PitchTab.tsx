@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useCampaign } from "../store/useCampaign.ts";
+import type { TabId } from "../store/useDevicePrefs.ts";
 
 const STEPS: ReadonlyArray<readonly [string, string]> = [
   ["The setting", "Three years ago the Hollowgate rift tore open at the heart of the Varkesh Reach. The Imperium's grip collapsed. The system is a scatter of worlds, each split into provinces, and every faction has its own reason for being here. The more players, the more worlds."],
@@ -41,7 +43,8 @@ function legacyCopy(text: string): boolean {
   }
 }
 
-export function PitchTab() {
+export function PitchTab({ onNavigate }: { onNavigate: (tab: TabId) => void }) {
+  const { state } = useCampaign();
   const [copyMsg, setCopyMsg] = useState("");
 
   const copy = () => {
@@ -56,6 +59,14 @@ export function PitchTab() {
 
   return (
     <section className="tab" id="pitch">
+      {state.round === 0 && (
+        <div className="su-pointer">
+          Ready to start?{" "}
+          <button className="lnk" onClick={() => onNavigate("setup")}>
+            Go to Setup.
+          </button>
+        </div>
+      )}
       <h2>How it works, step by step</h2>
       <p className="dim">Read this out to the group, or copy it into the group chat.</p>
       <ol className="steps">

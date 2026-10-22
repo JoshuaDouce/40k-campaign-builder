@@ -1,0 +1,69 @@
+// Read-only helpers for the round-0 Setup tab. None of these mutate.
+import { worldCounts } from "./map.ts";
+import { rosterOf, totalEffective } from "./roster.ts";
+import { forceOrgFor } from "./forceOrg.ts";
+import { getPlanet, getPlayer, getProvince, supplyOf } from "./selectors.ts";
+import type { CampaignState, Role } from "./types.ts";
+
+const EXAMPLE_SUFFIX = "(example)";
+
+/** True for the sample players a new campaign ships with, whose names end with "(example)". */
+export function isExampleName(name: string): boolean {
+  return name.trim().toLowerCase().endsWith(EXAMPLE_SUFFIX);
+}
+
+/** True if the Reach has one world per the player count (+1) and every player has a Capital on it. */
+export function chartMatches(state: CampaignState): boolean {
+  if (state.sys.planets.length !== worldCounts(state.players.length).P) return false;
+  return state.players.every((p) => {
+    const id = state.cap[p.id];
+    return !!id && !!getProvince(state, id);
+  });
+}
+
+/** Number of current players ticked Ready. */
+export function setupReadyCount(state: CampaignState): number {
+  return state.players.filter((p) => state.ready?.[p.id] === true).length;
+}
+
+/** Players still using a shipped example name, for the Begin warning. */
+export function exampleNames(state: CampaignState): string[] {
+  return state.players.filter((p) => isExampleName(p.name)).map((p) => p.name);
+}
+
+export interface SetupChecklist {
+  warlord?: string;
+  rosterTotal: number;
+  supply: number;
+  /** Roster is non-empty and within supply. */
+  rosterOk: boolean;
+  rp: number;
+  /** rp >= 5 */
+  rpOk: boolean;
+  /** "Province, Planet" */
+  capital?: string;
+  /** Roles still short of their minimum. */
+  foShort: { role: Role; n: number }[];
+}
+
+export function setupChecklist(state: CampaignState, playerId: string): SetupChecklist {
+  const player = getPlayer(state, playerId);
+  const roster = rosterOf(state, playerId);
+  const rosterTotal = totalEffective(roster);
+  const supply = player ? supplyOf(player) : 0;
+  const rp = player?.rp ?? 0;
+  const prov = state.cap[playerId] ? getProvince(state, state.cap[playerId]) : undefined;
+  const planet = prov ? getPlanet(state, prov.pl) : undefined;
+  return {
+    warlord: roster.find((u) => u.isWarlord)?.name,
+    rosterTotal,
+    supply,
+    rosterOk: roster.length > 0 && rosterTotal <= supply,
+    rp,
+    rpOk: rp >= 5,
+    capital: prov && planet ? `${prov.name}, ${planet.name}` : undefined,
+    foShort: forceOrgFor(state, playerId)
+      .rows.map((r) => ({ role: r.role, n: Math.max(0, r.min - r.filled) }))
+      .filter((r) => r.n > 0),
+  };
+}

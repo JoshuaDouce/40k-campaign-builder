@@ -27,7 +27,7 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
     return (
       <section className="tab" id="roster">
         <h2>Roster</h2>
-        <p>Add players on the Players tab first.</p>
+        <p>{state.round === 0 ? "Add players on the Setup tab first." : "Add players on the Players tab first."}</p>
       </section>
     );
   }

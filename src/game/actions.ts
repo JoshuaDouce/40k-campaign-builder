@@ -172,9 +172,19 @@ function run(s: CampaignState, a: Action, rng: Rng): boolean {
       });
       delete s.cap[a.playerId];
       removePlayerRoster(s, a.playerId);
+      if (s.ready) delete s.ready[a.playerId];
       if (s.won === a.playerId) s.won = null;
       if (s.pend && (s.pend.actor === a.playerId || s.pend.def === a.playerId)) s.pend = null;
       if (wasActor) endTurn(s);
+      return true;
+    }
+
+    case "setReady": {
+      if (s.round !== 0 || !getPlayer(s, a.playerId)) return false;
+      const ready = { ...s.ready };
+      if (a.ready) ready[a.playerId] = true;
+      else delete ready[a.playerId];
+      s.ready = ready;
       return true;
     }
 
