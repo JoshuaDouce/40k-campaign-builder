@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Varkesh Reach - Force Organisation (design mock)</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Grenze+Gothic:wght@500;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Share+Tech+Mono&display=swap">
+<style>
+/* ===== Tokens and base: copied from reference/index.html (same as design/roster.html) ===== */
+[hidden]{display:none!important}
+body{margin:0}
+:root{
+  --bg:#16120f; --panel:#211a16; --panel2:#2a211c; --line:#3d312a;
+  --ink:#ebdfc8; --dim:#a8977f; --brass:#d0a952; --blood:#b8392e; --verd:#6f9a86;
+  --f-display:"Grenze Gothic","Palatino Linotype",Georgia,serif;
+  --f-body:"Alegreya Sans","Segoe UI",system-ui,sans-serif;
+  --f-mono:"Share Tech Mono",ui-monospace,Menlo,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.55;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px}
+.wrap{max-width:520px;margin:0 auto}
+header.hero{padding-block:28px 18px;border-bottom:1px solid var(--line)}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass)}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(40px,11vw,68px);line-height:.95;margin:6px 0 10px;text-wrap:balance;letter-spacing:.01em}
+h1 span{color:var(--blood)}
+.lede{color:var(--dim);max-width:62ch;margin:0}
+button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+h2{font-family:var(--f-display);font-weight:700;font-size:34px;line-height:1.05;margin:0 0 6px;text-wrap:balance}
+h3{font-family:var(--f-display);font-weight:500;font-size:23px;margin:26px 0 6px;color:var(--brass);text-wrap:balance}
+p{margin:0 0 12px;max-width:65ch}
+.dim{color:var(--dim)}
+.mono{font-family:var(--f-mono)}
+.btn{font-family:var(--f-mono);font-size:13px;letter-spacing:.05em;text-transform:uppercase;background:var(--panel2);color:var(--ink);border:1px solid var(--line);padding:9px 14px;border-radius:2px;cursor:pointer}
+.btn.primary{background:var(--brass);color:var(--bg);border-color:var(--brass)}
+.btn.danger{color:var(--blood)}
+.btn.sm{padding:5px 9px;font-size:11px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:6px;font-family:var(--f-mono);font-size:12px;padding:4px 9px;border:1px solid var(--line);border-radius:20px;color:var(--dim);background:none;cursor:pointer}
+.chip[aria-pressed="true"]{border-color:var(--brass);color:var(--ink);background:var(--panel2)}
+.chip:disabled{opacity:.4;cursor:not-allowed}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex:none}
+select,input[type=text],input[type=number]{font:inherit;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:2px;padding:7px 9px;max-width:100%}
+.stat{background:var(--panel2);padding:8px;border-radius:2px;text-align:center}
+.stat .l{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+.stat .v{font-family:var(--f-display);font-size:28px;line-height:1;font-variant-numeric:tabular-nums}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1 1 180px}
+.field label,.lbl{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.overline{font-family:var(--f-mono);font-size:12px;color:var(--blood);margin-top:6px}
+
+/* ===== Roster styles reused from design/roster.html ===== */
+.rhead{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:14px;margin:12px 0}
+.pick{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 4px}
+.pick .chip{font-size:13px;padding:6px 11px}
+.totals{display:grid;grid-template-columns:2fr 1fr;gap:8px;margin:12px 0}
+.totals .v small{font-size:16px;color:var(--dim)}
+.unit{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:12px 12px 10px;margin:10px 0;display:flex;flex-direction:column;gap:6px;min-width:0}
+.unit.legend{border-color:var(--brass);background:linear-gradient(180deg,var(--panel2),var(--panel))}
+.unit .k{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.unit .t{font-family:var(--f-display);font-size:23px;line-height:1.1}
+.unit.legend .t{color:var(--brass)}
+.unit .pts{font-family:var(--f-mono);font-size:13px;white-space:nowrap;text-align:right}
+.unit .pts b{font-family:var(--f-display);font-size:26px;font-weight:500;color:var(--ink);display:block;line-height:1}
+.unit .top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.badges{display:flex;flex-wrap:wrap;gap:5px}
+.badge{font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:2px;border:1px solid var(--line);color:var(--ink);background:var(--panel2)}
+.badge.ex{color:var(--dim);border-style:dashed}
+.badge.char{border-color:var(--brass);color:var(--brass)}
+.badge.war{background:var(--brass);color:var(--bg);border-color:var(--brass)}
+.badge.hon{border-color:var(--verd);color:var(--verd)}
+.badge.warn{background:var(--blood);color:var(--ink);border-color:var(--blood)}
+.xp{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;font-family:var(--f-mono);font-size:12px}
+.bar{height:6px;background:var(--line);border-radius:1px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--brass)}
+.unit .acts{display:flex;gap:6px;margin-top:4px;justify-content:flex-end}
+.panel{background:var(--panel);border:1px solid var(--brass);border-radius:3px;padding:16px;margin:12px 0}
+.formgrid{display:flex;flex-wrap:wrap;gap:12px;margin:12px 0}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips .chip{font-size:12.5px}
+.sub{border-top:1px solid var(--line);padding-top:10px;margin-top:12px}
+
+/* ===== Force Organisation additions (new, built from the same tokens) ===== */
+.fo{border:1px solid var(--line);border-radius:3px;background:var(--bg);margin:12px 0}
+.fo > summary{list-style:none;display:flex;gap:10px;align-items:center;justify-content:space-between;padding:8px 12px;min-height:48px;cursor:pointer}
+.fo > summary::-webkit-details-marker{display:none}
+.fo .ttl{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.fo .state{font-family:var(--f-mono);font-size:12.5px;color:var(--verd);line-height:1.35}
+.fo .state.bad{color:var(--blood)}
+.fo .chev{font-family:var(--f-mono);font-size:18px;color:var(--brass);width:24px;text-align:center;flex:none}
+.fo .chev::before{content:"+"}
+.fo[open] .chev::before{content:"\2212"}
+.fo[open] > summary{border-bottom:1px solid var(--line)}
+.fo-row{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:10px;padding:8px 12px 8px 9px;border-left:3px solid transparent;border-top:1px solid var(--line)}
+.fo-row:first-of-type{border-top:0}
+.fo-row.warn{border-left-color:var(--blood)}
+.fo-row .nm{font-family:var(--f-display);font-size:20px;line-height:1.15}
+.fo-row .ct{font-family:var(--f-display);font-size:24px;line-height:1;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.fo-row .ct small{font-size:16px;color:var(--dim)}
+.fo-row.warn .ct{color:var(--blood)}
+.fo-row .mn{font-family:var(--f-mono);font-size:11px;color:var(--dim);text-align:right;letter-spacing:.06em;text-transform:uppercase}
+.fo-row .info{grid-column:1;font-family:var(--f-mono);font-size:12px;line-height:1.4;color:var(--dim)}
+.fo-row .info b{font-weight:400;color:var(--verd)}
+.fo-row .flag{grid-column:1;font-family:var(--f-mono);font-size:12px;line-height:1.4;color:var(--blood)}
+.fo-row .ct,.fo-row .mn{grid-column:2}
+.fo-row .ct{grid-row:1 / span 2}
+.fo-row .mn{grid-row:3}
+.fo-foot{border-top:1px solid var(--line);padding:8px 12px;font-family:var(--f-mono);font-size:11.5px;line-height:1.45;color:var(--dim)}
+.fo-foot .nudge{color:var(--ink);margin-bottom:4px}
+.badge.role{color:var(--ink)}
+.badge.none{color:var(--dim);border-style:dashed;background:none}
+.badge.role-warn{border-color:var(--blood);color:var(--blood)}
+
+/* editor sheet (inline, not an overlay: it is a labelled panel here) */
+.sheet-mock{background:var(--panel);border:1px solid var(--brass);border-radius:6px;padding:16px}
+.sheet-mock h4{font-family:var(--f-display);font-size:28px;font-weight:700;margin:0;line-height:1.05}
+.link{border-left:3px solid var(--brass);padding:2px 0 2px 10px;margin-top:8px}
+.link .row{margin-top:2px}
+.link .tag{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--brass)}
+.chip.unassigned{border-style:dashed}
+.hint{font-family:var(--f-mono);font-size:12px;color:var(--dim);margin-top:8px;line-height:1.4}
+.hint.bad{color:var(--blood)}
+
+/* rules tab */
+.rules-card{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:14px}
+.rules-card p{max-width:none}
+.rules-card p:last-child{margin-bottom:0}
+
+/* mock-only: labels and jump bar (not part of the product) */
+.mock{margin:28px 0 0}
+.mocklabel{display:flex;gap:8px;align-items:baseline;font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--brass);border-bottom:1px dashed var(--line);padding-bottom:6px;margin-bottom:4px}
+.mocklabel b{font-weight:400;color:var(--ink)}
+.mocknote{font-family:var(--f-mono);font-size:12px;color:var(--dim);margin:6px 0 0;line-height:1.45}
+.mockbar{border:1px dashed var(--line);border-radius:3px;padding:8px 10px;margin:14px 0 0;font-family:var(--f-mono);font-size:11px;color:var(--dim)}
+.mockbar a{color:var(--brass)}
+.mockbar .chips{margin-top:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+  <div class="eyebrow">Design mock · Roster tab extension</div>
+  <h1>Force <span>Organisation</span></h1>
+  <p class="lede">A battlefield role for every unit and a compact chart of slots earned by holding provinces. Guidance only: nothing here blocks saving, a battle or a turn.</p>
+</header>
+
+<div class="mockbar" aria-label="Design mock jump bar">
+  MOCK ONLY - jump to a panel:
+  <div class="chips" id="jump"></div>
+</div>
+
+<!-- 1 -->
+<section class="mock" id="p1">
+  <div class="mocklabel"><span>1</span><b>Roster tab top: supply bar, then the chart</b></div>
+  <p class="mocknote">Healthy roster. The chart is a collapsed one-line summary by default and opens on tap, so the unit list stays near the top. It sits directly under the supply totals. Tap to expand.</p>
+  <div class="rhead" id="p1a"></div>
+
+  <div class="mocklabel" style="margin-top:22px"><span>1b</span><b>Same chart expanded (healthy: Battleline 2/4, Character 1/2, Infantry 3/3, Vehicle 1/1, Other 0/2)</b></div>
+  <div id="p1b"></div>
+
+  <div class="mocklabel" style="margin-top:22px"><span>1c</span><b>Expanded, with extra slots from holdings and the +3 cap</b></div>
+  <p class="mocknote">Each source names the province granting the slot. Four Hive Cities held still only gives +3 Infantry.</p>
+  <div id="p1c"></div>
+</section>
+
+<!-- 2 -->
+<section class="mock" id="p2">
+  <div class="mocklabel"><span>2</span><b>Warnings</b></div>
+  <p class="mocknote">With any warning the chart opens by itself and the summary turns red. Rows with a problem get a red left edge. Nothing is disabled.</p>
+
+  <div class="mocklabel" style="margin-top:18px"><span>2a</span><b>Brand-new empty roster (collapsed summary)</b></div>
+  <div id="p2a0"></div>
+  <div class="mocklabel" style="margin-top:18px"><span>2b</span><b>Brand-new empty roster (expanded)</b></div>
+  <div id="p2a"></div>
+
+  <div class="mocklabel" style="margin-top:22px"><span>2c</span><b>Thin roster, lost a Forge, plus the "needs a role" nudge</b></div>
+  <p class="mocknote">Vehicle shows Over limit by 1 because Thessaly Works changed hands. Two old-save units are Unassigned and fill no slot.</p>
+  <div id="p2b"></div>
+</section>
+
+<!-- 3 -->
+<section class="mock" id="p3">
+  <div class="mocklabel"><span>3</span><b>Unit cards with a role tag</b></div>
+  <p class="mocknote">The role is the first tag in the badge row. Character units show the role tag in brass (it replaces the old separate Character badge; Warlord stays). Unassigned shows a muted dashed "No role". Excess units of an over-limit role also get a red "Over limit" tag.</p>
+  <div id="p3"></div>
+</section>
+
+<!-- 4 -->
+<section class="mock" id="p4">
+  <div class="mocklabel"><span>4</span><b>Unit editor sheet with the Role picker</b></div>
+  <p class="mocknote">Interactive: tap roles and the Character / Warlord chips to see them stay in sync. Choosing a role that is already full only adds a note; Save is never disabled.</p>
+
+  <div class="mocklabel" style="margin-top:18px"><span>4a</span><b>Add unit (defaults to Unassigned)</b></div>
+  <div class="sheet-mock" id="s_new"></div>
+
+  <div class="mocklabel" style="margin-top:22px"><span>4b</span><b>Edit Captain Idris Valen (Character, Warlord)</b></div>
+  <div class="sheet-mock" id="s_edit"></div>
+</section>
+
+<!-- 5 -->
+<section class="mock" id="p5">
+  <div class="mocklabel"><span>5</span><b>Rules tab paragraph</b></div>
+  <p class="mocknote">Added after the existing supply text, which is unchanged.</p>
+  <h3 style="margin-top:14px">Supply and the roster</h3>
+  <p class="dim" style="margin-top:0">(existing supply text, unchanged)</p>
+  <div class="rules-card">
+    <p><b>Force Organisation.</b> Every unit has a role: Character, Battleline, Infantry, Vehicle, Monster or Other. Each warband should field at least 1 Character and 2 Battleline, and no more of each role than its slots allow. Slots grow with your conquests: each Shrine held adds a Character slot, each Fortress a Battleline, each Hive City an Infantry, each Forge a Vehicle, each Refinery a Monster and each Spaceport (your Capital counts) an Other, up to +3 per role. Lose the ground and you lose the slot, and any units left over are over limit. This is the Reach's guidance, not a law: your group decides how strictly to hold each other to it. Your supply limit still caps total points.</p>
+  </div>
+</section>
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+/* ---------- Force Organisation data ---------- */
+const ROLES=["Character","Battleline","Infantry","Vehicle","Monster","Other"];
+const BASE={Character:2,Battleline:4,Infantry:3,Vehicle:1,Monster:1,Other:1};
+const MIN={Character:1,Battleline:2,Infantry:0,Vehicle:0,Monster:0,Other:0};
+const SRC={Character:"Shrine",Battleline:"Fortress",Infantry:"Hive City",Vehicle:"Forge",Monster:"Refinery",Other:"Spaceport"};
+/* a row: {r, f: units filling it, src: [[holdingType, provinceName], ...], lost: optional text} */
+const R=(r,f,src=[],lost="")=>({r,f,src,lost});
+
+const HEALTHY=[
+  R("Character",1),
+  R("Battleline",2),
+  R("Infantry",3),
+  R("Vehicle",1),
+  R("Monster",0),
+  R("Other",0,[["Capital","Hollow Landing"]])];
+const RICH=[
+  R("Character",2,[["Shrine","Saint Orsolya's Rest"]]),
+  R("Battleline",4,[["Fortress","Gate of Kharst"],["Fortress","Varn Bastion"]]),
+  R("Infantry",6,[["Hive City","Kharst Hive"],["Hive City","Dross Hive"],["Hive City","Ninth Spire"],["Hive City","Varn Hive"]]),
+  R("Vehicle",2,[["Forge","Thessaly Works"]]),
+  R("Monster",0),
+  R("Other",1,[["Capital","Hollow Landing"]])];
+const EMPTY=[
+  R("Character",0),R("Battleline",0),R("Infantry",0),R("Vehicle",0),R("Monster",0),
+  R("Other",0,[["Capital","Hollow Landing"]])];
+const THIN=[
+  R("Character",0),
+  R("Battleline",1),
+  R("Infantry",2),
+  R("Vehicle",2,[],"Forge lost: Thessaly Works"),
+  R("Monster",0),
+  R("Other",1,[["Capital","Hollow Landing"]])];
+
+const maxOf=x=>BASE[x.r]+Math.min(3,x.src.length);
+
+function summaryOf(rows,unassigned){
+  const unmet=rows.filter(x=>x.f<MIN[x.r]).length;
+  const over=rows.filter(x=>x.f>maxOf(x)).length;
+  const bits=[];
+  if(unmet)bits.push(`${unmet} minimum${unmet>1?"s":""} unmet`);
+  if(over)bits.push(`${over} over limit`);
+  return {bad:unmet+over>0,text:bits.length?bits.join(" · "):"Minimums met, within limits",unmet,over,unassigned};
+}
+function rowHTML(x){
+  const max=maxOf(x), min=MIN[x.r], need=min-x.f, over=x.f-max;
+  const warn=need>0||over>0;
+  let info;
+  if(x.src.length){
+    const shown=x.src.slice(0,3).map(s=>`<b>+1 ${esc(s[0])}</b> (${esc(s[1])})`).join(", ");
+    const note=x.src.length>3?` · ${x.src.length} held, capped at +3`:(x.src.length===3?" · cap reached":"");
+    info=`Base ${BASE[x.r]} · ${shown}${note}`;
+  } else info=x.lost?`Base ${BASE[x.r]} · ${esc(x.lost)}`:"Base slots only";
+  const flag=need>0?`! Needs ${need} more ${x.r}`:over>0?`! Over limit by ${over}`:"";
+  return `<div class="fo-row${warn?" warn":""}">
+    <div class="nm">${x.r}</div>
+    <div class="ct">${x.f}<small> / ${max}</small></div>
+    <div class="info">${info}</div>
+    ${flag?`<div class="flag">${flag}</div>`:""}
+    ${min?`<div class="mn">min ${min}</div>`:""}
+  </div>`;
+}
+function chartHTML(rows,o={}){
+  const un=o.unassigned||0, s=summaryOf(rows,un);
+  const open=o.open!==undefined?o.open:s.bad;
+  return `<details class="fo"${open?" open":""}>
+    <summary><div><div class="ttl">Force Organisation</div>
+      <div class="state${s.bad?" bad":""}">${s.bad?"! ":""}${s.text}${un?` · ${un} unit${un>1?"s":""} need a role`:""}</div></div><span class="chev" aria-hidden="true"></span></summary>
+    ${rows.map(rowHTML).join("")}
+    <div class="fo-foot">
+      ${un?`<div class="nudge">${un} unit${un>1?"s":""} need a role. Unassigned units fill no slot.</div>`:""}
+      Holdings add up to +3 per role. Slots follow the provinces you hold right now. Guidance only: nothing is blocked.
+    </div>
+  </details>`;
+}
+
+/* ---------- Panel 1 ---------- */
+const supplyHead=(tot,sup,rp)=>`
+  <div class="lbl">Roster of</div>
+  <div class="pick"><button class="chip" aria-pressed="true"><span class="dot" style="background:var(--brass)"></span>Ninth Muster (you)</button></div>
+  <div class="mono dim" style="font-size:12px">ADEPTUS ASTARTES</div>
+  <div class="totals">
+    <div class="stat"><div class="l">Total points</div><div class="v">${tot.toLocaleString()} <small>/ ${sup.toLocaleString()} pts</small></div>
+      <div class="mono dim" style="font-size:12px;margin-top:4px">${sup-tot} pts to spare</div></div>
+    <div class="stat"><div class="l">RP available</div><div class="v">${rp}</div></div>
+  </div>`;
+$("#p1a").innerHTML=supplyHead(885,1050,4)+chartHTML(HEALTHY,{open:false})+`
+  <div class="row"><button class="btn primary">Add unit</button><button class="btn">Post-battle helper</button><button class="btn danger">Clear examples</button></div>`;
+$("#p1b").innerHTML=chartHTML(HEALTHY,{open:true});
+$("#p1c").innerHTML=chartHTML(RICH,{open:true});
+
+/* ---------- Panel 2 ---------- */
+$("#p2a0").innerHTML=chartHTML(EMPTY,{open:false});
+$("#p2a").innerHTML=chartHTML(EMPTY,{open:true});
+$("#p2b").innerHTML=chartHTML(THIN,{open:true,unassigned:2});
+
+/* ---------- Panel 3: unit cards ---------- */
+function card(o){
+  return `<article class="unit${o.legend?" legend":""}">
+   <div class="top"><div style="min-width:0">
+     <div class="k"><span>${esc(o.ds)}</span></div>
+     <div class="t">${esc(o.name)}</div></div>
+     <div class="pts"><b>${o.pts} pts</b><span class="dim">${o.base} base</span></div></div>
+   <div class="badges">${o.tags}</div>
+   <div class="xp"><span>${o.xp} XP</span><div class="bar"><i style="width:${o.pct}%"></i></div><span>${o.next}</span></div>
+   <div class="acts"><button class="btn sm">Edit</button><button class="btn sm danger">Remove</button></div>
+  </article>`;
+}
+$("#p3").innerHTML=[
+  card({name:"Anvil Squad",ds:"Intercessor Squad",pts:180,base:180,xp:1,pct:33,next:"2 to Blooded",
+    tags:`<span class="badge role">Battleline</span><span class="badge">Green</span>`}),
+  card({name:"Captain Idris Valen",ds:"Captain",pts:95,base:85,xp:6,pct:60,next:"2 to Veteran",
+    tags:`<span class="badge char">Character</span><span class="badge war">Warlord</span><span class="badge">Blooded</span>`}),
+  card({name:"Breach Team Seven",ds:"Eradicator Squad",pts:110,base:100,xp:4,pct:20,next:"4 to Veteran",
+    tags:`<span class="badge none">No role</span><span class="badge">Blooded</span>`}),
+  card({name:"The Anvil of Kharst",ds:"Redemptor Dreadnought",pts:295,base:210,xp:26,pct:100,next:"Max rank",legend:true,
+    tags:`<span class="badge role">Vehicle</span><span class="badge warn">Over limit</span><span class="badge legend" style="background:var(--brass);color:var(--bg);border-color:var(--brass)">Legend of the Reach</span>`})
+].join("");
+
+/* ---------- Panel 4: editor sheets ---------- */
+const FILLED={Character:1,Battleline:2,Infantry:3,Vehicle:1,Monster:0,Other:0};
+const MAXES={Character:2,Battleline:4,Infantry:3,Vehicle:1,Monster:1,Other:2};
+function sheet(id,f,title,cta){
+  const root=$(id);
+  const draw=()=>{
+    const chosen=f.role;
+    let hint="";
+    if(chosen){
+      const projected=FILLED[chosen]+(chosen===f.orig?0:1);
+      hint=projected>MAXES[chosen]
+        ?`<div class="hint bad">! ${chosen} slots are full (${FILLED[chosen]} / ${MAXES[chosen]}). You can still save; this unit would be over limit.</div>`
+        :`<div class="hint">${chosen}: ${projected} of ${MAXES[chosen]} slots used with this unit.</div>`;
+    } else hint=`<div class="hint">Unassigned units fill no slot. You can set a role later.</div>`;
+    root.innerHTML=`<h4>${title}</h4>
+      <div class="formgrid">
+        <div class="field"><label>Unit name</label><input type="text" value="${esc(f.name)}" placeholder="e.g. Anvil Squad"></div>
+        <div class="field"><label>Datasheet</label><input type="text" value="${esc(f.ds)}" placeholder="e.g. Intercessor Squad"></div>
+      </div>
+      <div class="sub"><div class="lbl">Role</div>
+        <div class="chips" style="margin-top:6px" role="group" aria-label="Role">
+          <button class="chip unassigned" aria-pressed="${!f.role}" data-role="">Unassigned</button>
+          ${ROLES.map(r=>`<button class="chip" aria-pressed="${f.role===r}" data-role="${r}">${r}</button>`).join("")}
+        </div>
+        ${hint}
+        <div class="link">
+          <div class="tag">Linked to the Character role</div>
+          <div class="chips" style="margin-top:6px">
+            <button class="chip" aria-pressed="${f.char}" data-char="1">Character</button>
+            <button class="chip" aria-pressed="${f.war}" data-war="1" ${f.char?"":"disabled"}>Warlord</button>
+          </div>
+          <div class="hint" style="margin-top:6px">${f.char
+            ?"Character ticked, so the role is Character. Choosing any other role clears Character and Warlord."
+            :"Ticking Character sets the role to Character. Warlord is only for Characters."}</div>
+        </div>
+        ${f.char?`<div class="field" style="margin-top:10px"><label>Enhancement (optional)</label><input type="text" value="${esc(f.enh)}" placeholder="Enhancement name and effect"></div>`:""}
+      </div>
+      <div class="sub mono dim" style="font-size:12px">(Base points, XP, Battle Honours and Battle Scars continue here, unchanged.)</div>
+      <div class="row sub"><button class="btn primary">${cta}</button><button class="btn">Cancel</button></div>`;
+  };
+  root.addEventListener("click",e=>{
+    const b=e.target.closest("button"); if(!b)return;
+    if(b.dataset.role!==undefined){
+      f.role=b.dataset.role;
+      if(f.role!=="Character"){f.char=false;f.war=false}else f.char=true;
+      return draw();
+    }
+    if(b.dataset.char){
+      f.char=!f.char;
+      if(f.char)f.role="Character"; else {f.war=false;if(f.role==="Character")f.role=""}
+      return draw();
+    }
+    if(b.dataset.war){f.war=!f.war;return draw()}
+  });
+  draw();
+}
+sheet("#s_new",{name:"",ds:"",role:"",char:false,war:false,enh:"",orig:""},"Add unit","Add to roster");
+sheet("#s_edit",{name:"Captain Idris Valen",ds:"Captain",role:"Character",char:true,war:true,enh:"Gilded Standard of the Ninth",orig:"Character"},"Edit unit","Save changes");
+
+/* ---------- Mock jump bar ---------- */
+const JUMPS=[["1 Chart","p1"],["2 Warnings","p2"],["3 Unit cards","p3"],["4 Editor","p4"],["5 Rules","p5"]];
+$("#jump").innerHTML=JUMPS.map(j=>`<a class="chip" href="#${j[1]}" style="text-decoration:none">${j[0]}</a>`).join("");
+</script>
+</body>
+</html>
