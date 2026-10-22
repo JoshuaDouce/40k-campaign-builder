@@ -22,7 +22,7 @@ import {
   sizeOf,
   supplyOf,
 } from "./selectors.ts";
-import type { ActionId, BattleInfo, CampaignState, Player, Zone } from "./types.ts";
+import type { ActionId, BattleInfo, BattleRecord, CampaignState, Player, UndoSnapshot, Zone } from "./types.ts";
 
 export function examplePlayers(): Player[] {
   const mk = (id: string, name: string, faction: Player["faction"]): Player => ({
@@ -63,6 +63,7 @@ export function fresh(players: Player[] | undefined, rng: Rng): CampaignState {
     rosters: {},
     fallen: [],
     ready: {},
+    history: [],
   };
 }
 
@@ -300,10 +301,65 @@ export function resolve(s: CampaignState, res: "a" | "d" | "x", rng: Rng, decisi
     });
   }
   a.scout = false;
+  const rec: BattleRecord = {
+    round: s.round,
+    att: a.id,
+    attName: a.name,
+    prov: v.id,
+    provName: v.name,
+    kind: pd.act === "raid" ? "raid" : "conquer",
+    out: res,
+  };
+  if (!info.garrison) {
+    rec.def = d.id;
+    rec.defName = d.name;
+  } else rec.garrison = true;
+  if (pl) rec.world = pl.name;
+  if (pd.act === "conquer" && win === a) rec.took = true;
+  s.history = [...(s.history ?? []), rec];
   if (info.garrison)
     log(s, B(a.name), ": record XP, roll for the fallen, +150 supply. ", B(d.name), " fielded the garrison and gains nothing.");
   else log(s, "Both players: record XP, roll for the fallen, +150 supply.");
   endTurn(s);
+  return true;
+}
+
+/** Copy of the parts of s that a battle result can change. */
+export function takeSnapshot(s: CampaignState): UndoSnapshot {
+  return structuredClone({
+    round: s.round,
+    turnIdx: s.turnIdx,
+    order: s.order,
+    pend: s.pend,
+    log: s.log,
+    won: s.won,
+    fort: s.fort,
+    terr: s.terr,
+    players: s.players,
+    hollOpened: s.hollOpened,
+  });
+}
+
+/**
+ * Take back the latest battle result (mutates s). Returns false if there is nothing to undo or a
+ * post-battle report has been filed since.
+ */
+export function undoBattle(s: CampaignState): boolean {
+  const u = s.undo;
+  if (!u || u.reportFiled) return false;
+  const b = structuredClone(u.before);
+  s.round = b.round;
+  s.turnIdx = b.turnIdx;
+  s.order = b.order;
+  s.pend = b.pend;
+  s.log = [...u.later, ...b.log].slice(0, 60);
+  s.won = b.won;
+  s.fort = b.fort;
+  s.terr = b.terr;
+  s.players = b.players;
+  s.hollOpened = b.hollOpened;
+  s.history = (s.history ?? []).slice(0, -1);
+  delete s.undo;
   return true;
 }
 

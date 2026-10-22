@@ -1,7 +1,7 @@
 // The single entry point for every state change.
 import { drawCard } from "./cards.ts";
 import { ACTIONS, FACTIONS } from "./data.ts";
-import { beginRound, doQuiet, endTurn, fresh, lateArrivalBonus, regen, resolve, rollBattle, rollTwists, targets } from "./engine.ts";
+import { beginRound, doQuiet, endTurn, fresh, lateArrivalBonus, regen, resolve, rollBattle, rollTwists, takeSnapshot, targets, undoBattle } from "./engine.ts";
 import { B, log } from "./log.ts";
 import { addWorld } from "./map.ts";
 import type { Rng } from "./rng.ts";
@@ -21,7 +21,23 @@ import {
   updateUnitIn,
 } from "./roster.ts";
 import { currentActor, getPlayer, getZone, hollOpen, provsOf } from "./selectors.ts";
-import type { Action, CampaignState, Player } from "./types.ts";
+import type { Action, ActionType, CampaignState, Player } from "./types.ts";
+
+/**
+ * Actions that leave an open Undo window alone: they only touch rosters, never the things a battle
+ * result changes. Every other action closes the window. Filing a post-battle report also blocks Undo.
+ */
+const ROSTER_ONLY: ReadonlySet<ActionType> = new Set<ActionType>([
+  "addUnit",
+  "updateUnit",
+  "removeUnit",
+  "addRelic",
+  "removeRelic",
+  "deleteFallen",
+  "applyPostBattle",
+  "addExamples",
+  "clearExamples",
+]);
 
 export interface ApplyContext {
   rng: Rng;
@@ -68,7 +84,16 @@ function run(s: CampaignState, a: Action, rng: Rng): boolean {
     case "resolveBattle":
       if (a.result !== "a" && a.result !== "d" && a.result !== "x") return false;
       if (a.decisive !== undefined && typeof a.decisive !== "boolean") return false;
-      return resolve(s, a.result, rng, a.decisive);
+      {
+        const before = takeSnapshot(s);
+        const pd = s.pend;
+        if (!pd || !resolve(s, a.result, rng, a.decisive)) return false;
+        s.undo = { before, attacker: pd.actor, defender: pd.def, reportFiled: false, later: [] };
+        return true;
+      }
+
+    case "undoBattle":
+      return undoBattle(s);
 
     case "confirmQuiet":
       return doQuiet(s, a.fortZone, rng);
@@ -211,6 +236,7 @@ export function apply(state: CampaignState, action: Action, ctx: ApplyContext): 
   let ok = false;
   // Latch before the action too: adding a world or removing a player must not close an open Hollowgate.
   if (hollOpen(s)) s.hollOpened = true;
+  const prevTop = s.log[0];
   try {
     ok = run(s, action, ctx.rng);
   } catch (err) {
@@ -218,6 +244,15 @@ export function apply(state: CampaignState, action: Action, ctx: ApplyContext): 
     ok = false;
   }
   if (!ok) return state;
+  if (s.undo && action.type !== "resolveBattle") {
+    if (!ROSTER_ONLY.has(action.type)) delete s.undo;
+    else {
+      // Keep the window open; remember any log lines the roster action added so Undo can keep them.
+      const added = prevTop ? s.log.indexOf(prevTop) : s.log.length;
+      if (added > 0) s.undo.later = [...s.log.slice(0, added), ...s.undo.later];
+      if (action.type === "applyPostBattle") s.undo.reportFiled = true;
+    }
+  }
   if (hollOpen(s)) s.hollOpened = true;
   return s;
 }

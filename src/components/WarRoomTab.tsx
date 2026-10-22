@@ -22,6 +22,7 @@ import {
 } from "../game/index.ts";
 import type { Action, ActionDef, CampaignState, Player, Zone } from "../game/index.ts";
 import { useCampaign } from "../store/useCampaign.ts";
+import { UndoBattle } from "./UndoBattle.tsx";
 import type { CampaignViewer } from "../store/useCampaign.ts";
 import type { TabId } from "../store/useDevicePrefs.ts";
 
@@ -71,7 +72,7 @@ interface BodyProps {
   onNavigate: (tab: TabId) => void;
 }
 
-function WarBody({ state, dispatch, colors, can, onNavigate }: BodyProps) {
+function WarBody({ state, dispatch, viewer, colors, can, onNavigate }: BodyProps) {
   const winner = getPlayer(state, state.won);
   const actor = currentActor(state);
   return (
@@ -128,6 +129,7 @@ function WarBody({ state, dispatch, colors, can, onNavigate }: BodyProps) {
           )}
         </>
       )}
+      <UndoBattle key={state.undo ? `${state.round}-${state.history?.length ?? 0}` : "none"} state={state} dispatch={dispatch} viewer={viewer} />
     </>
   );
 }

@@ -395,3 +395,30 @@ textarea{width:100%;resize:vertical;min-height:96px}
 .su-who{font-family:var(--f-mono);font-size:12px;color:var(--dim);margin:0}
 .su-pointer{border-left:3px solid var(--brass);padding:6px 12px;background:var(--panel);margin:12px 0;font-size:15px}
 .su-pointer button.lnk{color:var(--brass);font:inherit;background:none;border:0;padding:0;text-decoration:underline;cursor:pointer}
+
+/* ===== Battle Undo and History ===== */
+.bh-undo{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;border:1px dashed var(--line);border-radius:3px;padding:6px 10px;margin-top:10px}
+.bh-undo .hint{flex:1 1 200px;margin:0}
+.bh-undo .btn.sm,.bh-confirm .btn.sm,.bh-toggle{min-height:44px}
+.bh-confirm{border:1px solid var(--blood);border-left-width:3px;border-radius:3px;background:var(--panel);padding:10px 12px;margin-top:10px;display:grid;gap:6px}
+.bh-confirm .bh-ttl{font-family:var(--f-display);font-size:21px;line-height:1.1;margin:0}
+.bh-confirm p{font-size:14.5px;margin:0}
+.bh-hist{margin-top:10px}
+.bh-hist>summary{text-transform:none;letter-spacing:.04em;font-size:13px;color:var(--ink)}
+.bh-rec{padding:8px 10px;min-height:44px;display:flex;align-items:center;font-family:var(--f-mono);font-size:13px;letter-spacing:.04em;color:var(--dim)}
+.bh-hist .inner{padding-top:2px}
+.bh-hist .inner .hint{margin:0}
+.bh-sum{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.bh-sum .stat{padding:6px}
+.bh-sum .stat .v{font-size:24px}
+.bh-sum .wide{grid-column:span 2}
+.bh-list{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.bh-entry{border-left:3px solid var(--dim);background:var(--panel);padding:6px 10px;font-size:14.5px;line-height:1.4;min-width:0;overflow-wrap:anywhere}
+.bh-entry.won{border-left-color:var(--verd)}
+.bh-entry.lost{border-left-color:var(--blood)}
+.bh-entry .r{font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--brass)}
+.bh-entry .o{font-family:var(--f-mono);font-size:12px;letter-spacing:.04em;text-transform:uppercase}
+.bh-entry.won .o{color:var(--verd)}
+.bh-entry.lost .o{color:var(--blood)}
+.bh-entry.draw .o{color:var(--dim)}
+.bh-toggle{justify-self:start}
