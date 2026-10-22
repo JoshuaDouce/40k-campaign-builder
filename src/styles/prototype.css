@@ -422,3 +422,132 @@ textarea{width:100%;resize:vertical;min-height:96px}
 .bh-entry.lost .o{color:var(--blood)}
 .bh-entry.draw .o{color:var(--dim)}
 .bh-toggle{justify-self:start}
+
+
+/* ===== Private campaigns additions (new, "ac-" prefix, built from the same tokens) ===== */
+.ac-screen{display:grid;gap:12px;padding-block:16px 8px}
+.ac-brand{font-family:var(--f-display);font-weight:700;font-size:44px;line-height:.95;margin:0;letter-spacing:.01em;text-wrap:balance}
+.ac-brand span{color:var(--blood)}
+.ac-sub{color:var(--dim);margin:0}
+.ac-panel{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:14px;display:grid;gap:12px;min-width:0}
+.ac-form{display:grid;gap:12px}
+.ac-actions{display:grid;gap:8px}
+.ac-actions .btn{width:100%}
+.ac-back{font-family:var(--f-mono);font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--brass);min-height:44px;display:inline-flex;align-items:center;gap:6px;background:none;border:0;padding:0;cursor:pointer}
+.ac-lnk{font-family:var(--f-mono);font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--brass);background:none;border:0;padding:0;min-height:44px;display:inline-flex;align-items:center;cursor:pointer;text-decoration:underline}
+input.ac-bad{border-color:var(--blood)}
+/* app bar: public header and signed-in header */
+.ac-top{display:flex;align-items:center;justify-content:space-between;gap:8px;border-bottom:1px solid var(--line);padding-block:8px;min-height:56px}
+.ac-top .ac-title{font-family:var(--f-display);font-weight:700;font-size:24px;line-height:1;min-width:0}
+.ac-top .ac-title span{color:var(--blood)}
+.ac-who{display:flex;flex-direction:column;min-width:0}
+.ac-who b{font-family:var(--f-mono);font-weight:400;font-size:13px;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink)}
+.ac-top .ac-lnk,.ac-top .btn{flex:none}
+.ac-pagehead{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.ac-pagehead h2{margin:0}
+/* campaign list rows */
+.ac-list{display:grid;gap:10px}
+.ac-camp{gap:6px}
+.ac-camp .t{overflow-wrap:anywhere}
+.ac-line{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;font-size:14.5px;color:var(--dim)}
+.ac-line b{color:var(--ink);font-weight:500}
+.ac-empty{text-align:center;padding:26px 14px;justify-items:center}
+.ac-empty .t{font-family:var(--f-display);font-size:26px;line-height:1.1}
+/* faction pick cards */
+.ac-facs{display:grid;gap:8px}
+.ac-fac{text-align:left;font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:12px;display:grid;gap:2px;cursor:pointer;min-height:64px;width:100%}
+.ac-fac .k{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);display:flex;justify-content:space-between;gap:8px}
+.ac-fac .t{font-family:var(--f-display);font-size:21px;line-height:1.1}
+.ac-fac .e{font-size:14.5px;color:var(--dim)}
+.ac-fac[aria-pressed="true"]{border-color:var(--brass);background:var(--panel2)}
+.ac-fac[aria-pressed="true"] .k span{color:var(--brass)}
+/* members panel */
+.ac-members{border:1px solid var(--brass);border-radius:4px;background:var(--panel);padding:14px;display:grid;gap:12px;margin:12px 0}
+.ac-members h3{margin:0}
+.ac-add{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end}
+.ac-mlist{list-style:none;margin:0;padding:0;display:grid}
+.ac-mlist li{display:flex;align-items:center;justify-content:space-between;gap:8px;border-top:1px solid var(--line);padding-block:6px}
+.ac-mlist .who{min-width:0;display:grid}
+.ac-mlist .em{overflow-wrap:anywhere}
+.ac-mlist .st{font-family:var(--f-mono);font-size:12px;color:var(--dim)}
+.ac-mlist .st.wait{color:var(--brass)}
+.ac-wait{border-left:3px solid var(--brass);padding:8px 12px;background:var(--panel);margin:12px 0}
+.ac-wait b{font-family:var(--f-display);font-weight:500;font-size:19px}
+.ac-danger{border:1px solid var(--blood);border-radius:4px;padding:12px;display:grid;gap:8px;margin-top:22px}
+.ac-danger .lbl{color:var(--blood)}
+/* campaign header */
+.ac-chead{display:grid;gap:2px;padding-block:8px 6px;border-bottom:1px solid var(--line)}
+.ac-crow{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.ac-cname{font-family:var(--f-display);font-weight:700;font-size:26px;line-height:1.05;margin:0;overflow-wrap:anywhere;min-width:0}
+.ac-sync{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;display:inline-flex;align-items:center;gap:6px;padding:3px 8px;border:1px solid var(--line);border-radius:20px;color:var(--dim);white-space:nowrap;flex:none}
+.ac-sync.saving{color:var(--brass);border-color:var(--brass)}
+.ac-sync.offline{color:var(--blood);border-color:var(--blood)}
+.ac-sync.live{color:var(--verd)}
+.ac-banner{font-family:var(--f-mono);font-size:12px;line-height:1.4;padding:8px 12px;border:1px solid var(--blood);border-left-width:3px;background:var(--panel);color:var(--ink);margin:10px 0 0;display:flex;gap:10px;align-items:center;justify-content:space-between}
+.ac-banner.warn{border-color:var(--brass)}
+.ac-banner .btn{flex:none}
+/* confirm and gone */
+.ac-modal{background:var(--panel);border:1px solid var(--blood);border-radius:4px;padding:16px;display:grid;gap:12px}
+.ac-modal .t{font-family:var(--f-display);font-size:26px;line-height:1.1}
+.ac-gone{text-align:center;padding:36px 14px;display:grid;gap:10px;justify-items:center}
+.ac-gone .t{font-family:var(--f-display);font-size:30px;line-height:1.1;text-wrap:balance}
+.badge.org{background:var(--brass);color:var(--bg);border-color:var(--brass)}
+/* scoped base differences: 44px targets and form fields inside the account screens only */
+.ac-screen .btn,.ac-top .btn,.ac-banner .btn,.ac-members .btn,.ac-danger .btn,.ac-modal .btn,.ac-gone .btn,.ac-chead .ac-back{min-height:44px}
+.ac-screen select,.ac-screen input[type=text],.ac-screen input[type=email],.ac-screen input[type=password],.ac-members input[type=email]{font:inherit;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:2px;padding:7px 9px;max-width:100%;min-height:44px;width:100%}
+a:focus-visible,.ac-lnk:focus-visible,.ac-back:focus-visible,.ac-fac:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+.ac-top{margin-top:0}
+.ac-top .row{flex-wrap:nowrap;gap:12px}
+.ac-who .lbl{display:flex;align-items:center;gap:4px}
+.ac-fac{font-family:inherit}
+.ac-gone .btn,.ac-actions .btn{max-width:100%}
+.ac-camp{text-align:left;font:inherit;color:var(--ink);cursor:pointer;width:100%}
+.ac-camp:hover{border-color:var(--brass)}
+.ac-camp .k{width:100%}
+.ac-plain{padding:24px 0}
+.ac-sync .dot{width:8px;height:8px}
+.ac-link-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.ac-err{font-family:var(--f-mono);font-size:12px;color:var(--blood);margin:0}
+.ac-modal .ac-actions{grid-template-columns:1fr}
+@media (min-width:520px){.ac-actions{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}.ac-actions .btn{width:100%}}
+
+/* Authenticator (sign-in only), mapped onto the prototype tokens. Scoped so nothing else changes. */
+[data-amplify-authenticator]{
+  --amplify-colors-background-primary:var(--panel);
+  --amplify-colors-background-secondary:var(--panel2);
+  --amplify-colors-font-primary:var(--ink);
+  --amplify-colors-font-secondary:var(--dim);
+  --amplify-colors-font-interactive:var(--brass);
+  --amplify-colors-font-error:var(--blood);
+  --amplify-colors-border-primary:var(--line);
+  --amplify-colors-border-focus:var(--brass);
+  --amplify-colors-brand-primary-80:var(--brass);
+  --amplify-colors-brand-primary-90:var(--brass);
+  --amplify-colors-brand-primary-100:var(--brass);
+  --amplify-components-authenticator-router-background-color:var(--panel);
+  --amplify-components-authenticator-router-border-color:var(--line);
+  --amplify-components-fieldcontrol-border-color:var(--line);
+  --amplify-components-fieldcontrol-color:var(--ink);
+  --amplify-components-fieldcontrol-focus-border-color:var(--brass);
+  --amplify-components-fieldcontrol-focus-box-shadow:none;
+  --amplify-components-button-primary-background-color:var(--brass);
+  --amplify-components-button-primary-color:var(--bg);
+  --amplify-components-button-primary-hover-background-color:var(--brass);
+  --amplify-components-button-primary-hover-color:var(--bg);
+  --amplify-components-button-border-radius:2px;
+  --amplify-fonts-default-variable:var(--f-body);
+  --amplify-fonts-default-static:var(--f-body);
+  background:none;
+  display:block;
+}
+[data-amplify-authenticator] [data-amplify-container]{width:100%;max-width:none}
+[data-amplify-authenticator] [data-amplify-router]{background:var(--panel);border:1px solid var(--line);border-radius:4px;box-shadow:none}
+[data-amplify-authenticator] [data-amplify-form]{padding:14px}
+[data-amplify-authenticator] label,[data-amplify-authenticator] .amplify-label{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+[data-amplify-authenticator] input{font-size:16px;min-height:44px;background:var(--panel2);color:var(--ink);border-radius:2px}
+[data-amplify-authenticator] .amplify-button{font-family:var(--f-mono);font-size:13px;letter-spacing:.05em;text-transform:uppercase;min-height:44px;border-radius:2px}
+[data-amplify-authenticator] .amplify-button--primary{background:var(--brass);color:var(--bg);border-color:var(--brass)}
+[data-amplify-authenticator] .amplify-button--link,[data-amplify-authenticator] .amplify-button--small{color:var(--brass);background:none;border-color:transparent}
+[data-amplify-authenticator] .amplify-alert{background:var(--panel2);color:var(--ink);border:1px solid var(--blood);font-size:14.5px}
+[data-amplify-authenticator] .amplify-field__show-password{background:var(--panel2);color:var(--ink);border-color:var(--line);min-width:44px;min-height:44px}
+[data-amplify-authenticator] .ac-lbl{margin:0}

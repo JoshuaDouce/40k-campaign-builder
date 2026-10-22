@@ -40,8 +40,18 @@ export function WarRoomTab({ colors, onNavigate }: Props) {
       <h2>War Room</h2>
       <p className="dim">Runs the campaign turn by turn. Battle results update the map and players automatically. Record XP and scars on your own rosters.</p>
       <div>
-        {state.players.length === 0 ? (
-          <p>{state.round === 0 ? "Add players on the Setup tab first." : "Add players on the Players tab first."}</p>
+        {state.players.length < 2 && state.turnIdx === null ? (
+          <div className="turn">
+            <h4>Waiting for players</h4>
+            <p className="dim" style={{ marginTop: 6 }}>
+              A War Round needs at least 2 players.
+            </p>
+            <div className="row" style={{ marginTop: 12 }}>
+              <button className="btn primary" disabled>
+                Begin War Round
+              </button>
+            </div>
+          </div>
         ) : (
           <WarBody state={state} dispatch={dispatch} viewer={viewer} colors={colors} can={can} onNavigate={onNavigate} />
         )}

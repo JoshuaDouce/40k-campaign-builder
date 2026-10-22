@@ -90,6 +90,8 @@ export interface Player {
   hand: Card[];
   /** Cognito user id of whoever controls this player. Players without one are owner-controlled. */
   userId?: string;
+  /** Lowercase email of that user, so the Members list can show who has picked a faction. */
+  email?: string;
 }
 
 export type Pt = [number, number];
@@ -346,7 +348,7 @@ export type Action =
   | { type: "adjustStat"; playerId: string; stat: StatKey; delta: number }
   | { type: "setProvinceOwner"; provId: string; playerId: string | null }
   | { type: "updatePlayer"; playerId: string; name?: string; faction?: FactionName }
-  | { type: "addPlayer"; id: string; name: string; faction: FactionName; userId?: string }
+  | { type: "addPlayer"; id: string; name: string; faction: FactionName; userId?: string; email?: string }
   | { type: "removePlayer"; playerId: string }
   | { type: "addUnit"; playerId: string; unit: Unit }
   | { type: "updateUnit"; playerId: string; unit: Unit }

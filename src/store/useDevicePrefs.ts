@@ -29,19 +29,28 @@ export function isTabId(v: string | null | undefined): v is TabId {
   return !!v && (TAB_IDS as readonly string[]).includes(v);
 }
 
-/**
- * Tab from the URL hash, then the saved one, then Pitch. Setup exists only before War Round 1:
- * at round 0 it opens by default (ignoring the saved tab); after that #setup lands on the War Room.
- */
-export function readStartTab(round: number): TabId {
+export const PUBLIC_TAB_IDS = ["pitch", "rules", "turn", "cards", "factions"] as const satisfies readonly TabId[];
+export type PublicTabId = (typeof PUBLIC_TAB_IDS)[number];
+
+export function isPublicTab(v: string | null | undefined): v is PublicTabId {
+  return !!v && (PUBLIC_TAB_IDS as readonly string[]).includes(v);
+}
+
+/** Signed out (or on the public tabs): hash, then the saved tab, then Pitch. Private tabs don't exist here, so they fall back to Pitch. */
+export function readPublicStartTab(): PublicTabId {
   const hash = location.hash.slice(1);
-  // Switching tabs writes the hash, so on a reload at round 0 it is stale: open Setup instead.
-  const nav = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
-  if (isTabId(hash) && !(round === 0 && nav?.type === "reload")) return hash === "setup" && round > 0 ? "war" : hash;
-  if (round === 0) {
-    if (hash) history.replaceState(null, "", "#setup");
-    return "setup";
-  }
+  if (isPublicTab(hash)) return hash;
+  if (hash) history.replaceState(null, "", "#pitch");
+  const saved = read(TAB_KEY);
+  return isPublicTab(saved) ? saved : "pitch";
+}
+
+/**
+ * Inside a campaign: Setup exists only before War Round 1, and opens by default then. After that the
+ * saved tab applies (never Setup). The URL hash is not used: a campaign always opens from the list.
+ */
+export function readCampaignStartTab(round: number): TabId {
+  if (round === 0) return "setup";
   const saved = read(TAB_KEY);
   return isTabId(saved) && saved !== "setup" ? saved : "pitch";
 }

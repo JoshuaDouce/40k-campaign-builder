@@ -53,7 +53,7 @@ function validIndex(p: Player, i: number): boolean {
 function run(s: CampaignState, a: Action, rng: Rng): boolean {
   switch (a.type) {
     case "beginRound":
-      if (s.turnIdx !== null || !s.players.length) return false;
+      if (s.turnIdx !== null || s.players.length < 2) return false;
       beginRound(s, rng);
       return true;
 
@@ -182,6 +182,7 @@ function run(s: CampaignState, a: Action, rng: Rng): boolean {
       if (a.userId !== undefined && s.players.some((x) => x.userId === a.userId)) return false;
       const p: Player = { id: a.id, name: a.name, faction: a.faction, rp: 5, battles: 0, wins: 0, sup: 0, scout: false, hand: [] };
       if (a.userId !== undefined) p.userId = a.userId;
+      if (a.email !== undefined) p.email = a.email.trim().toLowerCase();
       s.players.push(p);
       addWorld(s, p.id, rng);
       if (s.round > 0) lateArrivalBonus(s, p, rng);
