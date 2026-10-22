@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { PROMOTION_COST, PROMOTION_MIN_XP, rankOf, RECRUITS_COST, SCARS, SURGEON_COST, scarName, scarWeapon } from "../../game/index.ts";
+import { PROMOTION_COST, PROMOTION_MIN_XP, rankOf, RECRUITS_COST, scarEffect, SURGEON_COST, scarLabel, scarName } from "../../game/index.ts";
 import type { Unit } from "../../game/index.ts";
 import { useCampaign } from "../../store/useCampaign.ts";
-import { Overlay } from "./Overlay.tsx";
+import { Overlay, SheetFooter } from "./Overlay.tsx";
 import { UnitFormSheet } from "./UnitFormSheet.tsx";
 
 interface Props {
@@ -11,19 +11,6 @@ interface Props {
   rp: number;
   onDone(toast: string): void;
   onClose(): void;
-}
-
-function Footer({ label, disabled, onGo, onClose }: { label: string; disabled: boolean; onGo(): void; onClose(): void }) {
-  return (
-    <div className="row sub">
-      <button type="button" className="btn primary" disabled={disabled} onClick={onGo}>
-        {label}
-      </button>
-      <button type="button" className="btn" onClick={onClose}>
-        Cancel
-      </button>
-    </div>
-  );
 }
 
 export function FieldSurgeonDialog({ playerId, roster, rp, onDone, onClose }: Props) {
@@ -78,12 +65,11 @@ export function FieldSurgeonDialog({ playerId, roster, rp, onDone, onClose }: Pr
           </div>
           <div className="picklist">
             {unit.scars.map((s, i) => {
-              const w = scarWeapon(s);
               return (
                 <button key={s} type="button" className="opt" aria-pressed={i === si} onClick={() => setSi(i)}>
                   <div>
-                    <b>{w ? `${scarName(s)}: ${w}` : scarName(s)}</b>
-                    <small>{SCARS.find((x) => x.n === scarName(s))?.e}</small>
+                    <b>{scarLabel(s)}</b>
+                    <small>{scarEffect(s)}</small>
                   </div>
                 </button>
               );
@@ -91,7 +77,7 @@ export function FieldSurgeonDialog({ playerId, roster, rp, onDone, onClose }: Pr
           </div>
         </>
       )}
-      <Footer label={`Spend ${SURGEON_COST} RP`} disabled={!unit || scar === undefined || rp < SURGEON_COST} onGo={go} onClose={onClose} />
+      <SheetFooter label={`Spend ${SURGEON_COST} RP`} disabled={!unit || scar === undefined || rp < SURGEON_COST} onGo={go} onClose={onClose} />
     </Overlay>
   );
 }
@@ -159,7 +145,7 @@ export function PromotionDialog({ playerId, roster, rp, onDone, onClose }: Props
           THE SERGEANT STEPS UP. THE UNIT GAINS THE CHARACTER BADGE.
         </p>
       )}
-      <Footer label={`Spend ${PROMOTION_COST} RP`} disabled={!ready} onGo={go} onClose={onClose} />
+      <SheetFooter label={`Spend ${PROMOTION_COST} RP`} disabled={!ready} onGo={go} onClose={onClose} />
     </Overlay>
   );
 }

@@ -73,7 +73,7 @@ function load(): CampaignState {
     if (raw) {
       try {
         const parsed: unknown = JSON.parse(raw);
-        if (isCampaignState(parsed)) return { ...parsed, hollOpened: parsed.hollOpened === true, rosters: isObject(parsed.rosters) ? parsed.rosters : {} };
+        if (isCampaignState(parsed)) return { ...parsed, hollOpened: parsed.hollOpened === true, rosters: isObject(parsed.rosters) ? parsed.rosters : {}, fallen: Array.isArray(parsed.fallen) ? parsed.fallen : [] };
       } catch {
         // Corrupt JSON: handled as unrecognised below.
       }

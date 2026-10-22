@@ -7,6 +7,8 @@ import { addWorld } from "./map.ts";
 import type { Rng } from "./rng.ts";
 import {
   addExamplesTo,
+  addRelicTo,
+  deleteFallenEntry,
   addUnitTo,
   applyPostBattleTo,
   clearExamplesFrom,
@@ -14,6 +16,7 @@ import {
   promoteUnit,
   recruitUnit,
   removePlayerRoster,
+  removeRelicFrom,
   removeUnitFrom,
   updateUnitIn,
 } from "./roster.ts";
@@ -97,7 +100,13 @@ function run(s: CampaignState, a: Action, rng: Rng): boolean {
     case "updateUnit":
       return updateUnitIn(s, a.playerId, a.unit);
     case "removeUnit":
-      return removeUnitFrom(s, a.playerId, a.unitId);
+      return removeUnitFrom(s, a.playerId, a.unitId, a.cause);
+    case "addRelic":
+      return addRelicTo(s, a.playerId, a.unitId, a.relic, a.source);
+    case "removeRelic":
+      return removeRelicFrom(s, a.playerId, a.unitId, a.relic);
+    case "deleteFallen":
+      return deleteFallenEntry(s, a.id);
     case "applyPostBattle":
       return applyPostBattleTo(s, a.playerId, a.results);
     case "addExamples":

@@ -7,6 +7,20 @@ interface Props {
   children: ReactNode;
 }
 
+/** The sheet's action row: one confirm button and Cancel. */
+export function SheetFooter({ label, disabled, danger, onGo, onClose }: { label: ReactNode; disabled?: boolean; danger?: boolean; onGo(): void; onClose(): void }) {
+  return (
+    <div className="row sub">
+      <button type="button" className={danger ? "btn danger" : "btn primary"} disabled={disabled} onClick={onGo}>
+        {label}
+      </button>
+      <button type="button" className="btn" onClick={onClose}>
+        Cancel
+      </button>
+    </div>
+  );
+}
+
 /** A modal sheet: bottom sheet on a phone, centred on wider screens. Escape or a tap on the backdrop closes it. */
 export function Overlay({ title, onClose, children }: Props) {
   const sheet = useRef<HTMLDivElement>(null);

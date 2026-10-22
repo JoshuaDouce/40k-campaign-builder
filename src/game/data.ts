@@ -132,3 +132,27 @@ export const SCARS: readonly { n: string; e: string }[] = [
   { n: "Crippled", e: '−1" Move, cannot Advance and charge.' },
   { n: "Worn Gear", e: "Worsen BS or WS of one weapon by 1." },
 ];
+/** Character Battle Honours, in D6 order (index 0 = a roll of 1). Characters use these; other units use `HONOURS`. */
+export const CHAR_HONOURS: readonly { n: string; e: string }[] = [
+  { n: "Tactical Genius", e: "Once per battle, gain 1 CP." },
+  { n: "Duellist", e: "+1 to hit rolls in melee against Characters." },
+  { n: "Fearful Reputation", e: 'Enemy units within 6" subtract 1 from their Battle-shock tests.' },
+  { n: "Unyielding", e: "Once per battle, ignore the damage from one wound allocated to this model." },
+  { n: "Master of Arms", e: "+1 Attack on one of its melee weapons." },
+  { n: "Voice of Command", e: 'Friendly units within 6" re-roll their charge rolls.' },
+];
+/** Character Battle Scars, in D3 order (index 0 = a roll of 1). Grievous Wound is the only temporary scar. */
+export const CHAR_SCARS: readonly { n: string; e: string }[] = [
+  { n: "Grievous Wound", e: "Starts its next battle with 1 fewer Wound. After that battle, the scar heals and is removed." },
+  { n: "Lost an Eye", e: "−1 BS on its ranged weapons." },
+  { n: "Withered Arm", e: "−1 Strength on its melee weapons." },
+];
+/** Relics, in D6 order (index 0 = a roll of 1). */
+export const RELICS: readonly { n: string; e: string }[] = [
+  { n: "Orrin's Ward", e: "The bearer gains a 5+ invulnerable save, or improves an existing one by 1 (best 4+)." },
+  { n: "Tomb-Shard of Kell", e: "Once per battle, the bearer may re-roll one hit, wound or damage roll." },
+  { n: "Thessaly Blade", e: "One of the bearer's melee weapons gains +1 Damage." },
+  { n: "Lantern of Cinderfall", e: "The bearer's ranged attacks ignore the benefit of cover." },
+  { n: "Choirhold Bell", e: 'Friendly units within 6" add 1 to their Battle-shock tests.' },
+  { n: "Vesk Rosary", e: "Once per battle, when the bearer would be destroyed, roll a D6. On a 4+ it stays on 1 wound instead." },
+];

@@ -1,11 +1,11 @@
 // Unit rosters: ranks, honours, scars and the post-battle / Requisition rules. Pure; dice come from the UI
 // (through an injected Rng) and arrive here already resolved.
-import { HONOURS, RANKS, SCARS } from "./data.ts";
+import { CHAR_HONOURS, CHAR_SCARS, HONOURS, RANKS, RELICS, SCARS } from "./data.ts";
 import { B, log } from "./log.ts";
 import { rollInt } from "./rng.ts";
 import type { Rng } from "./rng.ts";
 import { getPlayer } from "./selectors.ts";
-import type { CampaignState, PostBattleResult, Unit } from "./types.ts";
+import type { CampaignState, FallenCharacter, PostBattleResult, Unit } from "./types.ts";
 
 /** XP at which a unit becomes a Legend of the Reach. */
 export const LEGEND_XP = 25;
@@ -17,6 +17,17 @@ export const RECRUITS_COST = 2;
 export const RECRUITS_XP = 3;
 /** Minimum XP (Veteran) for a non-Character to be promoted to Character. */
 export const PROMOTION_MIN_XP = 8;
+/** Relics a Character can hold, and the points each adds (flat, after honours). */
+export const MAX_RELICS = 3;
+export const RELIC_PTS = 10;
+export const BACKSTORY_MAX = 280;
+export const TITLE_MAX = 60;
+export const TRAIT_MAX = 200;
+export const CAUSE_MAX = 80;
+export const DEFAULT_CAUSE = "Retired from the roster";
+export const THIRD_SCAR_CAUSE = "Third Battle Scar";
+/** The only temporary scar: it heals after the next battle the unit fights. */
+export const GRIEVOUS_WOUND = "Grievous Wound";
 
 /* ---------- Dice ---------- */
 
@@ -47,9 +58,13 @@ export function xpToNext(xp: number): number | null {
 export function honoursOwed(unit: Pick<Unit, "honours">, newXp: number): number {
   return Math.max(0, honourSlots(newXp) - unit.honours.length);
 }
-/** Base points plus 10% per honour, rounded to the nearest 5. */
-export function effectivePoints(unit: Pick<Unit, "points" | "honours">): number {
+/** Base points plus 10% per honour, rounded to the nearest 5 (no relics). */
+export function honourPoints(unit: Pick<Unit, "points" | "honours">): number {
   return Math.round((unit.points * (1 + 0.1 * unit.honours.length)) / 5) * 5;
+}
+/** Honour-adjusted points (rounded to 5) plus 10 per relic. */
+export function effectivePoints(unit: Pick<Unit, "points" | "honours" | "relics">): number {
+  return honourPoints(unit) + RELIC_PTS * (unit.relics?.length ?? 0);
 }
 export function totalEffective(units: readonly Unit[]): number {
   return units.reduce((a, u) => a + effectivePoints(u), 0);
@@ -61,10 +76,17 @@ export function computeXpGain(fought: boolean, destroyed: boolean, kills: number
 
 /* ---------- Scars ---------- */
 
+export const WORN_GEAR = "Worn Gear";
+
 /** Stored scar string: the name, or "Worn Gear (weapon)" when a weapon is given. */
 export function makeScar(name: string, weapon?: string): string {
   const w = weapon?.trim();
-  return name === "Worn Gear" && w ? `${name} (${w})` : name;
+  return name === WORN_GEAR && w ? `${name} (${w})` : name;
+}
+/** Display label for a stored scar: "Worn Gear: bolters", or just the name. */
+export function scarLabel(scar: string): string {
+  const w = scarWeapon(scar);
+  return w ? `${scarName(scar)}: ${w}` : scarName(scar);
 }
 export function scarName(scar: string): string {
   const i = scar.indexOf(" (");
@@ -85,6 +107,61 @@ export function fallenModifier(unit: Pick<Unit, "honours">): number {
 /** True if a fallen D6 (before the modifier) leaves the unit scarred. */
 export function isScarred(unit: Pick<Unit, "isCharacter" | "honours">, d6: number): boolean {
   return d6 + fallenModifier(unit) <= fallenThreshold(unit);
+}
+
+/* ---------- Character tables ---------- */
+
+/** The table a unit rolls honours on: Character table for Characters, generic otherwise. */
+export function honourTableFor(unit: Pick<Unit, "isCharacter">): readonly { n: string; e: string }[] {
+  return unit.isCharacter ? CHAR_HONOURS : HONOURS;
+}
+/** The table a unit rolls scars on: Character table for Characters, generic otherwise. */
+export function scarTableFor(unit: Pick<Unit, "isCharacter">): readonly { n: string; e: string }[] {
+  return unit.isCharacter ? CHAR_SCARS : SCARS;
+}
+/** Every honour / scar, Character table first. */
+export const ALL_HONOURS: readonly { n: string; e: string }[] = [...CHAR_HONOURS, ...HONOURS];
+export const ALL_SCARS: readonly { n: string; e: string }[] = [...CHAR_SCARS, ...SCARS];
+/** Honours / scars a unit may hold: Characters may hold both tables (legacy generic ones stay valid); others generic only. */
+export function allowedHonours(unit: Pick<Unit, "isCharacter">): readonly { n: string; e: string }[] {
+  return unit.isCharacter ? ALL_HONOURS : HONOURS;
+}
+export function allowedScars(unit: Pick<Unit, "isCharacter">): readonly { n: string; e: string }[] {
+  return unit.isCharacter ? ALL_SCARS : SCARS;
+}
+
+const effects = (t: readonly { n: string; e: string }[]): Map<string, string> => new Map(t.map((x) => [x.n, x.e]));
+const HONOUR_FX = effects(ALL_HONOURS);
+const SCAR_FX = effects(ALL_SCARS);
+const RELIC_FX = effects(RELICS);
+/** Effect text for an honour name from either table (undefined if unknown). */
+export function honourEffect(name: string): string | undefined {
+  return HONOUR_FX.get(name);
+}
+/** Effect text for a stored scar (name or "Worn Gear (weapon)") from either table (undefined if unknown). */
+export function scarEffect(scar: string): string | undefined {
+  return SCAR_FX.get(scarName(scar));
+}
+export function relicEffect(name: string): string | undefined {
+  return RELIC_FX.get(name);
+}
+/** True if the unit will lose Grievous Wound after a battle it fights (it must hold it BEFORE the battle). */
+export function healsGrievous(unit: Pick<Unit, "scars">): boolean {
+  return unit.scars.some((s) => scarName(s) === GRIEVOUS_WOUND);
+}
+/** The unit's scars after Grievous Wound has healed (what a scar gained this battle is added to). */
+export function scarsAfterHeal(unit: Pick<Unit, "scars">): string[] {
+  return unit.scars.filter((s) => scarName(s) !== GRIEVOUS_WOUND);
+}
+/**
+ * What one new scar does to a unit destroyed in a battle it fought (pass the unit as it was BEFORE the battle).
+ * `kept`: scars it joins (Grievous Wound healed). `gone`: it removes the unit (never the Warlord).
+ * `replaces`: the oldest scar a Warlord at three scars loses.
+ */
+export function scarOutcome(unit: Pick<Unit, "scars" | "isWarlord">): { kept: string[]; gone: boolean; replaces?: string } {
+  const kept = scarsAfterHeal(unit);
+  if (unit.isWarlord) return { kept, gone: false, replaces: kept.length >= SCARS_TO_REMOVE ? kept[0] : undefined };
+  return { kept, gone: kept.length + 1 >= SCARS_TO_REMOVE };
 }
 
 /* ---------- Roster access ---------- */
@@ -129,6 +206,12 @@ export function exampleUnits(rng: Rng, existing: readonly Unit[] = EMPTY): Unit[
     isCharacter: true,
     isWarlord: true,
     enhancement: 'Gilded Standard of the Ninth: friendly units within 6" re-roll Battle-shock tests.',
+    title: "the Unbroken",
+    backstory: "Held the Cinderfall breach for nine days with a broken company. He has not spoken of it since.",
+    warlordTrait: 'Stoic Commander: friendly units within 6" ignore the first failed Battle-shock test each battle.',
+    relics: ["Orrin's Ward", "Thessaly Blade"],
+    battles: 7,
+    kills: 12,
   });
   mk("Gatekeepers", "Bladeguard Veteran Squad", 150, 7, ["Objective Hunters"], []);
   mk("Breach Team Seven", "Eradicator Squad", 100, 4, ["Hard to Kill"], ["Crippled", makeScar("Worn Gear", "melta rifles")]);
@@ -138,8 +221,10 @@ export function exampleUnits(rng: Rng, existing: readonly Unit[] = EMPTY): Unit[
 
 /* ---------- Validation ---------- */
 
-const isHonour = (h: string): boolean => HONOURS.some((x) => x.n === h);
-const isScar = (s: string): boolean => SCARS.some((x) => x.n === scarName(s));
+const isHonour = (h: string): boolean => HONOUR_FX.has(h);
+const isScar = (s: string): boolean => SCAR_FX.has(scarName(s));
+const isRelic = (r: string): boolean => RELICS.some((x) => x.n === r);
+const isCount = (n: unknown): n is number => typeof n === "number" && Number.isInteger(n) && n >= 0;
 const unique = (a: readonly string[]): boolean => new Set(a).size === a.length;
 
 /** Returns a cleaned copy of `u` (ex/legendLogged are NOT taken from it), or null if it is invalid. */
@@ -151,6 +236,11 @@ function cleanUnit(u: Unit): Unit | null {
   if (!Array.isArray(u.honours) || !u.honours.every(isHonour) || !unique(u.honours)) return null;
   if (!Array.isArray(u.scars) || !u.scars.every((s) => typeof s === "string" && isScar(s))) return null;
   if (u.isWarlord && !u.isCharacter) return null;
+  if (u.battles !== undefined && !isCount(u.battles)) return null;
+  if (u.kills !== undefined && !isCount(u.kills)) return null;
+  if (u.isCharacter && u.relics !== undefined) {
+    if (!Array.isArray(u.relics) || u.relics.length > MAX_RELICS || !u.relics.every((r) => typeof r === "string" && isRelic(r)) || !unique(u.relics)) return null;
+  }
   const out: Unit = {
     id: u.id,
     name: u.name.trim() || "Unnamed squad",
@@ -164,6 +254,19 @@ function cleanUnit(u: Unit): Unit | null {
   };
   const enh = u.enhancement?.trim();
   if (out.isCharacter && enh) out.enhancement = enh;
+  if (out.isCharacter) {
+    const title = typeof u.title === "string" ? u.title.trim().slice(0, TITLE_MAX) : "";
+    const story = typeof u.backstory === "string" ? u.backstory.trim().slice(0, BACKSTORY_MAX) : "";
+    if (title) out.title = title;
+    if (story) out.backstory = story;
+    if (out.isWarlord) {
+      const trait = typeof u.warlordTrait === "string" ? u.warlordTrait.trim().slice(0, TRAIT_MAX) : "";
+      if (trait) out.warlordTrait = trait;
+    }
+    if (u.relics?.length) out.relics = [...u.relics];
+  }
+  if (u.battles !== undefined) out.battles = u.battles;
+  if (u.kills !== undefined) out.kills = u.kills;
   return out;
 }
 
@@ -220,11 +323,69 @@ export function updateUnitIn(s: CampaignState, playerId: string, unit: Unit): bo
   return true;
 }
 
-export function removeUnitFrom(s: CampaignState, playerId: string, unitId: string): boolean {
-  if (!getPlayer(s, playerId)) return false;
+/** Unused id for a memorial entry. Deterministic (no rng needed). */
+function newFallenId(s: CampaignState, unitId: string): string {
+  const used = new Set((s.fallen ?? []).map((f) => f.id));
+  let n = s.fallen?.length ?? 0;
+  while (used.has(`f${s.round}-${unitId}-${n}`)) n++;
+  return `f${s.round}-${unitId}-${n}`;
+}
+
+/** Stores a Character's memorial snapshot (the unit as it is now). */
+function remember(s: CampaignState, playerName: string, playerId: string, u: Unit, cause: string): void {
+  const f: FallenCharacter = {
+    id: newFallenId(s, u.id),
+    playerId,
+    playerName,
+    name: u.name,
+    datasheet: u.datasheet,
+    rank: rankOf(u.xp),
+    battles: u.battles ?? 0,
+    kills: u.kills ?? 0,
+    relics: [...(u.relics ?? [])],
+    cause,
+    round: s.round,
+  };
+  if (u.title) f.title = u.title;
+  if (u.ex) f.ex = true;
+  (s.fallen ??= []).push(f);
+}
+
+/** Removes a unit. A Character is first moved to the Hall of Heroes with `cause` (default "Retired from the roster"). */
+export function removeUnitFrom(s: CampaignState, playerId: string, unitId: string, cause?: string): boolean {
+  const p = getPlayer(s, playerId);
+  if (!p) return false;
   const roster = rosterFor(s, playerId);
-  if (!roster.some((x) => x.id === unitId)) return false;
+  const u = roster.find((x) => x.id === unitId);
+  if (!u) return false;
+  if (u.isCharacter) remember(s, p.name, playerId, u, (typeof cause === "string" ? cause.trim().slice(0, CAUSE_MAX) : "") || DEFAULT_CAUSE);
   s.rosters![playerId] = roster.filter((x) => x.id !== unitId);
+  return true;
+}
+
+export function addRelicTo(s: CampaignState, playerId: string, unitId: string, relic: string, source: "shrine" | "fate"): boolean {
+  const p = getPlayer(s, playerId);
+  const u = rosterFor(s, playerId).find((x) => x.id === unitId);
+  if (!p || !u || !u.isCharacter || !isRelic(relic) || (source !== "shrine" && source !== "fate")) return false;
+  const held = u.relics ?? [];
+  if (held.length >= MAX_RELICS || held.includes(relic)) return false;
+  u.relics = [...held, relic];
+  log(s, B(u.name), " of ", B(p.name), ` finds ${relic} (${source === "shrine" ? "Shrine" : "Fate Card"}).`);
+  return true;
+}
+
+/** Mistake fix: no log. */
+export function removeRelicFrom(s: CampaignState, playerId: string, unitId: string, relic: string): boolean {
+  const u = rosterFor(s, playerId).find((x) => x.id === unitId);
+  if (!getPlayer(s, playerId) || !u?.relics?.includes(relic)) return false;
+  u.relics = u.relics.filter((r) => r !== relic);
+  if (!u.relics.length) delete u.relics;
+  return true;
+}
+
+export function deleteFallenEntry(s: CampaignState, id: string): boolean {
+  if (!s.fallen?.some((f) => f.id === id)) return false;
+  s.fallen = s.fallen.filter((f) => f.id !== id);
   return true;
 }
 
@@ -236,6 +397,23 @@ export function addExamplesTo(s: CampaignState, playerId: string, rng: Rng): boo
   // The example Captain is a Warlord; only keep that if the player has no Warlord of their own.
   if (kept.some((x) => x.isWarlord)) for (const x of examples) x.isWarlord = false;
   s.rosters![playerId] = [...kept, ...examples];
+  const p = getPlayer(s, playerId);
+  s.fallen = (s.fallen ?? []).filter((f) => !(f.ex && f.playerId === playerId));
+  s.fallen.push({
+    id: newFallenId(s, "example"),
+    playerId,
+    playerName: p?.name ?? "",
+    name: "Sergeant Maro Tev",
+    title: "the Steadfast",
+    datasheet: "Intercessor Sergeant",
+    rank: "Veteran",
+    battles: 6,
+    kills: 9,
+    relics: ["Choirhold Bell"],
+    cause: "Slain at the Cinderfall breach",
+    round: s.round,
+    ex: true,
+  });
   return true;
 }
 
@@ -243,6 +421,7 @@ export function clearExamplesFrom(s: CampaignState, playerId: string): boolean {
   if (!getPlayer(s, playerId)) return false;
   const roster = rosterFor(s, playerId);
   s.rosters![playerId] = roster.filter((x) => !x.ex);
+  if (s.fallen) s.fallen = s.fallen.filter((f) => !(f.ex && f.playerId === playerId));
   return true;
 }
 
@@ -269,49 +448,55 @@ export function applyPostBattleTo(s: CampaignState, playerId: string, results: P
     if (!r.fought && !r.glory) continue; // nothing happened to this unit
 
     const before = { honours: [...u.honours], isCharacter: u.isCharacter };
+    const heals = r.fought && healsGrievous(u);
     const gain = r.xpOverride ?? computeXpGain(r.fought, r.destroyed, r.kills, r.glory);
     const newXp = u.xp + gain;
 
     // Honours
     const newHon = r.honours ?? [];
-    if (!newHon.every(isHonour) || !unique(newHon) || newHon.some((h) => u.honours.includes(h))) return false;
+    const honOk = allowedHonours(u);
+    if (!newHon.every((h) => honOk.some((x) => x.n === h)) || !unique(newHon) || newHon.some((h) => u.honours.includes(h))) return false;
     if (newHon.length > honoursOwed(u, newXp)) return false;
 
-    // Fallen
+    // Fallen (the Warlord never rolls: it always takes a scar)
     let scar: string | null = null;
+    const outcome = scarOutcome(u);
     if (r.destroyed) {
-      if (!Number.isInteger(r.fallenRoll) || (r.fallenRoll ?? 0) < 1 || (r.fallenRoll ?? 0) > 6) return false;
-      if (isScarred(before, r.fallenRoll as number)) {
-        if (r.scar === undefined || !SCARS.some((x) => x.n === r.scar)) return false;
-        if (u.scars.some((x) => scarName(x) === r.scar)) return false;
-        if (r.scar === "Worn Gear" && !r.scarWeapon?.trim()) return false;
+      if (!u.isWarlord && (!Number.isInteger(r.fallenRoll) || (r.fallenRoll ?? 0) < 1 || (r.fallenRoll ?? 0) > 6)) return false;
+      if (u.isWarlord || isScarred(before, r.fallenRoll as number)) {
+        if (r.scar === undefined || !allowedScars(u).some((x) => x.n === r.scar)) return false;
+        if (outcome.kept.some((x) => scarName(x) === r.scar)) return false; // a Grievous Wound healing now may be taken again
+        if (r.scar === WORN_GEAR && !r.scarWeapon?.trim()) return false;
         scar = makeScar(r.scar, r.scarWeapon);
       }
     }
+    const say = (msg: string): void => log(s, B(u.name), " of ", B(p.name), msg);
 
     // Apply
     const oldRank = rankIndex(u.xp);
     u.xp = newXp;
     u.honours.push(...newHon);
+    if (r.fought) u.battles = (u.battles ?? 0) + 1;
+    u.kills = (u.kills ?? 0) + (r.fought || r.glory ? r.kills : 0);
+    if (heals) {
+      u.scars = scarsAfterHeal(u);
+      say(" recovers from a Grievous Wound.");
+    }
     if (rankIndex(newXp) > oldRank) {
-      log(
-        s,
-        B(u.name),
-        " of ",
-        B(p.name),
-        ` reaches ${rankOf(newXp)}`,
-        newHon.length ? ` and gains ${newHon.join(", ")}.` : ".",
-      );
+      say(` reaches ${rankOf(newXp)}` + (newHon.length ? ` and gains ${newHon.join(", ")}.` : "."));
     } else if (newHon.length) {
-      log(s, B(u.name), " of ", B(p.name), ` gains ${newHon.join(", ")}.`);
+      say(` gains ${newHon.join(", ")}.`);
     }
     if (scar) {
-      u.scars.push(scar);
-      if (u.scars.length >= SCARS_TO_REMOVE) {
+      u.scars = [...outcome.kept.filter((x) => x !== outcome.replaces), scar];
+      if (u.isWarlord) {
+        say(` is destroyed and takes ${scar}${outcome.replaces ? `, replacing ${outcome.replaces}` : ""}. The Warlord lives on.`);
+      } else if (outcome.gone) {
         removed.add(u.id);
-        log(s, B(u.name), " of ", B(p.name), ` takes a third Battle Scar (${scar}) and is lost.`);
+        if (u.isCharacter) remember(s, p.name, playerId, u, THIRD_SCAR_CAUSE);
+        say(` takes a third Battle Scar (${scar}) and is lost.${u.isCharacter ? " It is remembered in the Hall of Heroes." : ""}`);
       } else {
-        log(s, B(u.name), " of ", B(p.name), ` is scarred: ${scar}.`);
+        say(` is scarred: ${scar}.`);
       }
     }
     if (!removed.has(u.id)) checkLegend(s, p.name, u);

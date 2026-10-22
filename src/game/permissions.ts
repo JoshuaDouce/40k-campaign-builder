@@ -42,6 +42,8 @@ export function canPerform(state: CampaignState, action: Action, ctx: Permission
     case "addUnit":
     case "updateUnit":
     case "removeUnit":
+    case "addRelic":
+    case "removeRelic":
     case "applyPostBattle":
     case "addExamples":
     case "clearExamples":
@@ -57,6 +59,7 @@ export function canPerform(state: CampaignState, action: Action, ctx: Permission
     case "adjustStat":
     case "setProvinceOwner":
     case "removePlayer":
+    case "deleteFallen":
     case "regen":
     case "reset":
       return false;
