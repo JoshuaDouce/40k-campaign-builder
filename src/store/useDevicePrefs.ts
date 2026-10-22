@@ -3,7 +3,7 @@ import { useCallback, useState } from "react";
 import { FACTIONS } from "../game/index.ts";
 import type { FactionName } from "../game/index.ts";
 
-export const TAB_IDS = ["pitch", "war", "map", "roster", "rules", "turn", "cards", "factions", "tracker"] as const;
+export const TAB_IDS = ["pitch", "war", "map", "roster", "rules", "turn", "cards", "factions", "tracker", "setup"] as const;
 export type TabId = (typeof TAB_IDS)[number];
 
 const TAB_KEY = "varkesh-tab";
@@ -29,12 +29,21 @@ export function isTabId(v: string | null | undefined): v is TabId {
   return !!v && (TAB_IDS as readonly string[]).includes(v);
 }
 
-/** Tab from the URL hash, then the saved one, then Pitch. */
-export function readStartTab(): TabId {
+/**
+ * Tab from the URL hash, then the saved one, then Pitch. Setup exists only before War Round 1:
+ * at round 0 it opens by default (ignoring the saved tab); after that #setup lands on the War Room.
+ */
+export function readStartTab(round: number): TabId {
   const hash = location.hash.slice(1);
-  if (isTabId(hash)) return hash;
+  // Switching tabs writes the hash, so on a reload at round 0 it is stale: open Setup instead.
+  const nav = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
+  if (isTabId(hash) && !(round === 0 && nav?.type === "reload")) return hash === "setup" && round > 0 ? "war" : hash;
+  if (round === 0) {
+    if (hash) history.replaceState(null, "", "#setup");
+    return "setup";
+  }
   const saved = read(TAB_KEY);
-  return isTabId(saved) ? saved : "pitch";
+  return isTabId(saved) && saved !== "setup" ? saved : "pitch";
 }
 
 export function saveTab(tab: TabId): void {

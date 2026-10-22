@@ -7,6 +7,7 @@ import type { MapViewState } from "./components/MapTab.tsx";
 import { PitchTab } from "./components/PitchTab.tsx";
 import { PlayersTab } from "./components/PlayersTab.tsx";
 import { RosterTab } from "./components/roster/RosterTab.tsx";
+import { SetupTab } from "./components/SetupTab.tsx";
 import { RulesTab } from "./components/RulesTab.tsx";
 import { TurnGuideTab } from "./components/turnGuide/TurnGuideTab.tsx";
 import { WarRoomTab } from "./components/WarRoomTab.tsx";
@@ -16,6 +17,7 @@ import { isTabId, readStartTab, saveTab } from "./store/useDevicePrefs.ts";
 import type { TabId } from "./store/useDevicePrefs.ts";
 
 const TABS: ReadonlyArray<{ id: TabId; label: string }> = [
+  { id: "setup", label: "Setup" },
   { id: "pitch", label: "Pitch" },
   { id: "war", label: "War Room" },
   { id: "map", label: "Map" },
@@ -29,7 +31,7 @@ const TABS: ReadonlyArray<{ id: TabId; label: string }> = [
 
 function Shell() {
   const { state } = useCampaign();
-  const [tab, setTab] = useState<TabId>(readStartTab);
+  const [tab, setTab] = useState<TabId>(() => readStartTab(state.round));
   const [view, setView] = useState("system");
   const [selProv, setSelProv] = useState<string | null>(null);
   const colors = useMemo(() => playerColors(state), [state]);
@@ -55,6 +57,9 @@ function Shell() {
     setTab(t);
     saveTab(t);
   };
+  const visibleTabs = state.round === 0 ? TABS : TABS.filter((t) => t.id !== "setup");
+  // Setup only exists before War Round 1; if it is gone, show the War Room.
+  const current: TabId = tab === "setup" && state.round > 0 ? "war" : tab;
   const map: MapViewState = { view, selProv, setView, setSelProv };
 
   return (
@@ -68,22 +73,23 @@ function Shell() {
       </header>
 
       <nav className="tabs" role="tablist" aria-label="Campaign sections">
-        {TABS.map((t) => (
-          <button key={t.id} role="tab" aria-selected={t.id === tab} onClick={() => show(t.id)}>
+        {visibleTabs.map((t) => (
+          <button key={t.id} role="tab" aria-selected={t.id === current} onClick={() => show(t.id)}>
             {t.label}
           </button>
         ))}
       </nav>
 
-      {tab === "pitch" && <PitchTab />}
-      {tab === "war" && <WarRoomTab colors={colors} />}
-      {tab === "map" && <MapTab colors={colors} map={map} />}
-      {tab === "roster" && <RosterTab colors={colors} />}
-      {tab === "rules" && <RulesTab />}
-      {tab === "turn" && <TurnGuideTab />}
-      {tab === "cards" && <DeckTab />}
-      {tab === "factions" && <FactionsTab />}
-      {tab === "tracker" && <PlayersTab colors={colors} />}
+      {current === "setup" && <SetupTab colors={colors} onNavigate={show} />}
+      {current === "pitch" && <PitchTab onNavigate={show} />}
+      {current === "war" && <WarRoomTab colors={colors} onNavigate={show} />}
+      {current === "map" && <MapTab colors={colors} map={map} />}
+      {current === "roster" && <RosterTab colors={colors} />}
+      {current === "rules" && <RulesTab />}
+      {current === "turn" && <TurnGuideTab />}
+      {current === "cards" && <DeckTab />}
+      {current === "factions" && <FactionsTab />}
+      {current === "tracker" && <PlayersTab colors={colors} onNavigate={show} />}
     </div>
   );
 }

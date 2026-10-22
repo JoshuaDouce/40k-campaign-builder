@@ -23,12 +23,14 @@ import {
 import type { Action, ActionDef, CampaignState, Player, Zone } from "../game/index.ts";
 import { useCampaign } from "../store/useCampaign.ts";
 import type { CampaignViewer } from "../store/useCampaign.ts";
+import type { TabId } from "../store/useDevicePrefs.ts";
 
 interface Props {
   colors: Record<string, string>;
+  onNavigate: (tab: TabId) => void;
 }
 
-export function WarRoomTab({ colors }: Props) {
+export function WarRoomTab({ colors, onNavigate }: Props) {
   const { state, dispatch, viewer } = useCampaign();
   const can = (a: Action) => canPerform(state, a, viewer);
 
@@ -38,9 +40,9 @@ export function WarRoomTab({ colors }: Props) {
       <p className="dim">Runs the campaign turn by turn. Battle results update the map and players automatically. Record XP and scars on your own rosters.</p>
       <div>
         {state.players.length === 0 ? (
-          <p>Add players on the Players tab first.</p>
+          <p>{state.round === 0 ? "Add players on the Setup tab first." : "Add players on the Players tab first."}</p>
         ) : (
-          <WarBody state={state} dispatch={dispatch} viewer={viewer} colors={colors} can={can} />
+          <WarBody state={state} dispatch={dispatch} viewer={viewer} colors={colors} can={can} onNavigate={onNavigate} />
         )}
       </div>
       <h3>Campaign log</h3>
@@ -66,9 +68,10 @@ interface BodyProps {
   viewer: CampaignViewer;
   colors: Record<string, string>;
   can(a: Action): boolean;
+  onNavigate: (tab: TabId) => void;
 }
 
-function WarBody({ state, dispatch, colors, can }: BodyProps) {
+function WarBody({ state, dispatch, colors, can, onNavigate }: BodyProps) {
   const winner = getPlayer(state, state.won);
   const actor = currentActor(state);
   return (
@@ -82,7 +85,22 @@ function WarBody({ state, dispatch, colors, can }: BodyProps) {
           <b>{winner ? winner.name : "Someone"}</b>holds the Hollowgate. Play on for a rematch, or reset the campaign.
         </div>
       ) : null}
-      {state.turnIdx === null ? (
+      {state.turnIdx === null && state.round === 0 ? (
+        <div className="card" style={{ margin: "12px 0" }}>
+          <div className="k">
+            <span>Round 0</span>
+          </div>
+          <div className="t">Campaign setup is under way</div>
+          <p className="e dim" style={{ margin: "0 0 6px" }}>
+            Finish it on the Setup tab to start War Round 1.
+          </p>
+          <div className="row">
+            <button className="btn primary" onClick={() => onNavigate("setup")}>
+              Go to Setup
+            </button>
+          </div>
+        </div>
+      ) : state.turnIdx === null ? (
         <BetweenRounds state={state} dispatch={dispatch} can={can} />
       ) : (
         <>
@@ -116,23 +134,11 @@ function WarBody({ state, dispatch, colors, can }: BodyProps) {
 
 function BetweenRounds({ state, dispatch, can }: Pick<BodyProps, "state" | "dispatch" | "can">) {
   const homeless = state.players.filter((p) => !provsOf(state, p).length);
-  const n = state.players.length;
   return (
     <div className="turn">
-      <div className="eyebrow">{state.round ? `War Round ${state.round} complete` : "Setup"}</div>
+      <div className="eyebrow">War Round {state.round} complete</div>
       <h4>War Round {state.round + 1}</h4>
-      {!state.round ? (
-        <>
-          <p style={{ marginTop: 8 }}>
-            The Reach is charted for {n} players: <b>{state.sys.planets.length} worlds, {state.sys.provs.length} provinces</b>. Each player starts with a Capital. Added or removed players? Chart a new Reach so the map fits the group.
-          </p>
-          <div className="row" style={{ marginBottom: 12 }}>
-            <button className="btn" disabled={!can({ type: "regen" })} onClick={() => dispatch({ type: "regen" })}>
-              Chart a new Reach for {n} players
-            </button>
-          </div>
-        </>
-      ) : homeless.length ? (
+      {homeless.length ? (
         <p style={{ marginTop: 8, color: "var(--blood)" }}>
           {homeless.map((p) => p.name).join(", ")} hold no provinces. They can Conquer any unclaimed province on an outer world.
         </p>

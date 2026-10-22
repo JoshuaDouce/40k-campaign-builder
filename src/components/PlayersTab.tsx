@@ -1,8 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { canPerform, count, FACTIONS, getPlanet, getProvince, supplyOf } from "../game/index.ts";
 import type { Action, CampaignState, Card, FactionName, Player, StatKey } from "../game/index.ts";
 import { canSeeHand, useCampaign } from "../store/useCampaign.ts";
+import type { TabId } from "../store/useDevicePrefs.ts";
 import { FateCard } from "./FateCard.tsx";
+import { newId } from "./newId.ts";
+import { PlayerNameInput } from "./PlayerNameInput.tsx";
 
 const FACTION_NAMES = Object.keys(FACTIONS) as FactionName[];
 const STAT_LABELS: ReadonlyArray<readonly [StatKey, string]> = [
@@ -10,11 +13,6 @@ const STAT_LABELS: ReadonlyArray<readonly [StatKey, string]> = [
   ["battles", "Battles"],
   ["wins", "Wins"],
 ];
-
-/** crypto.randomUUID needs a secure context; fall back for plain-http dev on a phone. */
-function newId(): string {
-  return typeof crypto.randomUUID === "function" ? crypto.randomUUID() : `p${Date.now()}${Math.floor(Math.random() * 1e6)}`;
-}
 
 const cardKey = (c: Card): string => `${c.fac ?? ""}|${c.t}|${c.e}`;
 const snapshot = (players: Player[]): Record<string, string[]> =>
@@ -47,36 +45,45 @@ function useNewCards(players: Player[]): Record<string, Set<number>> {
   return next.fresh;
 }
 
-export function PlayersTab({ colors }: { colors: Record<string, string> }) {
+export function PlayersTab({ colors, onNavigate }: { colors: Record<string, string>; onNavigate: (tab: TabId) => void }) {
   const { state, dispatch, viewer } = useCampaign();
   const [resetOpen, setResetOpen] = useState(false);
   const newCards = useNewCards(state.players);
   const add: Action = { type: "addPlayer", id: "new", name: "New player", faction: "Astra Militarum" };
+  const setup = state.round === 0;
 
   return (
     <section className="tab" id="tracker">
       <h2>Players</h2>
-      <p className="dim">Saved in this browser on this device. The players below are examples; rename or remove them.</p>
-      <div className="row">
-        <button
-          className="btn primary"
-          disabled={!canPerform(state, add, viewer)}
-          onClick={() => dispatch({ ...add, id: newId() })}
-        >
-          Add player
-        </button>
-      </div>
+      <p className="dim">
+        {setup
+          ? "Saved in this browser on this device. Rename players here; add or remove them on the Setup tab."
+          : "Saved in this browser on this device. The players below are examples; rename or remove them."}
+      </p>
+      {setup ? (
+        <div className="su-pointer">Setting up? Use the Setup tab to add players and begin.</div>
+      ) : (
+        <div className="row">
+          <button
+            className="btn primary"
+            disabled={!canPerform(state, add, viewer)}
+            onClick={() => dispatch({ ...add, id: newId() })}
+          >
+            Add player
+          </button>
+        </div>
+      )}
       {state.round >= 1 && (
         <p className="dim">The campaign is under way, so new players get a catch-up bonus: extra supply and a Fate Card.</p>
       )}
       <div>
         {state.players.length ? (
           state.players.map((p) => (
-            <PlayerCard key={p.id} player={p} state={state} color={colors[p.id]} fresh={newCards[p.id]} />
+            <PlayerCard key={p.id} player={p} state={state} color={colors[p.id]} fresh={newCards[p.id]} setup={setup} />
           ))
         ) : (
           <p className="dim" style={{ marginTop: 16 }}>
-            No players yet. Add the first one to start the campaign.
+            {setup ? "No players yet. Add the first one on the Setup tab." : "No players yet. Add the first one to start the campaign."}
           </p>
         )}
       </div>
@@ -94,6 +101,7 @@ export function PlayersTab({ colors }: { colors: Record<string, string> }) {
               onClick={() => {
                 dispatch({ type: "reset" });
                 setResetOpen(false);
+                onNavigate("setup");
               }}
             >
               Yes, reset
@@ -113,9 +121,10 @@ interface CardProps {
   state: CampaignState;
   color: string | undefined;
   fresh: Set<number> | undefined;
+  setup: boolean;
 }
 
-function PlayerCard({ player: p, state, color, fresh }: CardProps) {
+function PlayerCard({ player: p, state, color, fresh, setup }: CardProps) {
   const { dispatch, viewer } = useCampaign();
   const [msg, setMsg] = useState("");
   const [armedAt, setArmedAt] = useState<CampaignState | null>(null);
@@ -134,20 +143,6 @@ function PlayerCard({ player: p, state, color, fresh }: CardProps) {
     const t = setTimeout(() => setArmedAt(null), 4000);
     return () => clearTimeout(t);
   }, [armedAt]);
-
-  // Name edits are committed on blur, Enter, or unmount (so switching tabs never loses one).
-  const draft = useRef<string | null>(null);
-  const commitName = () => {
-    const v = draft.current;
-    draft.current = null;
-    if (v === null || v === p.name || !v.trim()) return;
-    dispatch({ type: "updatePlayer", playerId: p.id, name: v });
-  };
-  const latestCommit = useRef(commitName);
-  useEffect(() => {
-    latestCommit.current = commitName;
-  });
-  useEffect(() => () => latestCommit.current(), []);
 
   const send = (a: Action): boolean => {
     if (!can(a)) return false;
@@ -174,23 +169,7 @@ function PlayerCard({ player: p, state, color, fresh }: CardProps) {
     <div className="player">
       <div className="top">
         <span className="dot" style={{ background: color, width: 14, height: 14 }}></span>
-        <input
-          type="text"
-          key={p.name}
-          defaultValue={p.name}
-          aria-label="Player name"
-          disabled={!canEdit}
-          onChange={(e) => {
-            draft.current = e.currentTarget.value;
-          }}
-          onBlur={(e) => {
-            commitName();
-            e.currentTarget.value = p.name;
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") e.currentTarget.blur();
-          }}
-        />
+        <PlayerNameInput playerId={p.id} name={p.name} disabled={!canEdit} label="Player name" />
         <select
           aria-label="Faction"
           value={p.faction}
@@ -251,7 +230,7 @@ function PlayerCard({ player: p, state, color, fresh }: CardProps) {
           <button className="btn sm primary" disabled={full || !can({ type: "drawCard", playerId: p.id })} onClick={draw}>
             Draw card
           </button>
-          {armed ? (
+          {setup ? null : armed ? (
             <button
               className="btn sm danger"
               disabled={!can({ type: "removePlayer", playerId: p.id })}

@@ -51,6 +51,7 @@ export function canPerform(state: CampaignState, action: Action, ctx: Permission
     case "promotion":
     case "seasonedRecruits":
     case "updatePlayer":
+    case "setReady":
       return controls(state, action.playerId, userId);
 
     case "addPlayer":
