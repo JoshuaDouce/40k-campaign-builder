@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Varkesh Reach - Campaign Setup (design mock)</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Grenze+Gothic:wght@500;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Share+Tech+Mono&display=swap">
+<style>
+/* ===== Tokens and base: copied from reference/index.html (same as design/force-organisation.html) ===== */
+[hidden]{display:none!important}
+body{margin:0}
+:root{
+  --bg:#16120f; --panel:#211a16; --panel2:#2a211c; --line:#3d312a;
+  --ink:#ebdfc8; --dim:#a8977f; --brass:#d0a952; --blood:#b8392e; --verd:#6f9a86;
+  --f-display:"Grenze Gothic","Palatino Linotype",Georgia,serif;
+  --f-body:"Alegreya Sans","Segoe UI",system-ui,sans-serif;
+  --f-mono:"Share Tech Mono",ui-monospace,Menlo,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.55;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px}
+.wrap{max-width:520px;margin:0 auto}
+header.hero{padding-block:28px 18px;border-bottom:1px solid var(--line)}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass)}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(40px,11vw,68px);line-height:.95;margin:6px 0 10px;text-wrap:balance;letter-spacing:.01em}
+h1 span{color:var(--blood)}
+.lede{color:var(--dim);max-width:62ch;margin:0}
+nav.tabs{background:var(--bg);display:flex;gap:4px;overflow-x:auto;padding-block:10px;border-bottom:1px solid var(--line);scrollbar-width:none;margin-inline:-4px}
+nav.tabs::-webkit-scrollbar{display:none}
+nav.tabs button{flex:0 0 auto;font-family:var(--f-mono);font-size:13px;letter-spacing:.06em;text-transform:uppercase;background:none;color:var(--dim);border:1px solid transparent;padding:8px 12px;border-radius:2px;cursor:pointer}
+nav.tabs button[aria-selected="true"]{color:var(--bg);background:var(--brass)}
+button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible,a:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+h2{font-family:var(--f-display);font-weight:700;font-size:34px;line-height:1.05;margin:0 0 6px;text-wrap:balance}
+h3{font-family:var(--f-display);font-weight:500;font-size:23px;margin:26px 0 6px;color:var(--brass);text-wrap:balance}
+p{margin:0 0 12px;max-width:65ch}
+a{color:var(--brass)}
+.dim{color:var(--dim)}
+.mono{font-family:var(--f-mono)}
+.btn{font-family:var(--f-mono);font-size:13px;letter-spacing:.05em;text-transform:uppercase;background:var(--panel2);color:var(--ink);border:1px solid var(--line);padding:9px 14px;border-radius:2px;cursor:pointer}
+.btn.primary{background:var(--brass);color:var(--bg);border-color:var(--brass)}
+.btn.danger{color:var(--blood)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.sm{padding:5px 9px;font-size:11px;min-height:44px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:6px;font-family:var(--f-mono);font-size:12px;padding:4px 9px;border:1px solid var(--line);border-radius:20px;color:var(--dim);background:none;cursor:pointer}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex:none}
+select,input[type=text],input[type=number]{font:inherit;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:2px;padding:7px 9px;max-width:100%}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:12px 12px 10px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.card .k{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);display:flex;justify-content:space-between;gap:8px}
+.card .t{font-family:var(--f-display);font-size:21px;line-height:1.1}
+.card .e{font-size:14.5px}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1 1 180px}
+.field label,.lbl{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.badge{font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:2px;border:1px solid var(--line);color:var(--ink);background:var(--panel2);white-space:nowrap}
+.badge.ex{color:var(--dim);border-style:dashed}
+.badge.warn{background:var(--blood);color:var(--ink);border-color:var(--blood)}
+.hint{font-family:var(--f-mono);font-size:12px;color:var(--dim);margin-top:8px;line-height:1.4}
+.hint.bad{color:var(--blood)}
+.msg{font-family:var(--f-mono);font-size:12px;color:var(--blood)}
+.sub{border-top:1px solid var(--line);padding-top:10px;margin-top:12px}
+.rhead .chip,.unit .btn.sm{min-height:44px}
+.tg-check{display:flex;align-items:center;gap:10px;min-height:44px;cursor:pointer}
+.tg-check input{width:22px;height:22px;accent-color:var(--brass);flex:none}
+.note{border-left:3px solid var(--blood);padding:8px 12px;background:var(--panel);margin:14px 0;max-width:65ch}
+.note b{color:var(--blood)}
+.hp{margin:0}
+.log{list-style:none;padding:0;margin:8px 0;font-size:14.5px}
+.log li{padding:6px 0;border-top:1px solid var(--line);color:var(--dim)}
+.log li b{color:var(--ink);font-weight:500}
+.log .r{font-family:var(--f-mono);font-size:11px;color:var(--brass);margin-right:6px}
+.fo-row .flag,.su-flag{font-family:var(--f-mono);font-size:12px;line-height:1.4;color:var(--blood)}
+
+/* ===== Campaign Setup additions (new, "su-" prefix, built from the same tokens) ===== */
+.su-steps{display:grid;gap:10px;margin:14px 0}
+/* step card: .card + .su-step. Next gets a brass edge, the rest stay quiet */
+.su-step{gap:8px}
+.su-step.next{border-color:var(--brass)}
+.su-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.su-title{font-family:var(--f-display);font-size:23px;line-height:1.1;margin:0;font-weight:500}
+.su-title .n{font-family:var(--f-mono);font-size:13px;color:var(--brass);letter-spacing:.06em;margin-right:6px;vertical-align:2px}
+.su-marks{display:flex;gap:5px;flex:none;flex-wrap:wrap;justify-content:flex-end}
+/* markers (small badges): Done / To do / Next / Out of date / count */
+.badge.su-done{border-color:var(--verd);color:var(--verd)}
+.badge.su-todo{color:var(--dim);border-style:dashed;background:none}
+.badge.su-next{background:var(--brass);color:var(--bg);border-color:var(--brass)}
+.badge.su-ood{border-color:var(--blood);color:var(--blood)}
+.su-sub{font-size:14.5px;color:var(--dim);margin:0}
+/* briefing */
+.su-brief{list-style:none;counter-reset:b;margin:0;padding:0;display:grid;gap:6px}
+.su-brief li{counter-increment:b;display:grid;grid-template-columns:22px 1fr;gap:8px;font-size:15px;line-height:1.4}
+.su-brief li::before{content:counter(b);font-family:var(--f-mono);font-size:13px;color:var(--blood);line-height:1.5}
+.su-brief b{font-family:var(--f-display);font-size:17px;font-weight:500;color:var(--brass)}
+.su-links{display:flex;flex-wrap:wrap;gap:6px 8px;margin-top:2px}
+.su-links .btn{min-height:44px;text-decoration:none;display:inline-flex;align-items:center}
+/* player row (step 2) */
+.su-prow{border-top:1px solid var(--line);padding-top:8px;display:grid;gap:6px}
+.su-prow:first-of-type{border-top:0;padding-top:0}
+.su-pline{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center}
+.su-pline input{flex:1 1 150px;min-width:0;min-height:44px}
+.su-pline select{flex:1 1 130px;min-width:0;min-height:44px}
+.su-pline .badge{flex:none}
+/* per-player block (step 4) */
+.su-block{border:1px solid var(--line);border-left:4px solid var(--dim);background:var(--bg);border-radius:3px;padding:10px 12px;display:grid;gap:2px}
+.su-bhead{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.su-bname{font-family:var(--f-display);font-size:21px;line-height:1.1;display:flex;align-items:center;gap:8px;min-width:0}
+.su-bname span{overflow:hidden;text-overflow:ellipsis}
+.su-check{display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:8px;align-items:baseline;font-size:14.5px;line-height:1.35;padding:5px 0;border-top:1px solid var(--line)}
+.su-check:first-of-type{border-top:0}
+.su-check .tk{font-family:var(--f-mono);font-size:14px;color:var(--dim);text-align:center}
+.su-check.ok .tk{color:var(--verd)}
+.su-check .lb{min-width:0}
+.su-check .lb small{display:block;font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim)}
+.su-check .vl{font-family:var(--f-mono);font-size:12.5px;color:var(--ink);text-align:right;min-width:0}
+.su-check.no .vl{color:var(--dim)}
+.su-check.over .vl{color:var(--blood)}
+.su-check .su-flag{grid-column:2 / span 2}
+.su-bfoot{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;justify-content:space-between;border-top:1px solid var(--line);margin-top:4px;padding-top:4px}
+.su-bfoot a{font-family:var(--f-mono);font-size:12px;letter-spacing:.05em;text-transform:uppercase;min-height:44px;display:inline-flex;align-items:center}
+.su-blist{display:grid;gap:8px}
+/* compact ready list (collapsed step 4) */
+.su-mini{display:flex;align-items:center;gap:8px;font-size:15px;min-height:32px}
+.su-mini .tk{font-family:var(--f-mono);color:var(--dim);width:22px;text-align:center}
+.su-mini.ok .tk{color:var(--verd)}
+/* begin card */
+.su-warns{display:grid;gap:4px;border-left:3px solid var(--brass);padding:2px 0 2px 10px;font-size:14.5px}
+.su-warns p{margin:0}
+.su-warns .mono{font-size:12px;color:var(--dim)}
+.su-reason{font-family:var(--f-mono);font-size:12px;color:var(--blood);line-height:1.4;margin:0}
+.su-who{font-family:var(--f-mono);font-size:12px;color:var(--dim);margin:0}
+/* small extras */
+.su-pointer{border-left:3px solid var(--brass);padding:6px 12px;background:var(--panel);margin:12px 0;font-size:15px}
+.su-pointer a,.su-pointer button.lnk{color:var(--brass);font:inherit;background:none;border:0;padding:0;text-decoration:underline;cursor:pointer}
+
+/* mock-only: labels and jump bar (not part of the product) */
+.mock{margin:28px 0 0}
+.mocklabel{display:flex;gap:8px;align-items:baseline;font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--brass);border-bottom:1px dashed var(--line);padding-bottom:6px;margin-bottom:4px}
+.mocklabel b{font-weight:400;color:var(--ink)}
+.mocknote{font-family:var(--f-mono);font-size:12px;color:var(--dim);margin:6px 0 0;line-height:1.45}
+.mockbar{border:1px dashed var(--line);border-radius:3px;padding:8px 10px;margin:14px 0 0;font-family:var(--f-mono);font-size:11px;color:var(--dim)}
+.mockbar .chips{margin-top:6px}
+.mockbar a.chip{text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+  <div class="eyebrow">Design mock · Setup tab (round 0 only)</div>
+  <h1>Campaign <span>Setup</span></h1>
+  <p class="lede">Everything needed before War Round 1 on one scrolling page of step cards. Setup is done here and explained elsewhere. Only Begin has hard gates; every reminder is advisory.</p>
+</header>
+
+<div class="mockbar" aria-label="Design mock jump bar">
+  MOCK ONLY - jump to a state:
+  <div class="chips" id="jump"></div>
+</div>
+
+<section class="mock" id="sA">
+  <div class="mocklabel"><span>A</span><b>Fresh campaign at round 0</b></div>
+  <p class="mocknote">Setup is first in the tab bar and active. Players is the first unfinished step so it is marked Next. Steps 3 to 5 are To do. Begin is disabled with its reason.</p>
+  <nav class="tabs" aria-label="Tabs" id="tabsA"></nav>
+  <div id="stateA"></div>
+</section>
+
+<section class="mock" id="sB">
+  <div class="mocklabel"><span>B</span><b>Mid-setup: 4 players, one removed since charting</b></div>
+  <p class="mocknote">Players is Done. The chart is Out of date after a removal, so Chart a new Reach is Next. Step 4 shows mixed auto-ticks. Ready is manual and independent of the ticks. Begin is still blocked until the chart matches.</p>
+  <div id="stateB"></div>
+</section>
+
+<section class="mock" id="sC">
+  <div class="mocklabel"><span>C</span><b>Ready to begin (advisory warnings only)</b></div>
+  <p class="mocknote">Players and Chart are Done, 3 of 4 are ready, so Starting positions is still Next but does not block anything. Begin is enabled. Step 4 is shown as a collapsed list here; each full block is as in B.</p>
+  <div id="stateC"></div>
+
+  <div class="mocklabel" style="margin-top:22px"><span>C2</span><b>Begin card with both advisory warnings</b></div>
+  <p class="mocknote">Two players not ready and two example names remain. Begin is still enabled.</p>
+  <div id="stateC2"></div>
+
+  <div class="mocklabel" style="margin-top:22px"><span>C3</span><b>Non-owner view of step 3</b></div>
+  <div id="stateC3"></div>
+</section>
+
+<section class="mock" id="sD">
+  <div class="mocklabel"><span>D</span><b>Small extras on other tabs (round 0 only)</b></div>
+
+  <div class="mocklabel" style="margin-top:18px"><span>D1</span><b>War Room before round 1</b></div>
+  <p class="mocknote">Replaces the old Setup card. No Chart or Begin buttons here. The log still shows.</p>
+  <div id="dWar"></div>
+
+  <div class="mocklabel" style="margin-top:22px"><span>D2</span><b>Pitch tab, top of page</b></div>
+  <p class="mocknote">Pitch wording below the pointer is unchanged. Not shown after round 1.</p>
+  <div id="dPitch"></div>
+
+  <div class="mocklabel" style="margin-top:22px"><span>D3</span><b>Players tab, top of page</b></div>
+  <p class="mocknote">Add player and Remove are hidden before round 1. Name, faction, stats, supply, hand, Draw card and Reset stay as today.</p>
+  <div id="dPlayers"></div>
+</section>
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const FACS=["Adeptus Astartes","Orks","Necrons","Aeldari","Death Guard","Tyranids"];
+const COL={a:"#d0a952",b:"#6f9a86",c:"#b8392e",d:"#8a7fb8"};
+
+/* ---------- small pieces ---------- */
+const badge=(k,t)=>`<span class="badge su-${k}">${t}</span>`;
+const marks=(...m)=>`<div class="su-marks">${m.join("")}</div>`;
+const step=(n,title,mk,body,next)=>`<article class="card su-step${next?" next":""}">
+  <div class="su-head"><h3 class="su-title"><span class="n">${n} ·</span>${title}</h3>${mk}</div>${body}</article>`;
+const TABS=["Setup","Pitch","War Room","Map","Rules","Fate Deck","Factions","Players"];
+
+/* ---------- step 1: briefing ---------- */
+const BRIEF=[
+ ["The setting.","The Hollowgate rift tore open three years ago and the Reach is a scatter of worlds, each split into provinces. More players, more worlds."],
+ ["Your start.","A 750 pt roster led by one Warlord, 5 Requisition Points, and a Capital province on an outer world. No Epic Heroes or named characters."],
+ ["The War Round.","Everyone draws a Fate Card, then each player takes one turn, smallest empire first."],
+ ["Your turn.","Pick one action: Conquer, Raid, Recuperate, Muster, Fortify or Scout. Conquer and Raid start a battle."],
+ ["Winning.","Once 60% of the Reach is claimed (or by War Round 8) the Hollowgate opens. Hold it at the end of a War Round to win."]];
+const s1=()=>step("1","Briefing","",
+  `<ol class="su-brief">${BRIEF.map(b=>`<li><div><b>${b[0]}</b> ${b[1]}</div></li>`).join("")}</ol>
+   <div class="su-links"><a class="btn sm" href="#sD">Read the full Pitch</a><a class="btn sm" href="#sD">Rules</a><a class="btn sm" href="#sD">Turn Guide</a></div>`,false);
+
+/* ---------- step 2: players ---------- */
+function prow(p){
+  return `<div class="su-prow"><div class="su-pline">
+    <span class="dot" style="background:${p.c}"></span>
+    <input type="text" value="${esc(p.n)}" aria-label="Warband name">
+    ${p.ex?'<span class="badge ex">Example</span>':""}</div>
+    <div class="su-pline"><select aria-label="Faction">${FACS.map(f=>`<option${f===p.f?" selected":""}>${f}</option>`).join("")}</select>
+    <button class="btn sm danger">Remove</button></div></div>`;
+}
+const s2=(players,done,next)=>step("2","Players",marks(done?badge("done","Done"):badge("todo","To do"),next?badge("next","Next"):""),
+  `<p class="su-sub">Name each warband and pick a faction. Rename or remove the example players.</p>
+   ${players.map(prow).join("")}
+   <div class="row"><button class="btn primary">Add player</button></div>`,next);
+
+/* ---------- step 3: chart ---------- */
+function s3(state,n,next,owner=true){
+  const mk=state==="done"?badge("done","Done"):state==="ood"?badge("ood","Out of date")+(next?badge("next","Next"):""):badge("todo","To do")+(next?badge("next","Next"):"");
+  let body;
+  if(state==="done") body=`<p class="su-sub">Every player has a Capital on the current Reach.</p>`;
+  else if(!owner) body=`<p class="su-sub">Waiting for the owner to chart the Reach.</p>`;
+  else body=`${state==="ood"?`<p class="su-sub">The Reach does not match your players. Chart a new Reach so everyone has a Capital.</p>`:""}
+    <div class="row"><button class="btn${next?" primary":""}">Chart a new Reach for ${n} players</button></div>`;
+  return step("3","Chart the Reach",marks(mk),body,next);
+}
+
+/* ---------- step 4: starting positions ---------- */
+const HINT4=`<p class="su-sub">Each warband needs a Warlord, a 750 pt roster, 5 RP and a Capital. Build rosters on the Roster tab.</p>`;
+function chk(label,ok,val,cls=""){return `<div class="su-check ${ok?"ok":"no"} ${cls}"><span class="tk" aria-hidden="true">${ok?"&#10003;":"&#9744;"}</span><span class="lb">${label}</span><span class="vl">${val}</span></div>`}
+function block(p){
+  const w=p.w?chk("Warlord",true,esc(p.w)):chk("Warlord",false,"No Warlord yet");
+  const r=chk("750 pt roster",p.rOk,`${p.pts} / 750 pts`,p.pts>750?"over":"")+(p.fo?`<div class="su-flag" style="margin:-2px 0 4px 30px">! ${p.fo}</div>`:"");
+  const rp=chk("5 RP",p.rp>=5,`${p.rp} RP`);
+  const cap=p.cap?chk("Capital",true,esc(p.cap)):chk("Capital",false,"Chart the Reach first (step 3)");
+  return `<div class="su-block" style="border-left-color:${p.c}">
+    <div class="su-bhead"><div class="su-bname"><span class="dot" style="background:${p.c}"></span><span>${esc(p.n)}</span></div></div>
+    ${w}${r}${rp}${cap}
+    <div class="su-bfoot"><a href="#sB">Build roster</a>
+      <label class="tg-check"><input type="checkbox"${p.ready?" checked":""}> Ready</label></div></div>`;
+}
+function s4(players,done,next,full=true){
+  const rd=players.filter(p=>p.ready).length;
+  const mk=done?badge("done","Done"):badge("todo","To do")+(rd?badge("todo",`${rd} of ${players.length} ready`):"")+(next?badge("next","Next"):"");
+  const body=full?`${HINT4}<div class="su-blist">${players.map(block).join("")}</div>`
+    :`${HINT4}${players.map(p=>`<div class="su-mini${p.ready?" ok":""}"><span class="tk">${p.ready?"&#10003;":"&#9744;"}</span><span class="dot" style="background:${p.c}"></span>${esc(p.n)}<span class="dim mono" style="margin-left:auto;font-size:12px">${p.ready?"Ready":"Not ready"}</span></div>`).join("")}`;
+  return step("4","Starting positions",marks(mk),body,next);
+}
+
+/* ---------- step 5: begin ---------- */
+function s5(o){
+  const warns=[];
+  if(o.notReady&&o.notReady.length) warns.push(`<p>${o.notReady.length} player${o.notReady.length>1?"s are":" is"} not ready: ${esc(o.notReady.join(", "))}</p>`);
+  if(o.examples&&o.examples.length) warns.push(`<p>Still using example names: ${esc(o.examples.join(", "))}</p>`);
+  const body=o.reason
+    ?`<p class="su-reason">${o.reason}</p><div class="row"><button class="btn primary" disabled>Begin War Round 1</button></div>`
+    :`${warns.length?`<div class="su-warns">${warns.join("")}<p class="mono">You can still begin. This is a reminder, not a rule.</p></div>`:""}
+      <div class="row"><button class="btn primary">Begin War Round 1</button></div><p class="su-who">Any member can begin.</p>`;
+  return step("5","Begin",marks(badge("todo","To do")+(o.next?badge("next","Next"):"")),body,o.next);
+}
+
+/* ---------- data ---------- */
+const EX=[{n:"Crimson Lances (example)",f:"Adeptus Astartes",c:COL.a,ex:true},{n:"Ash Marauders (example)",f:"Orks",c:COL.b,ex:true},{n:"Void Choir (example)",f:"Necrons",c:COL.c,ex:true}];
+const REAL=[{n:"Ninth Muster",f:"Adeptus Astartes",c:COL.a},{n:"Ash Marauders",f:"Orks",c:COL.b},{n:"Void Choir",f:"Necrons",c:COL.c},{n:"Iron Covenant",f:"Death Guard",c:COL.d}];
+const PB=[
+ {...REAL[0],w:"Captain Idris Valen",pts:620,rOk:true,fo:"Needs 1 more Battleline",rp:5,cap:"Hollow Landing, Varkesh Prime",ready:true},
+ {...REAL[1],w:"Warboss Skarg",pts:810,rOk:false,rp:5,cap:"Gutter Reach, Dross",ready:true},
+ {...REAL[2],w:"",pts:0,rOk:false,rp:3,cap:"Choir Spire, Ninth Vault",ready:false},
+ {...REAL[3],w:"Plague Marshal Orn",pts:750,rOk:true,rp:5,cap:"",ready:false}];
+const PC=[
+ {...REAL[0],ready:true},{...REAL[1],ready:true},{...REAL[2],ready:false},{...REAL[3],ready:true}];
+
+/* ---------- state A ---------- */
+$("#tabsA").innerHTML=TABS.map((t,i)=>`<button role="tab" aria-selected="${i===0}">${t}</button>`).join("");
+$("#stateA").innerHTML=`<div class="su-steps">`+
+  s1()+s2(EX,false,true)+s3("todo",3,false)+
+  step("4","Starting positions",marks(badge("todo","To do")),HINT4,false)+
+  s5({reason:"Chart the Reach for the current players first."})+`</div>`;
+
+/* ---------- state B ---------- */
+$("#stateB").innerHTML=`<div class="su-steps">`+
+  s2(REAL,true,false)+s3("ood",4,true)+s4(PB,false,false)+
+  s5({reason:"Chart the Reach for the current players first."})+`</div>`;
+
+/* ---------- state C ---------- */
+$("#stateC").innerHTML=`<div class="su-steps">`+
+  s2(REAL,true,false)+s3("done",4,false)+s4(PC,false,true,false)+
+  s5({notReady:["Void Choir"]})+`</div>`;
+$("#stateC2").innerHTML=`<div class="su-steps">`+
+  s5({notReady:["Ash Marauders","Void Choir"],examples:["Crimson Lances (example)","Void Choir (example)"]})+`</div>`;
+$("#stateC3").innerHTML=`<div class="su-steps">`+s3("todo",4,true,false)+`</div>`;
+
+/* ---------- state D ---------- */
+$("#dWar").innerHTML=`<h2>War Room</h2>
+  <div class="card" style="margin:12px 0"><div class="k"><span>Round 0</span></div>
+    <div class="t">Campaign setup is under way</div>
+    <p class="e dim" style="margin:0 0 6px">Campaign setup is under way. Finish it on the Setup tab to start War Round 1.</p>
+    <div class="row"><button class="btn primary">Go to Setup</button></div></div>
+  <h3 style="margin-top:18px">Campaign log</h3>
+  <ul class="log"><li><span class="r">R0</span><b>Ninth Muster</b> joined the Reach.</li><li><span class="r">R0</span>The Reach was charted for 4 players.</li></ul>`;
+$("#dPitch").innerHTML=`<div class="su-pointer">Ready to start? <button class="lnk">Go to Setup.</button></div>
+  <h2>The Varkesh Reach</h2><p class="dim">(Pitch wording continues here, unchanged.)</p>`;
+$("#dPlayers").innerHTML=`<h2>Players</h2>
+  <div class="su-pointer">Setting up? Use the Setup tab to add players and begin.</div>
+  <div class="card" style="margin:12px 0"><div class="su-pline"><span class="dot" style="background:${COL.a}"></span><input type="text" value="Ninth Muster" aria-label="Warband name"></div>
+    <div class="su-pline" style="margin-top:6px"><select aria-label="Faction"><option>Adeptus Astartes</option></select></div>
+    <p class="dim mono" style="font-size:12px;margin:8px 0 0">(Stats, supply, hand and Draw card continue here, unchanged. No Remove button before round 1.)</p></div>`;
+
+/* ---------- jump bar ---------- */
+$("#jump").innerHTML=[["A Fresh","sA"],["B Mid-setup","sB"],["C Ready","sC"],["D Extras","sD"]]
+  .map(j=>`<a class="chip" href="#${j[1]}">${j[0]}</a>`).join("");
+</script>
+</body>
+</html>
