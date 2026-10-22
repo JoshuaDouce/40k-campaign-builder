@@ -3,6 +3,7 @@ import { canPerform, count, FACTIONS, getPlanet, getProvince, supplyOf } from ".
 import type { Action, CampaignState, Card, FactionName, Player, StatKey } from "../game/index.ts";
 import { canSeeHand, useCampaign } from "../store/useCampaign.ts";
 import type { TabId } from "../store/useDevicePrefs.ts";
+import { BattleHistory } from "./BattleHistory.tsx";
 import { FateCard } from "./FateCard.tsx";
 import { newId } from "./newId.ts";
 import { PlayerNameInput } from "./PlayerNameInput.tsx";
@@ -222,6 +223,7 @@ function PlayerCard({ player: p, state, color, fresh, setup }: CardProps) {
         {cap ? ` · CAPITAL ${cap.name.toUpperCase()}, ${(capPlanet?.name ?? "").toUpperCase()}` : ""}
         {p.scout ? " · SCOUTED" : ""}
       </div>
+      <BattleHistory state={state} player={p} />
       <div className="row" style={{ marginTop: 10, justifyContent: "space-between" }}>
         <span className="mono" style={{ fontSize: 12 }}>
           FATE HAND {p.hand.length}/5

@@ -35,6 +35,11 @@ export function canPerform(state: CampaignState, action: Action, ctx: Permission
       return !!pd && (controls(state, pd.actor, userId) || (pd.def !== undefined && controls(state, pd.def, userId)));
     }
 
+    case "undoBattle": {
+      const u = state.undo;
+      return !!u && !u.reportFiled && (controls(state, u.attacker, userId) || (u.defender !== undefined && controls(state, u.defender, userId)));
+    }
+
     case "drawCard":
     case "playCard":
     case "discardCard":

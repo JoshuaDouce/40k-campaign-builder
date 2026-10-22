@@ -1,6 +1,6 @@
 // Read-only helpers over a CampaignState. None of these mutate.
 import { ALT, FACTIONS, HOLL, ORBITS, VTYPES } from "./data.ts";
-import type { CampaignState, OrbitDef, Planet, Player, Province, Zone } from "./types.ts";
+import type { BattleRecord, CampaignState, OrbitDef, Planet, Player, Province, Zone } from "./types.ts";
 
 export const r50 = (n: number): number => Math.round(n / 50) * 50;
 export const r5 = (n: number): number => Math.round(n / 5) * 5;
@@ -94,4 +94,61 @@ export function stageText(s: CampaignState): string {
   return hollOpen(s)
     ? `${pc}% OF THE REACH CLAIMED · THE HOLLOWGATE IS OPEN`
     : `${pc}% OF THE REACH CLAIMED · THE HOLLOWGATE OPENS AT 60% OR WAR ROUND 8`;
+}
+
+/** One battle seen from one player's side. */
+export interface HistoryEntry {
+  round: number;
+  /** The other side's current name (saved name if they have left). Null for a garrison fight. */
+  opponent: string | null;
+  garrison: boolean;
+  province: string;
+  /** Missing for the Hollowgate. */
+  world?: string;
+  kind: "conquer" | "raid";
+  outcome: "won" | "lost" | "draw";
+  took: boolean;
+}
+
+export interface PlayerHistory {
+  /** Newest first. */
+  entries: HistoryEntry[];
+  battles: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  provincesTaken: number;
+}
+
+/** A player's battle record, built from state.history. A garrison fight appears for the attacker only. */
+export function historyFor(s: CampaignState, playerId: string): PlayerHistory {
+  const entries: HistoryEntry[] = [];
+  const recs: readonly BattleRecord[] = s.history ?? [];
+  for (let i = recs.length - 1; i >= 0; i--) {
+    const r = recs[i];
+    const asAtt = r.att === playerId;
+    if (!asAtt && r.def !== playerId) continue;
+    const other = asAtt ? r.def : r.att;
+    const otherSaved = asAtt ? r.defName : r.attName;
+    entries.push({
+      round: r.round,
+      opponent: r.garrison ? null : (getPlayer(s, other)?.name ?? otherSaved ?? "Unknown"),
+      garrison: !!r.garrison,
+      province: r.provName,
+      world: r.world,
+      kind: r.kind,
+      outcome: r.out === "x" ? "draw" : (r.out === "a") === asAtt ? "won" : "lost",
+      took: asAtt && !!r.took,
+    });
+  }
+  const wins = entries.filter((e) => e.outcome === "won").length;
+  const draws = entries.filter((e) => e.outcome === "draw").length;
+  return {
+    entries,
+    battles: entries.length,
+    wins,
+    draws,
+    losses: entries.length - wins - draws,
+    provincesTaken: entries.filter((e) => e.took).length,
+  };
 }

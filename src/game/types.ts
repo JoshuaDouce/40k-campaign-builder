@@ -245,6 +245,47 @@ export interface Pending {
   garrison?: boolean;
 }
 
+/** One recorded battle result, from the attacker's side. Kept small: it is saved with the campaign. */
+export interface BattleRecord {
+  round: number;
+  /** Attacker id and the name they had at the time. */
+  att: string;
+  attName: string;
+  /** Defender id and saved name. Missing for a garrison fight (the garrison player takes no part). */
+  def?: string;
+  defName?: string;
+  /** Province (or "holl") id and name, and the world name (missing for the Hollowgate). */
+  prov: string;
+  provName: string;
+  world?: string;
+  kind: "conquer" | "raid";
+  /** True for a fight against an unclaimed province's garrison. */
+  garrison?: true;
+  /** "a" attacker won, "d" defender (or garrison) won, "x" draw. */
+  out: "a" | "d" | "x";
+  /** True when the attacker took the province (a Conquer win). */
+  took?: true;
+}
+
+/** The parts of the campaign a battle result can change. Restored by Undo. */
+export type UndoSnapshot = Pick<
+  CampaignState,
+  "round" | "turnIdx" | "order" | "pend" | "log" | "won" | "fort" | "terr" | "players" | "hollOpened"
+>;
+
+/** The open Undo window for the latest battle result. Present only while Undo is still possible. */
+export interface UndoInfo {
+  /** The campaign just before the result. */
+  before: UndoSnapshot;
+  attacker: string;
+  /** The defender, or the garrison player. */
+  defender?: string;
+  /** True once a post-battle report has been filed since the result: Undo is then blocked. */
+  reportFiled: boolean;
+  /** Log lines added by roster actions after the result (newest first), kept when the result is undone. */
+  later: LogEntry[];
+}
+
 export interface CampaignState {
   round: number;
   /** Index into `order` of the player whose turn it is, or null between War Rounds. */
@@ -269,6 +310,10 @@ export interface CampaignState {
   fallen?: FallenCharacter[];
   /** Round-0 setup: players who ticked Ready. Missing = nobody ready. */
   ready?: Record<string, true>;
+  /** Battle history, oldest first. Missing on old saves = empty. */
+  history?: BattleRecord[];
+  /** Undo window for the latest battle result. Missing = nothing to undo. */
+  undo?: UndoInfo;
 }
 
 export interface BattleInfo {
@@ -292,6 +337,7 @@ export type Action =
   | { type: "rollBattle"; zone: string; def: string }
   | { type: "rerollTwists" }
   | { type: "resolveBattle"; result: "a" | "d" | "x"; decisive?: boolean }
+  | { type: "undoBattle" }
   | { type: "confirmQuiet"; fortZone?: string }
   | { type: "drawCard"; playerId: string }
   | { type: "playCard"; playerId: string; index: number }
