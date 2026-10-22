@@ -1,18 +1,38 @@
-import { createContext, useCallback, useContext, useMemo, useRef, useState } from "react";
-import { apply, examplePlayers, fresh, mulberry } from "../game/index.ts";
+import { createContext, useContext } from "react";
 import type { Action, CampaignState, Player } from "../game/index.ts";
 
-/** Who is looking at the campaign. Stage 3 has no accounts, so the viewer is the owner. */
+/** Who is looking at the campaign. `userId` is the Cognito user id; the organiser acts as owner. */
 export interface CampaignViewer {
   userId: string | null;
+  email: string;
   isOwner: boolean;
 }
 
-/** What every component needs. Stage 4 swaps in an Amplify-backed implementation of this. */
+/** A message shown under the campaign header: a lost save race, or any other failed save. */
+export type SyncNotice = "conflict" | "error" | null;
+
+export interface SyncInfo {
+  /** A change is being saved. */
+  saving: boolean;
+  /** The device has no connection: changes are paused. */
+  offline: boolean;
+  notice: SyncNotice;
+  dismissNotice(): void;
+}
+
+/** What every component needs. The Amplify-backed implementation is `useRemoteCampaign`. */
 export interface CampaignStore {
+  campaignId: string;
+  name: string;
+  /** Lowercase member emails. */
+  members: string[];
   state: CampaignState;
+  /** Applies the action locally, saves it with a version check, and only then shows the result. */
   dispatch(action: Action): void;
   viewer: CampaignViewer;
+  sync: SyncInfo;
+  /** Organiser only: replace the member email list. Rejects if the save fails. */
+  updateMembers(members: string[]): Promise<void>;
 }
 
 export const CampaignContext = createContext<CampaignStore | null>(null);
@@ -23,85 +43,12 @@ export function useCampaign(): CampaignStore {
   return store;
 }
 
-/** Hands are private to their player. A null viewer id (stage 3, local play) sees everything. */
+/** For public screens that show campaign data when inside a campaign and fall back when not. */
+export function useOptionalCampaign(): CampaignStore | null {
+  return useContext(CampaignContext);
+}
+
+/** Hands are private to their player. Only the signed-in owner of the hand sees the faces, organiser included. */
 export function canSeeHand(player: Player, viewer: CampaignViewer): boolean {
-  return viewer.userId === null || player.userId === viewer.userId;
-}
-
-const STORAGE_KEY = "varkesh-react-v1";
-const BACKUP_KEY = "varkesh-react-v1-backup";
-
-function newRng() {
-  return mulberry(Math.floor(Math.random() * 2 ** 31));
-}
-
-const isObject = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
-
-/** Shape check for a stored campaign. A missing `hollOpened` is tolerated (defaulted by `load`). */
-function isCampaignState(v: unknown): v is CampaignState {
-  if (!isObject(v)) return false;
-  const { sys } = v;
-  return (
-    Array.isArray(v.players) &&
-    Array.isArray(v.order) &&
-    Array.isArray(v.log) &&
-    typeof v.round === "number" &&
-    (v.turnIdx === null || typeof v.turnIdx === "number") &&
-    (v.pend === null || isObject(v.pend)) &&
-    isObject(v.terr) &&
-    isObject(v.fort) &&
-    isObject(v.cap) &&
-    isObject(sys) &&
-    Array.isArray(sys.planets) &&
-    Array.isArray(sys.provs) &&
-    Array.isArray(sys.lanes) &&
-    typeof sys.size === "number"
-  );
-}
-
-function save(state: CampaignState): void {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  } catch {
-    // Storage full or blocked: the campaign still works for this session.
-  }
-}
-
-function load(): CampaignState {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      try {
-        const parsed: unknown = JSON.parse(raw);
-        if (isCampaignState(parsed)) return { ...parsed, hollOpened: parsed.hollOpened === true, rosters: isObject(parsed.rosters) ? parsed.rosters : {}, fallen: Array.isArray(parsed.fallen) ? parsed.fallen : [], ready: isObject(parsed.ready) ? parsed.ready : {}, history: Array.isArray(parsed.history) ? parsed.history : [], undo: isObject(parsed.undo) && isObject(parsed.undo.before) ? parsed.undo : undefined };
-      } catch {
-        // Corrupt JSON: handled as unrecognised below.
-      }
-      // Present but unrecognised: keep a copy before it is replaced.
-      localStorage.setItem(BACKUP_KEY, raw);
-    }
-  } catch {
-    // Storage blocked: start a new campaign.
-  }
-  const state = fresh(examplePlayers(), newRng());
-  save(state);
-  return state;
-}
-
-const LOCAL_VIEWER: CampaignViewer = { userId: null, isOwner: true };
-
-/** Stage-3 store: the whole campaign lives in localStorage on this device. */
-export function useLocalCampaign(): CampaignStore {
-  const [state, setState] = useState<CampaignState>(load);
-  const current = useRef(state);
-
-  const dispatch = useCallback((action: Action) => {
-    const next = apply(current.current, action, { rng: newRng() });
-    if (next === current.current) return;
-    current.current = next;
-    save(next);
-    setState(next);
-  }, []);
-
-  return useMemo(() => ({ state, dispatch, viewer: LOCAL_VIEWER }), [state, dispatch]);
+  return viewer.userId !== null && player.userId === viewer.userId;
 }

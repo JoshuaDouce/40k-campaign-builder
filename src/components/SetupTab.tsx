@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
-import { canPerform, chartMatches, exampleNames, FACTIONS, isExampleName, setupChecklist, setupReadyCount } from "../game/index.ts";
+import { canPerform, chartMatches, FACTIONS, setupChecklist, setupReadyCount } from "../game/index.ts";
 import type { Action, CampaignState, FactionName, Player } from "../game/index.ts";
 import { useCampaign } from "../store/useCampaign.ts";
 import type { TabId } from "../store/useDevicePrefs.ts";
-import { newId } from "./newId.ts";
 import { PlayerNameInput } from "./PlayerNameInput.tsx";
 
 const FACTION_NAMES = Object.keys(FACTIONS) as FactionName[];
@@ -53,19 +52,17 @@ export function SetupTab({ colors, onNavigate }: { colors: Record<string, string
   const { state, dispatch, viewer } = useCampaign();
   const can = (a: Action) => canPerform(state, a, viewer);
   const n = state.players.length;
-  const examples = exampleNames(state);
   const readyCount = setupReadyCount(state);
 
-  const playersDone = n >= 2 && examples.length === 0;
+  const playersDone = n >= 2;
   const chartDone = chartMatches(state);
   const readyDone = n >= 1 && readyCount === n;
   const reason = n < 2 ? "You need at least 2 players." : !chartDone ? "Chart the Reach for the current players first." : null;
   const nextStep = !playersDone ? 2 : !chartDone ? 3 : !readyDone ? 4 : reason === null ? 5 : 0;
 
-  const add: Action = { type: "addPlayer", id: "new", name: "New player", faction: "Astra Militarum" };
   const regen: Action = { type: "regen" };
   const notReady = state.players.filter((p) => state.ready?.[p.id] !== true).map((p) => p.name);
-  const hasWarns = notReady.length > 0 || examples.length > 0;
+  const hasWarns = notReady.length > 0;
 
   const begin = () => {
     dispatch({ type: "beginRound" });
@@ -116,15 +113,10 @@ export function SetupTab({ colors, onNavigate }: { colors: Record<string, string
         </Step>
 
         <Step n={2} title="Players" next={nextStep === 2} marks={[playersDone ? ["done", "Done"] : ["todo", "To do"], ...(nextStep === 2 ? NEXT : [])]}>
-          <p className="su-sub">Name each warband and pick a faction. Rename or remove the example players.</p>
+          <p className="su-sub">Add members on the Players tab. Each one picks a warband and faction when they open the campaign.</p>
           {state.players.map((p) => (
             <PlayerRow key={p.id} player={p} state={state} color={colors[p.id]} />
           ))}
-          <div className="row">
-            <button className="btn primary su-btn" disabled={!can(add)} onClick={() => dispatch({ ...add, id: newId() })}>
-              Add player
-            </button>
-          </div>
         </Step>
 
         <Step n={3} title="Chart the Reach" next={nextStep === 3} marks={[chartDone ? ["done", "Done"] : ["ood", "Out of date"], ...(nextStep === 3 ? NEXT : [])]}>
@@ -169,7 +161,6 @@ export function SetupTab({ colors, onNavigate }: { colors: Record<string, string
                       {notReady.length} {notReady.length === 1 ? "player is" : "players are"} not ready: {notReady.join(", ")}
                     </p>
                   ) : null}
-                  {examples.length > 0 ? <p>Still using example names: {examples.join(", ")}</p> : null}
                   <p className="mono">You can still begin. This is a reminder, not a rule.</p>
                 </div>
               ) : null}
@@ -207,7 +198,6 @@ function PlayerRow({ player: p, state, color }: { player: Player; state: Campaig
       <div className="su-pline">
         <span className="dot" style={{ background: color }}></span>
         <PlayerNameInput playerId={p.id} name={p.name} disabled={!canEdit} label="Warband name" />
-        {isExampleName(p.name) ? <span className="badge ex">Example</span> : null}
       </div>
       <div className="su-pline">
         <select

@@ -5,7 +5,9 @@ import { canSeeHand, useCampaign } from "../store/useCampaign.ts";
 import type { TabId } from "../store/useDevicePrefs.ts";
 import { BattleHistory } from "./BattleHistory.tsx";
 import { FateCard } from "./FateCard.tsx";
-import { newId } from "./newId.ts";
+import { DeleteCampaign } from "./account/DeleteCampaign.tsx";
+import { MembersPanel } from "./account/MembersPanel.tsx";
+import { WaitingNote } from "./account/WaitingNote.tsx";
 import { PlayerNameInput } from "./PlayerNameInput.tsx";
 
 const FACTION_NAMES = Object.keys(FACTIONS) as FactionName[];
@@ -46,34 +48,37 @@ function useNewCards(players: Player[]): Record<string, Set<number>> {
   return next.fresh;
 }
 
-export function PlayersTab({ colors, onNavigate }: { colors: Record<string, string>; onNavigate: (tab: TabId) => void }) {
-  const { state, dispatch, viewer } = useCampaign();
+interface TabProps {
+  colors: Record<string, string>;
+  onNavigate: (tab: TabId) => void;
+  /** The organiser opens the join screen to play in this campaign too. */
+  onPlay: () => void;
+  /** The campaign was deleted: leave it. */
+  onDeleted: () => void;
+}
+
+export function PlayersTab({ colors, onNavigate, onPlay, onDeleted }: TabProps) {
+  const { state, dispatch, viewer, members } = useCampaign();
   const [resetOpen, setResetOpen] = useState(false);
   const newCards = useNewCards(state.players);
-  const add: Action = { type: "addPlayer", id: "new", name: "New player", faction: "Astra Militarum" };
   const setup = state.round === 0;
+  const waiting = members.filter((m) => !state.players.some((p) => p.email === m));
+  const ownerNotPlaying = viewer.isOwner && !state.players.some((p) => p.userId === viewer.userId);
 
   return (
     <section className="tab" id="tracker">
       <h2>Players</h2>
-      <p className="dim">
-        {setup
-          ? "Saved in this browser on this device. Rename players here; add or remove them on the Setup tab."
-          : "Saved in this browser on this device. The players below are examples; rename or remove them."}
-      </p>
-      {setup ? (
-        <div className="su-pointer">Setting up? Use the Setup tab to add players and begin.</div>
-      ) : (
+      {viewer.isOwner ? <MembersPanel /> : null}
+      <WaitingNote emails={waiting} />
+      <p className="dim">{setup ? "Rename players here." : "Rename or remove players here."}</p>
+      {setup ? <div className="su-pointer">Setting up? Use the Setup tab to chart the Reach and begin.</div> : null}
+      {ownerNotPlaying ? (
         <div className="row">
-          <button
-            className="btn primary"
-            disabled={!canPerform(state, add, viewer)}
-            onClick={() => dispatch({ ...add, id: newId() })}
-          >
-            Add player
+          <button className="btn" onClick={onPlay}>
+            Play in this campaign
           </button>
         </div>
-      )}
+      ) : null}
       {state.round >= 1 && (
         <p className="dim">The campaign is under way, so new players get a catch-up bonus: extra supply and a Fate Card.</p>
       )}
@@ -84,7 +89,7 @@ export function PlayersTab({ colors, onNavigate }: { colors: Record<string, stri
           ))
         ) : (
           <p className="dim" style={{ marginTop: 16 }}>
-            {setup ? "No players yet. Add the first one on the Setup tab." : "No players yet. Add the first one to start the campaign."}
+            No players yet. Members appear here once they pick a faction.
           </p>
         )}
       </div>
@@ -113,6 +118,7 @@ export function PlayersTab({ colors, onNavigate }: { colors: Record<string, stri
           </span>
         ) : null}
       </div>
+      {viewer.isOwner ? <DeleteCampaign onDeleted={onDeleted} /> : null}
     </section>
   );
 }

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useCampaign } from "../store/useCampaign.ts";
+import { useOptionalCampaign } from "../store/useCampaign.ts";
 import type { TabId } from "../store/useDevicePrefs.ts";
 
 const STEPS: ReadonlyArray<readonly [string, string]> = [
@@ -44,7 +44,7 @@ function legacyCopy(text: string): boolean {
 }
 
 export function PitchTab({ onNavigate }: { onNavigate: (tab: TabId) => void }) {
-  const { state } = useCampaign();
+  const campaign = useOptionalCampaign();
   const [copyMsg, setCopyMsg] = useState("");
 
   const copy = () => {
@@ -59,7 +59,7 @@ export function PitchTab({ onNavigate }: { onNavigate: (tab: TabId) => void }) {
 
   return (
     <section className="tab" id="pitch">
-      {state.round === 0 && (
+      {campaign !== null && campaign.state.round === 0 && (
         <div className="su-pointer">
           Ready to start?{" "}
           <button className="lnk" onClick={() => onNavigate("setup")}>

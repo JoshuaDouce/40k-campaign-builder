@@ -1,6 +1,6 @@
 import { BATTLES, FACTIONS, SIDE_HOOK } from "../game/index.ts";
 import type { FactionName, Side, SideKey } from "../game/index.ts";
-import { useCampaign } from "../store/useCampaign.ts";
+import { useOptionalCampaign } from "../store/useCampaign.ts";
 import { useWebFac } from "../store/useDevicePrefs.ts";
 
 const ALL_FACTIONS = Object.keys(FACTIONS) as FactionName[];
@@ -20,11 +20,13 @@ function sideKey(a: FactionName, b: FactionName): SideKey {
 }
 
 export function FactionsTab() {
-  const { state } = useCampaign();
+  const campaign = useOptionalCampaign();
   const [webFac, setWebFac] = useWebFac();
 
   const toggle = (f: FactionName) => setWebFac(webFac.includes(f) ? webFac.filter((x) => x !== f) : [...webFac, f]);
-  const fromPlayers = () => setWebFac([...new Set(state.players.map((p) => p.faction))]);
+  const fromPlayers = () => {
+    if (campaign) setWebFac([...new Set(campaign.state.players.map((p) => p.faction))]);
+  };
 
   const n = webFac.length;
   const cx = 180;
@@ -55,11 +57,13 @@ export function FactionsTab() {
           </button>
         ))}
       </div>
-      <div className="row" style={{ marginTop: 10 }}>
-        <button className="btn sm" onClick={fromPlayers}>
-          Use factions from Players
-        </button>
-      </div>
+      {campaign ? (
+        <div className="row" style={{ marginTop: 10 }}>
+          <button className="btn sm" onClick={fromPlayers}>
+            Use factions from Players
+          </button>
+        </div>
+      ) : null}
       <div className="web mapbox" style={{ marginTop: 14 }}>
         <svg viewBox="0 0 360 300" role="img" aria-label="Web of faction relationships">
           {n === 0 ? (

@@ -1,5 +1,12 @@
 version: 1
-# Frontend-only for now. Stage 4 adds a `backend:` section (npx ampx pipeline-deploy).
+backend:
+  phases:
+    build:
+      commands:
+        - nvm install 24
+        - nvm use 24
+        - npm ci
+        - npx ampx pipeline-deploy --branch $AWS_BRANCH --app-id $AWS_APP_ID
 frontend:
   phases:
     preBuild:
