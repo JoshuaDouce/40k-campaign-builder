@@ -6,6 +6,7 @@ import {
   rankIndex,
   RANKS,
   RELIC_PTS,
+  roleOf,
   relicEffect,
   scarEffect,
   scarLabel,
@@ -18,6 +19,7 @@ import { FallSheet } from "./FallSheet.tsx";
 interface Props {
   unit: Unit;
   editable: boolean;
+  overLimit?: boolean;
   onEdit(): void;
   /** Characters pass the cause entered on the "Why did they fall?" sheet. */
   onRemove(cause?: string): void;
@@ -25,7 +27,7 @@ interface Props {
   onRemoveRelic(relic: string): void;
 }
 
-export function UnitCard({ unit, editable, onEdit, onRemove, onRollRelic, onRemoveRelic }: Props) {
+export function UnitCard({ unit, editable, overLimit, onEdit, onRemove, onRollRelic, onRemoveRelic }: Props) {
   const [armed, setArmed] = useState(false);
   const [asking, setAsking] = useState(false);
   useEffect(() => {
@@ -34,6 +36,7 @@ export function UnitCard({ unit, editable, onEdit, onRemove, onRollRelic, onRemo
     return () => clearTimeout(t);
   }, [armed]);
 
+  const role = roleOf(unit);
   const ri = rankIndex(unit.xp);
   const rank = RANKS[ri];
   const next = RANKS[ri + 1];
@@ -83,10 +86,17 @@ export function UnitCard({ unit, editable, onEdit, onRemove, onRollRelic, onRemo
         </div>
       </div>
       <div className="badges">
+        {role === "Character" ? (
+          <span className="badge char">Character</span>
+        ) : role ? (
+          <span className="badge role">{role}</span>
+        ) : (
+          <span className="badge none">No role</span>
+        )}
+        {overLimit && <span className="badge warn">Over limit</span>}
         {unit.ex && <span className="badge ex">Example</span>}
         {legend ? <span className="badge legend">Legend of the Reach</span> : <span className="badge">{rank.n}</span>}
         {unit.isWarlord && <span className="badge war">Warlord</span>}
-        {unit.isCharacter && <span className="badge char">Character</span>}
       </div>
       {unit.isCharacter ? (
         <div className="career">

@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { canPerform, PROMOTION_COST, RECRUITS_COST, rosterOf, SURGEON_COST, supplyOf, totalEffective } from "../../game/index.ts";
+import { canPerform, forceOrgFor, PROMOTION_COST, RECRUITS_COST, rosterOf, SURGEON_COST, supplyOf, totalEffective } from "../../game/index.ts";
 import type { Unit } from "../../game/index.ts";
 import { useCampaign } from "../../store/useCampaign.ts";
+import { ForceOrgChart } from "./ForceOrgChart.tsx";
 import { HallOfHeroes } from "./HallOfHeroes.tsx";
 import { PostBattleHelper } from "./PostBattleHelper.tsx";
 import { FieldSurgeonDialog, PromotionDialog, SeasonedRecruitsDialog } from "./RpDialogs.tsx";
@@ -34,6 +35,7 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
   const pid = player.id;
   const editable = canPerform(state, { type: "addExamples", playerId: pid }, viewer);
   const roster = rosterOf(state, pid);
+  const fo = forceOrgFor(state, pid);
   const sorted = [...roster].sort((a, b) => Number(b.isWarlord) - Number(a.isWarlord));
   const total = totalEffective(roster);
   const supply = supplyOf(player);
@@ -117,6 +119,8 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
           </div>
         </div>
 
+        <ForceOrgChart key={pid} fo={fo} />
+
         {editable ? (
           <>
             <div className="row">
@@ -171,6 +175,7 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
             key={u.id}
             unit={u}
             editable={editable}
+            overLimit={fo.overLimitIds.includes(u.id)}
             onEdit={() => setDialog({ kind: "edit", unit: u })}
             onRollRelic={() => setDialog({ kind: "relic", unit: u })}
             onRemoveRelic={(relic) => {
@@ -211,6 +216,7 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
         <UnitFormSheet
           mode="add"
           roster={roster}
+          fo={fo}
           onClose={closeDialog}
           onSave={(unit) => {
             dispatch({ type: "addUnit", playerId: pid, unit });
@@ -223,6 +229,7 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
           mode="edit"
           existing={dialog.unit}
           roster={roster}
+          fo={fo}
           onClose={closeDialog}
           onSave={(unit) => {
             dispatch({ type: "updateUnit", playerId: pid, unit });

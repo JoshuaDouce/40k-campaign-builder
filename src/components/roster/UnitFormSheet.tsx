@@ -10,13 +10,15 @@ import {
   rankOf,
   RECRUITS_COST,
   RECRUITS_XP,
+  ROLE_NAMES,
+  roleOf,
   scarName,
   scarWeapon,
   TITLE_MAX,
   TRAIT_MAX,
   WORN_GEAR,
 } from "../../game/index.ts";
-import type { Unit } from "../../game/index.ts";
+import type { ForceOrg, Role, Unit } from "../../game/index.ts";
 import { Overlay } from "./Overlay.tsx";
 import { useRng } from "./useRng.ts";
 
@@ -26,6 +28,8 @@ interface Props {
   mode: FormMode;
   existing?: Unit;
   roster: readonly Unit[];
+  /** Slot counts for the Role hint. */
+  fo: ForceOrg;
   /** Shown in the Seasoned Recruits intro. */
   rp?: number;
   onSave(unit: Unit): void;
@@ -37,6 +41,7 @@ interface Draft {
   datasheet: string;
   points: string;
   xp: string;
+  role: Role | "";
   isCharacter: boolean;
   isWarlord: boolean;
   enhancement: string;
@@ -57,6 +62,7 @@ function initial(existing: Unit | undefined, mode: FormMode): Draft {
       datasheet: "",
       points: "100",
       xp: String(mode === "recruits" ? RECRUITS_XP : 0),
+      role: "",
       isCharacter: false,
       isWarlord: false,
       enhancement: "",
@@ -76,6 +82,7 @@ function initial(existing: Unit | undefined, mode: FormMode): Draft {
     datasheet: existing.datasheet,
     points: String(existing.points),
     xp: String(existing.xp),
+    role: roleOf(existing) ?? "",
     isCharacter: existing.isCharacter,
     isWarlord: existing.isWarlord,
     enhancement: existing.enhancement ?? "",
@@ -101,7 +108,7 @@ const COPY: Record<FormMode, { title: string; cta: string }> = {
   recruits: { title: "Seasoned Recruits", cta: `Spend ${RECRUITS_COST} RP and add unit` },
 };
 
-export function UnitFormSheet({ mode, existing, roster, rp, onSave, onClose }: Props) {
+export function UnitFormSheet({ mode, existing, roster, fo, rp, onSave, onClose }: Props) {
   const rng = useRng();
   const [d, setD] = useState<Draft>(() => initial(existing, mode));
   const set = (patch: Partial<Draft>) => setD((prev) => ({ ...prev, ...patch }));
@@ -116,6 +123,12 @@ export function UnitFormSheet({ mode, existing, roster, rp, onSave, onClose }: P
   const relics = d.isCharacter ? (existing?.relics ?? []) : [];
   const honourList = allowedHonours(d);
   const scarList = allowedScars(d);
+  const clearChar = { isCharacter: false, isWarlord: false, enhancement: "", warlordTrait: "" } as const;
+  const pickRole = (r: Role | "") => set(r === "Character" ? { role: r, isCharacter: true } : { role: r, ...clearChar });
+  const roleMax = fo.rows.find((r) => r.role === d.role)?.max ?? 0;
+  const others = roster.filter((u) => u.id !== existing?.id && roleOf(u) === d.role).length;
+  const projected = others + 1;
+  const losesDetails = !!existing?.isCharacter && !d.isCharacter && !!(existing.relics?.length || existing.title || existing.backstory || existing.enhancement);
 
   let problem = "";
   if (!Number.isFinite(points) || points < 0) problem = "Base points must be 0 or more.";
@@ -140,6 +153,8 @@ export function UnitFormSheet({ mode, existing, roster, rp, onSave, onClose }: P
       isCharacter: d.isCharacter,
       isWarlord: warlord,
     };
+    if (d.role) unit.role = d.role;
+    else delete unit.role;
     if (enh) unit.enhancement = enh;
     else delete unit.enhancement;
     const text = (key: "title" | "backstory" | "warlordTrait", value: string, keep: boolean) => {
@@ -194,12 +209,45 @@ export function UnitFormSheet({ mode, existing, roster, rp, onSave, onClose }: P
       <div className="sub">
         <div className="lbl">Role</div>
         <div className="chips" style={{ marginTop: 6 }}>
-          <button type="button" className="chip" aria-pressed={d.isCharacter} onClick={() => set(d.isCharacter ? { isCharacter: false, isWarlord: false, enhancement: "", warlordTrait: "" } : { isCharacter: true })}>
-            Character
+          <button type="button" className="chip unassigned" aria-pressed={d.role === ""} onClick={() => pickRole("")}>
+            Unassigned
           </button>
-          <button type="button" className="chip" aria-pressed={d.isWarlord} disabled={!d.isCharacter} onClick={() => set({ isWarlord: !d.isWarlord })}>
-            Warlord
-          </button>
+          {ROLE_NAMES.map((r) => (
+            <button key={r} type="button" className="chip" aria-pressed={d.role === r} onClick={() => pickRole(r)}>
+              {r}
+            </button>
+          ))}
+        </div>
+        {d.role === "" ? (
+          <div className="hint">Unassigned units fill no slot. You can set a role later.</div>
+        ) : projected > roleMax ? (
+          <div className="hint bad">
+            ! {d.role} slots are full ({others} / {roleMax}). You can still save; this unit would be over limit.
+          </div>
+        ) : (
+          <div className="hint">
+            {d.role}: {projected} of {roleMax} slots used with this unit.
+          </div>
+        )}
+        <div className="rolelink">
+          <div className="tag">Linked to the Character role</div>
+          <div className="chips" style={{ marginTop: 4 }}>
+            <button
+              type="button"
+              className="chip"
+              aria-pressed={d.isCharacter}
+              onClick={() => set(d.isCharacter ? { ...clearChar, role: d.role === "Character" ? "" : d.role } : { isCharacter: true, role: "Character" })}
+            >
+              Character
+            </button>
+            <button type="button" className="chip" aria-pressed={d.isWarlord} disabled={!d.isCharacter} onClick={() => set({ isWarlord: !d.isWarlord })}>
+              Warlord
+            </button>
+          </div>
+          <div className="hint" style={{ marginTop: 6 }}>
+            {d.isCharacter ? "Character ticked, so the role is Character. Choosing any other role clears Character and Warlord." : "Ticking Character sets the role to Character. Warlord is only for Characters."}
+          </div>
+          {losesDetails && <div className="hint bad">! Saving without Character removes this unit's title, backstory, enhancement and relics.</div>}
         </div>
         {d.isWarlord && (
           <div className="mono dim" style={{ fontSize: 12, marginTop: 6 }}>

@@ -2,6 +2,7 @@
 // (through an injected Rng) and arrive here already resolved.
 import { CHAR_HONOURS, CHAR_SCARS, HONOURS, RANKS, RELICS, SCARS } from "./data.ts";
 import { B, log } from "./log.ts";
+import { isRole } from "./forceOrg.ts";
 import { rollInt } from "./rng.ts";
 import type { Rng } from "./rng.ts";
 import { getPlayer } from "./selectors.ts";
@@ -199,10 +200,11 @@ export function exampleUnits(rng: Rng, existing: readonly Unit[] = EMPTY): Unit[
       ...o,
     });
   };
-  mk("Anvil Squad", "Intercessor Squad", 180, 1, [], []);
-  mk("Red Hand Assault", "Assault Intercessor Squad", 150, 4, ["Brawlers"], []);
-  mk("Ashfall Gun-Line", "Hellblasters", 110, 9, ["Steady Aim", "Fleet"], ["Shaken"]);
+  mk("Anvil Squad", "Intercessor Squad", 180, 1, [], [], { role: "Battleline" });
+  mk("Red Hand Assault", "Assault Intercessor Squad", 150, 4, ["Brawlers"], [], { role: "Battleline" });
+  mk("Ashfall Gun-Line", "Hellblasters", 110, 9, ["Steady Aim", "Fleet"], ["Shaken"], { role: "Infantry" });
   mk("Captain Idris Valen", "Captain", 85, 6, ["Grizzled"], [], {
+    role: "Character",
     isCharacter: true,
     isWarlord: true,
     enhancement: 'Gilded Standard of the Ninth: friendly units within 6" re-roll Battle-shock tests.',
@@ -213,9 +215,9 @@ export function exampleUnits(rng: Rng, existing: readonly Unit[] = EMPTY): Unit[
     battles: 7,
     kills: 12,
   });
-  mk("Gatekeepers", "Bladeguard Veteran Squad", 150, 7, ["Objective Hunters"], []);
-  mk("Breach Team Seven", "Eradicator Squad", 100, 4, ["Hard to Kill"], ["Crippled", makeScar("Worn Gear", "melta rifles")]);
-  mk("The Anvil of Kharst", "Redemptor Dreadnought", 210, 26, ["Steady Aim", "Grizzled", "Hard to Kill", "Objective Hunters"], []);
+  mk("Gatekeepers", "Bladeguard Veteran Squad", 150, 7, ["Objective Hunters"], [], { role: "Infantry" });
+  mk("Breach Team Seven", "Eradicator Squad", 100, 4, ["Hard to Kill"], ["Crippled", makeScar("Worn Gear", "melta rifles")], { role: "Infantry" });
+  mk("The Anvil of Kharst", "Redemptor Dreadnought", 210, 26, ["Steady Aim", "Grizzled", "Hard to Kill", "Objective Hunters"], [], { role: "Vehicle" });
   return out;
 }
 
@@ -235,10 +237,14 @@ function cleanUnit(u: Unit): Unit | null {
   if (!Number.isInteger(u.xp) || u.xp < 0) return null;
   if (!Array.isArray(u.honours) || !u.honours.every(isHonour) || !unique(u.honours)) return null;
   if (!Array.isArray(u.scars) || !u.scars.every((s) => typeof s === "string" && isScar(s))) return null;
-  if (u.isWarlord && !u.isCharacter) return null;
+  // Role and Character stay in sync: a non-Character role cannot be a Character (or Warlord).
+  const role = isRole(u.role) ? u.role : undefined;
+  const isChar = role === "Character" ? true : role ? false : !!u.isCharacter;
+  // A Warlord with no role must be a Character; a non-Character role just drops the Warlord flag.
+  if (u.isWarlord && !isChar && !role) return null;
   if (u.battles !== undefined && !isCount(u.battles)) return null;
   if (u.kills !== undefined && !isCount(u.kills)) return null;
-  if (u.isCharacter && u.relics !== undefined) {
+  if (isChar && u.relics !== undefined) {
     if (!Array.isArray(u.relics) || u.relics.length > MAX_RELICS || !u.relics.every((r) => typeof r === "string" && isRelic(r)) || !unique(u.relics)) return null;
   }
   const out: Unit = {
@@ -249,9 +255,10 @@ function cleanUnit(u: Unit): Unit | null {
     xp: u.xp,
     honours: [...u.honours],
     scars: [...u.scars],
-    isCharacter: !!u.isCharacter,
-    isWarlord: !!u.isWarlord,
+    isCharacter: isChar,
+    isWarlord: isChar && !!u.isWarlord,
   };
+  if (role) out.role = role;
   const enh = u.enhancement?.trim();
   if (out.isCharacter && enh) out.enhancement = enh;
   if (out.isCharacter) {
@@ -532,6 +539,7 @@ export function promoteUnit(s: CampaignState, playerId: string, unitId: string, 
     if (u.xp < PROMOTION_MIN_XP) return false;
     spendRp(s, playerId, PROMOTION_COST);
     u.isCharacter = true;
+    u.role = "Character";
     log(s, B(p.name), ` spends ${PROMOTION_COST} RP on a Promotion: `, B(u.name), " is now a Character.");
   }
   return true;

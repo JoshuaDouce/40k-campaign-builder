@@ -29,6 +29,7 @@ export type ProvinceType =
   | "settlement"
   | "outpost"
   | "ruins";
+export type Role = "Character" | "Battleline" | "Infantry" | "Vehicle" | "Monster" | "Other";
 export type ActionId = "conquer" | "raid" | "recuperate" | "muster" | "fortify" | "scout";
 export type StatKey = "rp" | "battles" | "wins";
 
@@ -166,6 +167,8 @@ export interface Unit {
   honours: string[];
   scars: string[];
   isCharacter: boolean;
+  /** Battlefield role for the Force Organisation chart. Missing = unassigned (a legacy Character counts as Character). */
+  role?: Role;
   /** At most one per roster; requires `isCharacter`. */
   isWarlord: boolean;
   enhancement?: string;

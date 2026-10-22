@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { PROMOTION_COST, PROMOTION_MIN_XP, rankOf, RECRUITS_COST, scarEffect, SURGEON_COST, scarLabel, scarName } from "../../game/index.ts";
+import { forceOrgFor, PROMOTION_COST, PROMOTION_MIN_XP, rankOf, RECRUITS_COST, scarEffect, SURGEON_COST, scarLabel, scarName } from "../../game/index.ts";
 import type { Unit } from "../../game/index.ts";
 import { useCampaign } from "../../store/useCampaign.ts";
 import { Overlay, SheetFooter } from "./Overlay.tsx";
@@ -151,11 +151,12 @@ export function PromotionDialog({ playerId, roster, rp, onDone, onClose }: Props
 }
 
 export function SeasonedRecruitsDialog({ playerId, roster, rp, onDone, onClose }: Props) {
-  const { dispatch } = useCampaign();
+  const { state, dispatch } = useCampaign();
   return (
     <UnitFormSheet
       mode="recruits"
       roster={roster}
+      fo={forceOrgFor(state, playerId)}
       rp={rp}
       onClose={onClose}
       onSave={(unit) => {
