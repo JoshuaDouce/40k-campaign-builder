@@ -66,6 +66,9 @@ export function PlayersTab({ colors }: { colors: Record<string, string> }) {
           Add player
         </button>
       </div>
+      {state.round >= 1 && (
+        <p className="dim">The campaign is under way, so new players get a catch-up bonus: extra supply and a Fate Card.</p>
+      )}
       <div>
         {state.players.length ? (
           state.players.map((p) => (

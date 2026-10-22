@@ -1,6 +1,6 @@
 // The War Round engine. Functions that take `s: CampaignState` MUTATE it: they are internal building
 // blocks that `apply()` runs on a structuredClone. Never call them on state you want to keep.
-import { drawFor, HAND_LIMIT } from "./cards.ts";
+import { drawCard, drawFor, HAND_LIMIT } from "./cards.ts";
 import { ACTIONS, PTYPES, TWISTS } from "./data.ts";
 import { genSystem } from "./map.ts";
 import { B, log } from "./log.ts";
@@ -338,4 +338,24 @@ export function doQuiet(s: CampaignState, fortZone: string | undefined, rng: Rng
   }
   endTurn(s);
   return true;
+}
+
+/**
+ * Late-arrival catch-up for a player who joins once the campaign is under way (round 1 or later):
+ * 1 extra Fate Card, and a supply limit of the others' average (to the nearest 50) minus 150 if that
+ * beats the starting 750. Call after the player has been added to `s.players`.
+ */
+export function lateArrivalBonus(s: CampaignState, p: Player, rng: Rng): void {
+  const others = s.players.filter((x) => x.id !== p.id);
+  const avg = others.length ? r50(others.reduce((n, x) => n + supplyOf(x), 0) / others.length) - 150 : 0;
+  const target = avg > supplyOf(p) ? avg : 0;
+  if (target) p.sup = (p.sup || 0) + target - supplyOf(p);
+  drawCard(p, rng);
+  log(
+    s,
+    B(p.name),
+    target
+      ? ` is given a late-arrival bonus: a supply limit of ${target} and 1 extra Fate Card.`
+      : " is given a late-arrival bonus: 1 extra Fate Card.",
+  );
 }
