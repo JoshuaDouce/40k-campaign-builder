@@ -1,7 +1,7 @@
 // The single entry point for every state change.
 import { drawCard } from "./cards.ts";
 import { ACTIONS, FACTIONS } from "./data.ts";
-import { beginRound, doQuiet, endTurn, fresh, lateArrivalBonus, regen, resolve, rollBattle, rollTwists, takeSnapshot, targets, undoBattle } from "./engine.ts";
+import { beginRound, doQuiet, endTurn, fresh, lateArrivalBonus, regen, resolve, rollBattle, rollTwists, START_RP, takeSnapshot, targets, undoBattle } from "./engine.ts";
 import { B, log } from "./log.ts";
 import { addWorld } from "./map.ts";
 import type { Rng } from "./rng.ts";
@@ -180,7 +180,7 @@ function run(s: CampaignState, a: Action, rng: Rng): boolean {
     case "addPlayer": {
       if (!a.id || getPlayer(s, a.id) || !Object.hasOwn(FACTIONS, a.faction) || !a.name.trim()) return false;
       if (a.userId !== undefined && s.players.some((x) => x.userId === a.userId)) return false;
-      const p: Player = { id: a.id, name: a.name, faction: a.faction, rp: 5, battles: 0, wins: 0, sup: 0, scout: false, hand: [] };
+      const p: Player = { id: a.id, name: a.name, faction: a.faction, rp: START_RP, battles: 0, wins: 0, sup: 0, scout: false, hand: [] };
       if (a.userId !== undefined) p.userId = a.userId;
       if (a.email !== undefined) p.email = a.email.trim().toLowerCase();
       s.players.push(p);
@@ -220,7 +220,7 @@ function run(s: CampaignState, a: Action, rng: Rng): boolean {
       return true;
 
     case "reset": {
-      const keep = s.players.map((p) => ({ ...p, rp: 5, battles: 0, wins: 0, sup: 0, scout: false, hand: [] }));
+      const keep = s.players.map((p) => ({ ...p, rp: START_RP, battles: 0, wins: 0, sup: 0, scout: false, hand: [] }));
       Object.assign(s, fresh(keep, rng));
       return true;
     }

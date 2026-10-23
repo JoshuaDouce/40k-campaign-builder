@@ -328,6 +328,8 @@ export interface CampaignState {
   fallen?: FallenCharacter[];
   /** Round-0 setup: players who ticked Ready. Missing = nobody ready. */
   ready?: Record<string, true>;
+  /** Set once the 0 RP start has been applied; an older round-0 save without it has its players' RP zeroed once on load. */
+  rpStartZero?: boolean;
   /** Battle history, oldest first. Missing on old saves = empty. */
   history?: BattleRecord[];
   /** Undo window for the latest battle result. Missing = nothing to undo. */
