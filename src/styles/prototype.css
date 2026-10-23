@@ -461,6 +461,38 @@ input.ac-bad{border-color:var(--blood)}
 .ac-fac .e{font-size:14.5px;color:var(--dim)}
 .ac-fac[aria-pressed="true"]{border-color:var(--brass);background:var(--panel2)}
 .ac-fac[aria-pressed="true"] .k span{color:var(--brass)}
+/* factions grouped by side (join, factions tab) and the datasheet pick-list ("mf-" = Munitorum Field Manual) */
+.mf-side{font-family:var(--f-display);font-weight:500;font-size:23px;line-height:1.1;color:var(--brass);margin:0;padding:8px 0 6px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.mf-side small{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+.mf-grp{margin-bottom:14px}
+.ac-fac .k .mf-kl{display:inline-flex;align-items:center;gap:6px}
+.mf-foot{position:sticky;bottom:0;z-index:3;background:var(--bg);border-top:1px solid var(--brass);padding:10px 0;display:grid;gap:6px}
+.mf-foot .hint{margin:0;text-align:center}
+.mf-ds input{min-height:44px;width:100%}
+.mf-ds input.mf-open{border-color:var(--brass)}
+.mf-lblrow{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.mf-ds{flex-basis:100%}
+.mf-ver{text-decoration:none;font-family:var(--f-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);border:1px solid var(--line);border-radius:2px;padding:0 5px;line-height:1.5}
+.mf-list{margin:2px 0 0;padding:0;list-style:none;background:var(--panel2);border:1px solid var(--brass);border-radius:2px;max-height:228px;overflow:auto}
+.mf-opt{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:44px;padding:6px 10px;border-top:1px solid var(--line);color:var(--ink);cursor:pointer}
+.mf-opt:first-child{border-top:0}
+.mf-opt:hover,.mf-opt.act{background:var(--panel)}
+.mf-nm{display:flex;align-items:center;gap:8px;min-width:0;flex-wrap:wrap}
+.mf-nm b{font-weight:500}
+.mf-nm mark{background:none;color:var(--brass);font-weight:700}
+.mf-nm .badge{white-space:nowrap}
+.mf-pts{font-family:var(--f-mono);font-size:13px;color:var(--brass);white-space:nowrap;font-variant-numeric:tabular-nums}
+.mf-pts s{text-decoration:none;color:var(--dim);font-size:11px;margin-right:3px}
+.mf-opt.leg .mf-nm b{color:var(--dim)}
+.mf-loading{font-family:var(--f-mono);font-size:12px;color:var(--dim);margin-top:4px;display:flex;align-items:center;gap:6px}
+.mf-loading i{width:8px;height:8px;border-radius:50%;background:var(--brass);opacity:.6;display:inline-block}
+.mf-sizes{display:flex;flex-wrap:wrap;margin-top:6px}
+.mf-sizes button{flex:1 1 0;min-width:110px;min-height:44px;font-family:var(--f-mono);font-size:12.5px;padding:6px 8px;color:var(--dim);background:none;border:1px solid var(--line);cursor:pointer;line-height:1.25}
+.mf-sizes button:not(:first-child){border-left:0}
+.mf-sizes button:first-child{border-radius:20px 0 0 20px}
+.mf-sizes button:last-child{border-radius:0 20px 20px 0}
+.mf-sizes button[aria-pressed="true"]{border-color:var(--brass);color:var(--ink);background:var(--panel2)}
+.mf-sizes button b{color:var(--brass);font-weight:400}
 /* members panel */
 .ac-members{border:1px solid var(--brass);border-radius:4px;background:var(--panel);padding:14px;display:grid;gap:12px;margin:12px 0}
 .ac-members h3{margin:0}

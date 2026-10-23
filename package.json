@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "update-points": "node scripts/update-points.mjs"
   },
   "dependencies": {
     "@aws-amplify/ui-react": "^6.15.7",
@@ -27,7 +28,8 @@
     "esbuild": "^0.28.2",
     "oxlint": "^1.88.0",
     "typescript": "~7.0.2",
-    "vite": "^8.3.4"
+    "vite": "^8.3.4",
+    "yaml": "^2.9.1"
   },
   "allowScripts": {
     "esbuild@0.28.2": true,

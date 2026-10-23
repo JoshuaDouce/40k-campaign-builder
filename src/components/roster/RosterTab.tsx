@@ -215,6 +215,7 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
       {editable && dialog?.kind === "add" && (
         <UnitFormSheet
           mode="add"
+          faction={player.faction}
           roster={roster}
           fo={fo}
           onClose={closeDialog}
@@ -227,6 +228,7 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
       {editable && dialog?.kind === "edit" && (
         <UnitFormSheet
           mode="edit"
+          faction={player.faction}
           existing={dialog.unit}
           roster={roster}
           fo={fo}

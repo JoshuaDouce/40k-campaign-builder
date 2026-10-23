@@ -18,7 +18,8 @@ import {
   TRAIT_MAX,
   WORN_GEAR,
 } from "../../game/index.ts";
-import type { ForceOrg, Role, Unit } from "../../game/index.ts";
+import type { FactionName, ForceOrg, Role, Unit } from "../../game/index.ts";
+import { DatasheetPicker } from "./DatasheetPicker.tsx";
 import { Overlay } from "./Overlay.tsx";
 import { useRng } from "./useRng.ts";
 
@@ -28,6 +29,8 @@ interface Props {
   mode: FormMode;
   existing?: Unit;
   roster: readonly Unit[];
+  /** The player's faction, for the datasheet pick-list. Without data the field is plain text. */
+  faction?: FactionName;
   /** Slot counts for the Role hint. */
   fo: ForceOrg;
   /** Shown in the Seasoned Recruits intro. */
@@ -108,7 +111,7 @@ const COPY: Record<FormMode, { title: string; cta: string }> = {
   recruits: { title: "Seasoned Recruits", cta: `Spend ${RECRUITS_COST} RP and add unit` },
 };
 
-export function UnitFormSheet({ mode, existing, roster, fo, rp, onSave, onClose }: Props) {
+export function UnitFormSheet({ mode, existing, roster, faction, fo, rp, onSave, onClose }: Props) {
   const rng = useRng();
   const [d, setD] = useState<Draft>(() => initial(existing, mode));
   const set = (patch: Partial<Draft>) => setD((prev) => ({ ...prev, ...patch }));
@@ -187,10 +190,14 @@ export function UnitFormSheet({ mode, existing, roster, fo, rp, onSave, onClose 
           <label htmlFor="f_name">Unit name</label>
           <input type="text" id="f_name" value={d.name} placeholder="e.g. Anvil Squad" onChange={(e) => set({ name: e.target.value })} />
         </div>
-        <div className="field">
-          <label htmlFor="f_ds">Datasheet</label>
-          <input type="text" id="f_ds" value={d.datasheet} placeholder="e.g. Intercessor Squad" onChange={(e) => set({ datasheet: e.target.value })} />
-        </div>
+        <DatasheetPicker
+          id="f_ds"
+          faction={faction}
+          value={d.datasheet}
+          points={d.points}
+          onText={(datasheet) => set({ datasheet })}
+          onPoints={(points) => set({ points })}
+        />
         <div className="field" style={{ flex: "1 1 120px" }}>
           <label htmlFor="f_base">Base points</label>
           <input type="number" id="f_base" inputMode="numeric" min={0} step={5} value={d.points} onChange={(e) => set({ points: e.target.value })} />

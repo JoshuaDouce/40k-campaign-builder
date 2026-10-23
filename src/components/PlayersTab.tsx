@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { canPerform, count, FACTIONS, getPlanet, getProvince, supplyOf } from "../game/index.ts";
+import { canPerform, count, getPlanet, getProvince, supplyOf } from "../game/index.ts";
 import type { Action, CampaignState, Card, FactionName, Player, StatKey } from "../game/index.ts";
 import { canSeeHand, useCampaign } from "../store/useCampaign.ts";
 import type { TabId } from "../store/useDevicePrefs.ts";
@@ -8,9 +8,9 @@ import { FateCard } from "./FateCard.tsx";
 import { DeleteCampaign } from "./account/DeleteCampaign.tsx";
 import { MembersPanel } from "./account/MembersPanel.tsx";
 import { WaitingNote } from "./account/WaitingNote.tsx";
+import { FactionOptions } from "./FactionOptions.tsx";
 import { PlayerNameInput } from "./PlayerNameInput.tsx";
 
-const FACTION_NAMES = Object.keys(FACTIONS) as FactionName[];
 const STAT_LABELS: ReadonlyArray<readonly [StatKey, string]> = [
   ["rp", "Requisition"],
   ["battles", "Battles"],
@@ -183,11 +183,7 @@ function PlayerCard({ player: p, state, color, fresh, setup }: CardProps) {
           disabled={!canEdit}
           onChange={(e) => dispatch({ type: "updatePlayer", playerId: p.id, faction: e.target.value as FactionName })}
         >
-          {FACTION_NAMES.map((f) => (
-            <option key={f} value={f}>
-              {f}
-            </option>
-          ))}
+          <FactionOptions />
         </select>
       </div>
       <div className="stats">

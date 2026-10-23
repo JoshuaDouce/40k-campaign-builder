@@ -155,6 +155,7 @@ export function SeasonedRecruitsDialog({ playerId, roster, rp, onDone, onClose }
   return (
     <UnitFormSheet
       mode="recruits"
+      faction={state.players.find((p) => p.id === playerId)?.faction}
       roster={roster}
       fo={forceOrgFor(state, playerId)}
       rp={rp}

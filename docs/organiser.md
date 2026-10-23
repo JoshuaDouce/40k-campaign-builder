@@ -55,3 +55,16 @@ Their warband stays in any campaign until you use Remove player.
 - Removing a member in the app takes away their access, not their warband.
 - Membership is honour-system: the app only lets you change members, but a member who knew how could edit the list through the API. Fine for friends.
 - A campaign is one saved document (DynamoDB items are limited to 400 KB). The battle log is capped at 60 lines.
+
+## Refreshing points
+Unit points come from the community Munitorum Field Manual data. To pull the latest values, run this from the project folder, then commit the changed files in `src/data/mfm/`:
+
+```
+npm run update-points
+```
+
+It fetches `meta.yaml` and one file per faction from the `BSData/wh40k-11e-mfm` repo on GitHub and rewrites `src/data/mfm/*.json`. It stops with an error if the repo adds a faction we don't know about or a download fails. Running it twice in a row changes nothing.
+Units already saved in a roster keep the points they were added with; only units added afterwards use the new values.
+It needs Node 22.18 or later (it reads `src/data/mfm/slugs.ts` directly). If it stops because the repo added a faction, add that faction to `FACTIONS` in `src/game/data.ts` and to `src/data/mfm/slugs.ts` first.
+
+Points data: BSData/wh40k-11e-mfm, MIT licence (copy in `src/data/mfm/LICENSE`).

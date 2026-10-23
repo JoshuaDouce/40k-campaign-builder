@@ -9,7 +9,7 @@ const OPTIONS: DeckFilter[] = ["Generic", ...FACTION_NAMES];
 
 export function DeckTab() {
   const [filter, setFilter] = useState<DeckFilter>("Generic");
-  const list = filter === "Generic" ? GENERIC : FACCARDS[filter].map((c) => ({ ...c, n: 2, fac: filter }));
+  const list = filter === "Generic" ? GENERIC : (FACCARDS[filter] ?? []).map((c) => ({ ...c, n: 2, fac: filter }));
 
   return (
     <section className="tab" id="cards">
