@@ -35,7 +35,9 @@ function Row({ row }: { row: ForceOrgRow }) {
         <small> / {row.max}</small>
       </div>
       <div className="src">
-        {shown.length === 0 ? (
+        {row.note ? (
+          row.note
+        ) : shown.length === 0 ? (
           "Base slots only"
         ) : (
           <>

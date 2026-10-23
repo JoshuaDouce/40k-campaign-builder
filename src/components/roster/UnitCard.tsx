@@ -19,6 +19,8 @@ import { FallSheet } from "./FallSheet.tsx";
 interface Props {
   unit: Unit;
   editable: boolean;
+  /** False in Setup: removing a Character there leaves no Hall of Heroes memorial. */
+  memorial: boolean;
   overLimit?: boolean;
   onEdit(): void;
   /** Characters pass the cause entered on the "Why did they fall?" sheet. */
@@ -27,7 +29,7 @@ interface Props {
   onRemoveRelic(relic: string): void;
 }
 
-export function UnitCard({ unit, editable, overLimit, onEdit, onRemove, onRollRelic, onRemoveRelic }: Props) {
+export function UnitCard({ unit, editable, memorial, overLimit, onEdit, onRemove, onRollRelic, onRemoveRelic }: Props) {
   const [armed, setArmed] = useState(false);
   const [asking, setAsking] = useState(false);
   useEffect(() => {
@@ -43,6 +45,7 @@ export function UnitCard({ unit, editable, overLimit, onEdit, onRemove, onRollRe
   const legend = !next;
   const danger = unit.scars.length >= 2;
   const toNext = xpToNext(unit.xp);
+  const remembered = unit.isCharacter && memorial;
   const pct = next ? Math.round(((unit.xp - rank.xp) / (next.xp - rank.xp)) * 100) : 100;
   const relics = unit.relics ?? [];
   const hp = honourPoints(unit);
@@ -219,12 +222,12 @@ export function UnitCard({ unit, editable, overLimit, onEdit, onRemove, onRollRe
           <button
             className="btn sm danger"
             onClick={() => {
-              if (unit.isCharacter) setAsking(true);
+              if (remembered) setAsking(true);
               else if (armed) onRemove();
               else setArmed(true);
             }}
           >
-            {armed && !unit.isCharacter ? "Confirm remove" : "Remove"}
+            {armed && !remembered ? "Confirm remove" : "Remove"}
           </button>
         </div>
       )}

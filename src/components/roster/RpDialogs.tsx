@@ -85,11 +85,13 @@ export function FieldSurgeonDialog({ playerId, roster, rp, onDone, onClose }: Pr
 type PromoMode = "char" | "vet";
 
 export function PromotionDialog({ playerId, roster, rp, onDone, onClose }: Props) {
-  const { dispatch } = useCampaign();
+  const { state, dispatch } = useCampaign();
+  // Setup allows one Character, the Warlord: no Veteran can be promoted until War Round 1.
+  const setup = state.round === 0;
   const [mode, setMode] = useState<PromoMode>("char");
   const [uid, setUid] = useState<string | null>(null);
   const [enh, setEnh] = useState("");
-  const list = mode === "char" ? roster.filter((u) => u.isCharacter) : roster.filter((u) => !u.isCharacter && u.xp >= PROMOTION_MIN_XP);
+  const list = mode === "char" ? roster.filter((u) => u.isCharacter) : setup ? [] : roster.filter((u) => !u.isCharacter && u.xp >= PROMOTION_MIN_XP);
   const unit = list.find((u) => u.id === uid);
   const ready = !!unit && rp >= PROMOTION_COST && (mode === "vet" || enh.trim() !== "");
 
@@ -131,7 +133,7 @@ export function PromotionDialog({ playerId, roster, rp, onDone, onClose }: Props
             </button>
           ))
         ) : (
-          <p className="dim">{mode === "char" ? "No Characters on the roster." : "No Veteran units that aren't already Characters."}</p>
+          <p className="dim">{mode === "char" ? "No Characters on the roster." : setup ? "Setup allows one Character: your Warlord. Veterans can be promoted from War Round 1." : "No Veteran units that aren't already Characters."}</p>
         )}
       </div>
       {mode === "char" && uid && (
@@ -155,6 +157,7 @@ export function SeasonedRecruitsDialog({ playerId, roster, rp, onDone, onClose }
   return (
     <UnitFormSheet
       mode="recruits"
+      playerId={playerId}
       faction={state.players.find((p) => p.id === playerId)?.faction}
       roster={roster}
       fo={forceOrgFor(state, playerId)}

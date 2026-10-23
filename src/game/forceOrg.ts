@@ -54,6 +54,8 @@ export interface ForceOrgRow {
   min: number;
   /** base + min(HOLDING_CAP, matching). */
   max: number;
+  /** Setup only: replaces the "Base N" source line (e.g. "One Character: your Warlord"). */
+  note?: string;
   /** Matching provinces held (uncapped). */
   matching: number;
   /** Every matching province held (the UI shows the first 3). */
@@ -86,9 +88,13 @@ export function forceOrgFor(state: CampaignState, playerId: string): ForceOrg {
       .filter((v) => def.from.includes(v.type))
       .map((v) => ({ label: v.type === "capital" ? VTYPES.capital.n : def.holding, province: v.name }));
     const mine = byRole.get(def.role) ?? [];
-    const max = def.base + Math.min(HOLDING_CAP, sources.length);
+    // Setup (round 0): one Character, the Warlord, so the row is held at 1 and its minimum is left to the checklist.
+    const setupChar = state.round === 0 && def.role === "Character";
+    const max = setupChar ? 1 : def.base + Math.min(HOLDING_CAP, sources.length);
     if (mine.length > max) overLimitIds.push(...mine.slice(max).map((u) => u.id));
-    return { role: def.role, filled: mine.length, base: def.base, min: def.min, max, matching: sources.length, sources };
+    const row: ForceOrgRow = { role: def.role, filled: mine.length, base: setupChar ? 1 : def.base, min: setupChar ? 0 : def.min, max, matching: sources.length, sources };
+    if (setupChar) row.note = "One Character: your Warlord";
+    return row;
   });
   return { rows, unassigned, overLimitIds };
 }
