@@ -13,7 +13,7 @@ body{margin:0}
   color-scheme:dark;
 }
 *{box-sizing:border-box}
-body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.55;
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.55;overflow-wrap:break-word;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
 .wrap{max-width:760px;margin:0 auto}
@@ -26,6 +26,8 @@ nav.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:v
 nav.tabs::-webkit-scrollbar{display:none}
 nav.tabs button{flex:0 0 auto;font-family:var(--f-mono);font-size:13px;letter-spacing:.06em;text-transform:uppercase;background:none;color:var(--dim);border:1px solid transparent;padding:8px 12px;border-radius:2px;cursor:pointer}
 nav.tabs button[aria-selected="true"]{color:var(--bg);background:var(--brass)}
+/* Wider than a phone, all tabs fit (wrapping if they must) instead of the last ones hiding off the edge. */
+@media (min-width:600px){nav.tabs{flex-wrap:wrap}nav.tabs button{padding:8px 9px}}
 nav.tabs button:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
 section.tab{padding-block:22px}
 h2{font-family:var(--f-display);font-weight:700;font-size:34px;line-height:1.05;margin:0 0 6px;text-wrap:balance}
@@ -47,7 +49,7 @@ td.n{font-family:var(--f-mono);color:var(--brass);white-space:nowrap;font-varian
 .btn.primary{background:var(--brass);color:var(--bg);border-color:var(--brass)}
 .btn.danger{color:var(--blood)}
 .btn:disabled{opacity:.4;cursor:not-allowed}
-.btn.sm{padding:5px 9px;font-size:11px}
+.btn.sm{padding:5px 9px;font-size:11px;min-height:36px}
 .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .note{border-left:3px solid var(--blood);padding:8px 12px;background:var(--panel);margin:14px 0;max-width:65ch}
 .note b{color:var(--blood)}
@@ -98,7 +100,8 @@ select,textarea,input[type=text],input[type=number]{font:inherit;background:var(
 .stat{background:var(--panel2);padding:8px;border-radius:2px;text-align:center}
 .stat .l{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
 .stat .v{font-family:var(--f-display);font-size:28px;line-height:1;font-variant-numeric:tabular-nums}
-.stat .pm{display:flex;justify-content:center;gap:4px;margin-top:4px}
+.stat .pm{display:flex;justify-content:center;gap:6px;margin-top:6px}
+.stat .pm .btn.sm{min-width:36px}
 .handbar{display:flex;gap:4px;margin:4px 0 2px}
 .handbar i{flex:1;height:5px;background:var(--line);border-radius:1px}
 .handbar i.on{background:var(--brass)}
@@ -272,7 +275,7 @@ select,textarea,input[type=text],input[type=number]{font:inherit;background:var(
 .toast{font-family:var(--f-mono);font-size:12px;color:var(--verd);min-height:1em;margin-top:6px}
 .overlay .sheet h4{font-family:var(--f-display);font-size:28px;font-weight:700;margin:0 0 2px;line-height:1.05}
 .overlay .sheet:focus{outline:none}
-.rhead .chip,.unit .btn.sm,.relic .btn.sm,.relicbar .btn.sm,.mem .btn.sm,.rp-row .btn.sm,.opt,.diebtn .btn.sm,.stepper .btn.sm{min-height:44px}
+.rhead .chip,.opt,.diebtn .btn.sm,.stepper .btn.sm{min-height:44px}
 .diebtn select,.xpprev input{min-height:44px}
 .seg .chip,.chips .chip{min-height:40px}
 textarea{width:100%;resize:vertical;min-height:96px}
@@ -359,7 +362,7 @@ textarea{width:100%;resize:vertical;min-height:96px}
 .badge.su-next{background:var(--brass);color:var(--bg);border-color:var(--brass)}
 .badge.su-ood{border-color:var(--blood);color:var(--blood)}
 .su-sub{font-size:14.5px;color:var(--dim);margin:0}
-.su-btn,.su-links .btn{min-height:44px}
+.su-btn{min-height:44px}
 .su-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .su-brief{list-style:none;counter-reset:b;margin:0;padding:0;display:grid;gap:6px}
 .su-brief li{counter-increment:b;display:grid;grid-template-columns:22px 1fr;gap:8px;font-size:15px;line-height:1.4}
@@ -433,7 +436,7 @@ textarea{width:100%;resize:vertical;min-height:96px}
 .ac-form{display:grid;gap:12px}
 .ac-actions{display:grid;gap:8px}
 .ac-actions .btn{width:100%}
-.ac-back{font-family:var(--f-mono);font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--brass);min-height:44px;display:inline-flex;align-items:center;gap:6px;background:none;border:0;padding:0;cursor:pointer}
+.ac-back{justify-self:start;font-family:var(--f-mono);font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--brass);min-height:44px;display:inline-flex;align-items:center;gap:6px;background:none;border:0;padding:0;cursor:pointer}
 .ac-lnk{font-family:var(--f-mono);font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--brass);background:none;border:0;padding:0;min-height:44px;display:inline-flex;align-items:center;cursor:pointer;text-decoration:underline}
 input.ac-bad{border-color:var(--blood)}
 /* app bar: public header and signed-in header */
@@ -504,8 +507,8 @@ input.ac-bad{border-color:var(--blood)}
 .ac-mlist .st{font-family:var(--f-mono);font-size:12px;color:var(--dim)}
 .ac-mlist .st.wait{color:var(--brass)}
 .ac-wait{border-left:3px solid var(--brass);padding:8px 12px;background:var(--panel);margin:12px 0}
-.ac-wait b{font-family:var(--f-display);font-weight:500;font-size:19px}
-.ac-danger{border:1px solid var(--blood);border-radius:4px;padding:12px;display:grid;gap:8px;margin-top:22px}
+.ac-wait b{font-family:var(--f-display);font-weight:500;font-size:19px;overflow-wrap:anywhere}
+.ac-danger{border:1px solid var(--blood);border-radius:4px;padding:12px;display:grid;justify-items:start;gap:8px;margin-top:22px}
 .ac-danger .lbl{color:var(--blood)}
 /* campaign header */
 .ac-chead{display:grid;gap:2px;padding-block:8px 6px;border-bottom:1px solid var(--line)}
@@ -526,6 +529,7 @@ input.ac-bad{border-color:var(--blood)}
 .badge.org{background:var(--brass);color:var(--bg);border-color:var(--brass)}
 /* scoped base differences: 44px targets and form fields inside the account screens only */
 .ac-screen .btn,.ac-top .btn,.ac-banner .btn,.ac-members .btn,.ac-danger .btn,.ac-modal .btn,.ac-gone .btn,.ac-chead .ac-back{min-height:44px}
+.ac-mlist .btn{min-height:36px}
 .ac-screen select,.ac-screen input[type=text],.ac-screen input[type=email],.ac-screen input[type=password],.ac-members input[type=email]{font:inherit;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:2px;padding:7px 9px;max-width:100%;min-height:44px;width:100%}
 a:focus-visible,.ac-lnk:focus-visible,.ac-back:focus-visible,.ac-fac:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
 .ac-top{margin-top:0}
