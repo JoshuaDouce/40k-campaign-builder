@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { playerColors } from "./game/index.ts";
 import { AccountBar } from "./components/account/AccountBar.tsx";
@@ -56,8 +56,18 @@ const HERO = (
 type Screen = { kind: "public" } | { kind: "signin" } | { kind: "list" } | { kind: "new" } | { kind: "campaign"; id: string };
 
 function TabBar({ tabs, current, label, onSelect }: { tabs: ReadonlyArray<{ id: TabId; label: string }>; current: TabId; label: string; onSelect: (t: TabId) => void }) {
+  const ref = useRef<HTMLElement>(null);
+  // On a phone the bar scrolls sideways: keep the selected tab in view (e.g. Players, the last one).
+  useEffect(() => {
+    const nav = ref.current;
+    const b = nav?.querySelector<HTMLElement>('[aria-selected="true"]');
+    if (!nav || !b) return;
+    if (b.offsetLeft < nav.scrollLeft || b.offsetLeft + b.offsetWidth > nav.scrollLeft + nav.clientWidth) {
+      nav.scrollLeft = b.offsetLeft - (nav.clientWidth - b.offsetWidth) / 2;
+    }
+  }, [current]);
   return (
-    <nav className="tabs" role="tablist" aria-label={label}>
+    <nav ref={ref} className="tabs" role="tablist" aria-label={label}>
       {tabs.map((t) => (
         <button key={t.id} role="tab" aria-selected={t.id === current} onClick={() => onSelect(t.id)}>
           {t.label}
