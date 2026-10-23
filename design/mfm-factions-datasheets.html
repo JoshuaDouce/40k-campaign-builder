@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Varkesh Reach - 28 factions and datasheet pick-list (design mock)</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Grenze+Gothic:wght@500;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Share+Tech+Mono&display=swap">
+<style>
+/* ===== Tokens and base: copied from reference/index.html ===== */
+[hidden]{display:none!important}
+body{margin:0}
+:root{
+  --bg:#16120f; --panel:#211a16; --panel2:#2a211c; --line:#3d312a;
+  --ink:#ebdfc8; --dim:#a8977f; --brass:#d0a952; --blood:#b8392e; --verd:#6f9a86;
+  --f-display:"Grenze Gothic","Palatino Linotype",Georgia,serif;
+  --f-body:"Alegreya Sans","Segoe UI",system-ui,sans-serif;
+  --f-mono:"Share Tech Mono",ui-monospace,Menlo,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.55;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px}
+.wrap{max-width:440px;margin:0 auto}
+header.hero{padding-block:28px 18px;border-bottom:1px solid var(--line)}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass)}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(40px,11vw,68px);line-height:.95;margin:6px 0 10px;text-wrap:balance;letter-spacing:.01em}
+h1 span{color:var(--blood)}
+.lede{color:var(--dim);max-width:62ch;margin:0}
+button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+h2{font-family:var(--f-display);font-weight:700;font-size:34px;line-height:1.05;margin:0 0 6px;text-wrap:balance}
+h3{font-family:var(--f-display);font-weight:500;font-size:23px;margin:26px 0 6px;color:var(--brass);text-wrap:balance}
+p{margin:0 0 12px;max-width:65ch}
+.dim{color:var(--dim)}
+.mono{font-family:var(--f-mono)}
+.btn{font-family:var(--f-mono);font-size:13px;letter-spacing:.05em;text-transform:uppercase;background:var(--panel2);color:var(--ink);border:1px solid var(--line);padding:9px 14px;border-radius:2px;cursor:pointer;min-height:44px}
+.btn.primary{background:var(--brass);color:var(--bg);border-color:var(--brass)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:6px;font-family:var(--f-mono);font-size:12px;padding:4px 9px;border:1px solid var(--line);border-radius:20px;color:var(--dim);background:none;cursor:pointer}
+.chip[aria-pressed="true"]{border-color:var(--brass);color:var(--ink);background:var(--panel2)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex:none}
+select,input[type=text],input[type=number]{font:inherit;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:2px;padding:7px 9px;max-width:100%;min-height:44px;width:100%}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1 1 180px}
+.field label,.lbl{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.badge{font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:2px;border:1px solid var(--line);color:var(--ink);background:var(--panel2);white-space:nowrap}
+.badge.legend{background:var(--brass);color:var(--bg);border-color:var(--brass)}
+.hint{font-family:var(--f-mono);font-size:12px;color:var(--dim);margin-top:8px;line-height:1.4}
+.formgrid{display:flex;flex-wrap:wrap;gap:12px;margin:12px 0}
+.sub{border-top:1px solid var(--line);padding-top:10px;margin-top:12px}
+
+/* ===== From design/accounts-and-invites.html (reused unchanged) ===== */
+.ac-screen{display:grid;gap:12px;padding-block:16px 8px}
+.ac-back{font-family:var(--f-mono);font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--brass);min-height:44px;display:inline-flex;align-items:center;gap:6px;background:none;border:0;padding:0;cursor:pointer}
+.ac-panel{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:14px;display:grid;gap:12px;min-width:0}
+.ac-actions{display:grid;gap:8px}
+.ac-actions .btn{width:100%}
+.ac-facs{display:grid;gap:8px}
+.ac-fac{text-align:left;font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:12px;display:grid;gap:2px;cursor:pointer;min-height:64px;width:100%}
+.ac-fac .k{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);display:flex;justify-content:space-between;gap:8px}
+.ac-fac .t{font-family:var(--f-display);font-size:21px;line-height:1.1}
+.ac-fac .e{font-size:14.5px;color:var(--dim)}
+.ac-fac[aria-pressed="true"]{border-color:var(--brass);background:var(--panel2)}
+.ac-fac[aria-pressed="true"] .k span{color:var(--brass)}
+
+/* ===== New in this mock ("mf-" prefix, same tokens) ===== */
+/* faction lists grouped by side */
+.mf-side{font-family:var(--f-display);font-weight:500;font-size:23px;line-height:1.1;color:var(--brass);margin:0;padding:8px 0 6px;background:var(--bg);border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.mf-side small{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+.mf-grp{display:grid;gap:8px;margin-bottom:14px}
+.ac-fac .k .mf-kl{display:inline-flex;align-items:center;gap:6px}
+/* join: scroll area with sticky footer (in the app the page itself scrolls and the footer sticks to the viewport) */
+.mf-scroll{max-height:640px;overflow:auto;border:1px dashed var(--line);border-radius:3px;padding:0 10px;position:relative}
+.mf-scroll .mf-side{position:sticky;top:0;z-index:2}
+.mf-foot{position:sticky;bottom:0;z-index:3;background:var(--bg);border-top:1px solid var(--brass);margin:0 -10px;padding:10px 10px max(10px,env(safe-area-inset-bottom,0px));display:grid;gap:6px}
+.mf-foot .hint{margin:0;text-align:center}
+/* setup dropdown */
+.mf-sel{max-width:320px}
+/* datasheet sheet (same look as .overlay .sheet in design/roster.html) */
+.mf-sheet{background:var(--panel);border:1px solid var(--brass);border-radius:6px 6px 0 0;padding:16px;position:relative}
+.mf-sheet h4{font-family:var(--f-display);font-size:28px;font-weight:700;margin:0;line-height:1.05}
+.mf-sheet .formgrid{margin-bottom:8px}
+.mf-ds{position:relative}
+.mf-lblrow{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.mf-ver{font-family:var(--f-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);border:1px solid var(--line);border-radius:2px;padding:0 5px;line-height:1.5}
+.mf-ds input.mf-focus{border-color:var(--brass);outline:2px solid var(--brass);outline-offset:0}
+.mf-list{position:absolute;left:0;right:0;top:100%;margin:2px 0 0;padding:0;list-style:none;z-index:6;background:var(--panel2);border:1px solid var(--brass);border-radius:2px;max-height:228px;overflow:auto;box-shadow:0 8px 18px color-mix(in srgb,var(--bg) 70%,transparent)}
+.mf-opt{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:44px;padding:6px 10px;background:none;border:0;border-top:1px solid var(--line);color:var(--ink);font:inherit;text-align:left;cursor:pointer}
+.mf-list li:first-child .mf-opt{border-top:0}
+.mf-opt:hover,.mf-opt:focus-visible{background:var(--panel)}
+.mf-nm{display:flex;align-items:center;gap:8px;min-width:0;flex-wrap:wrap}
+.mf-nm b{font-weight:500}
+.mf-nm mark{background:none;color:var(--brass);font-weight:700}
+.mf-pts{font-family:var(--f-mono);font-size:13px;color:var(--brass);white-space:nowrap;font-variant-numeric:tabular-nums}
+.mf-pts s{text-decoration:none;color:var(--dim);font-size:11px;margin-right:3px}
+.mf-opt.leg .mf-nm b{color:var(--dim)}
+.mf-loading{font-family:var(--f-mono);font-size:12px;color:var(--dim);margin-top:4px;display:flex;align-items:center;gap:6px}
+.mf-loading i{width:8px;height:8px;border-radius:50%;background:var(--brass);opacity:.6;display:inline-block}
+.mf-sizes{display:grid;grid-template-columns:1fr 1fr;gap:0;margin-top:6px}
+.mf-sizes button{min-height:44px;font-family:var(--f-mono);font-size:12.5px;padding:6px 8px;color:var(--dim);background:none;border:1px solid var(--line);cursor:pointer;line-height:1.25}
+.mf-sizes button:first-child{border-radius:20px 0 0 20px}
+.mf-sizes button:last-child{border-radius:0 20px 20px 0;border-left:0}
+.mf-sizes button[aria-pressed="true"]{border-color:var(--brass);color:var(--ink);background:var(--panel2);position:relative}
+.mf-sizes button b{color:var(--brass);font-weight:400}
+.mf-eff{font-family:var(--f-mono);font-size:12px}
+.mf-eff span{color:var(--brass)}
+.mf-more{font-family:var(--f-mono);font-size:12px;color:var(--dim);border:1px dashed var(--line);padding:6px 10px;border-radius:2px;margin-top:10px}
+.mf-kbd{margin-top:0;border:1px dashed var(--line);border-top:0;background:var(--panel);height:120px;display:grid;place-items:center;font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);text-align:center;padding:0 16px}
+
+/* mock-only: labels and jump bar (not part of the product) */
+.mock{margin:28px 0 0}
+.mocklabel{display:flex;gap:8px;align-items:baseline;font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--brass);border-bottom:1px dashed var(--line);padding-bottom:6px;margin-bottom:4px}
+.mocklabel b{font-weight:400;color:var(--ink)}
+.mocknote{font-family:var(--f-mono);font-size:12px;color:var(--dim);margin:6px 0 10px;line-height:1.45}
+.mockbar{border:1px dashed var(--line);border-radius:3px;padding:8px 10px;margin:14px 0 0;font-family:var(--f-mono);font-size:11px;color:var(--dim)}
+.mockbar .chips{margin-top:6px}
+.mockbar a.chip{text-decoration:none;min-height:32px}
+.mockgrp{margin:34px 0 0;font-family:var(--f-display);font-size:30px;color:var(--brass);border-bottom:1px solid var(--line)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+  <div class="eyebrow">Design mock · Munitorum factions and datasheets</div>
+  <h1>28 <span>Factions</span></h1>
+  <p class="lede">Factions grouped by side on the Join screen, Setup dropdown and Factions tab, plus the searchable Datasheet pick-list in the Add unit form. Each state is a ~400px screen. Faction colours, lines and datasheet points here are sample data.</p>
+</header>
+
+<div class="mockbar" aria-label="Design mock jump bar">
+  MOCK ONLY - jump to a state:
+  <div class="chips" id="jump"></div>
+</div>
+
+<!-- ================= 1. JOIN ================= -->
+<h2 class="mockgrp">1 · Join screen</h2>
+<section class="mock" id="s1a">
+  <div class="mocklabel"><span>1a</span><b>28 faction cards, grouped by side</b></div>
+  <p class="mocknote">Existing card shape (.ac-fac), now with a colour dot beside the side label. Side headings stick to the top while scrolling. Join campaign sticks to the bottom so it is always reachable. The dashed box stands in for the phone viewport; in the app the page scrolls normally. Orks chosen.</p>
+  <div class="ac-screen" style="padding-top:0">
+    <button class="ac-back">&larr; Campaigns</button>
+    <h2>Join Ash and Ember</h2>
+    <div class="mf-scroll" id="joinScroll">
+      <div class="ac-panel" style="margin:10px 0 14px"><div class="field"><label for="p1">Your warband</label><input id="p1" type="text" value="Ash Marauders"></div></div>
+      <div id="joinFacs" role="group" aria-label="Faction"></div>
+      <div class="mf-foot"><div class="ac-actions"><button class="btn primary">Join campaign</button></div><p class="hint">Orks · Xenos</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 2. SETUP ================= -->
+<h2 class="mockgrp">2 · Setup tab</h2>
+<section class="mock" id="s2a">
+  <div class="mocklabel"><span>2a</span><b>Faction dropdown, grouped</b></div>
+  <p class="mocknote">Native &lt;select&gt; with an &lt;optgroup&gt; per side, so the phone's own picker shows the headings. Closed state shown; the second select shows what the native list contains (rendered here with size=12).</p>
+  <div class="field mf-sel"><label for="setfac">Faction</label>
+    <select id="setfac"></select>
+  </div>
+  <div class="field mf-sel" style="margin-top:12px"><label for="setfac2">Native list contents (illustration)</label>
+    <select id="setfac2" size="12" style="min-height:0"></select>
+  </div>
+</section>
+
+<!-- ================= 3. FACTIONS TAB ================= -->
+<h2 class="mockgrp">3 · Factions tab</h2>
+<section class="mock" id="s3a">
+  <div class="mocklabel"><span>3a</span><b>Chips grouped by side, a few selected</b></div>
+  <p class="mocknote">Same .chip look as today. Three side headings, chips wrap at 400px. The web and rivalry cards below follow "pick what your group plays", unchanged.</p>
+  <h2>Factions</h2>
+  <p class="dim">Pick the factions your group plays.</p>
+  <div id="facChips"></div>
+  <p class="mono dim" style="font-size:12px;margin:10px 0 0">5 SELECTED · (web diagram and rivalry cards continue here, unchanged.)</p>
+</section>
+
+<!-- ================= 4. DATASHEET ================= -->
+<h2 class="mockgrp">4 · Add unit: Datasheet pick-list</h2>
+<p class="mocknote" style="margin-top:8px">All states show the Add unit sheet for a Necrons player unless stated. The sheet's other fields are shown only for context. "MFM 1.6" sits small beside the Datasheet label whenever data is in use.</p>
+
+<section class="mock" id="s4a"><div class="mocklabel"><span>4a</span><b>Empty field, focused</b></div>
+  <p class="mocknote">Placeholder names the faction. No list until the player types. Plain typing still works with the list closed.</p>
+  <div id="d4a"></div></section>
+
+<section class="mock" id="s4b"><div class="mocklabel"><span>4b</span><b>Typing "imm": matching rows</b></div>
+  <p class="mocknote">List drops under the field and overlays the fields below. Rows are 44px or taller, points on the right ("from 80" if several sizes, else "100 pts"). Legends sit below current units, with a Legends tag. The list caps at about 5 rows and scrolls, so the field stays visible above the keyboard. No "use as typed" row: the field text is simply what is saved.</p>
+  <div id="d4b"></div><div class="mf-kbd">On-screen keyboard area</div></section>
+
+<section class="mock" id="s4b2"><div class="mocklabel"><span>4b-ii</span><b>Typing "anr": Legends-only match</b></div>
+  <p class="mocknote">Legends rows are marked even when nothing else matches. Matching ignores case, apostrophes and curly quotes.</p>
+  <div id="d4b2"></div></section>
+
+<section class="mock" id="s4c"><div class="mocklabel"><span>4c</span><b>Picked a multi-size datasheet</b></div>
+  <p class="mocknote">Model-count choice appears under the field, default is the smallest size. Base points is filled and still editable. Tap the choices to see Base points and Effective points change.</p>
+  <div id="d4c"></div></section>
+
+<section class="mock" id="s4d"><div class="mocklabel"><span>4d</span><b>Picked a single-size datasheet</b></div>
+  <p class="mocknote">One price, so no model-count row. The sheet layout does not shift beyond the missing row.</p>
+  <div id="d4d"></div></section>
+
+<section class="mock" id="s4e"><div class="mocklabel"><span>4e</span><b>Loading datasheets</b></div>
+  <p class="mocknote">Brief and non-blocking: the field is live, the player can type and save. No MFM label until data arrives, then the list appears if the field has text.</p>
+  <div id="d4e"></div></section>
+
+<section class="mock" id="s4e2"><div class="mocklabel"><span>4e-ii</span><b>Fallback: no data, or load failed</b></div>
+  <p class="mocknote">Exactly today's plain text field. No list, no MFM label, no error message, saving is never blocked.</p>
+  <div id="d4e2"></div></section>
+
+<section class="mock" id="s4f"><div class="mocklabel"><span>4f</span><b>Black Templars: chapter and generic units mixed</b></div>
+  <p class="mocknote">Player is Black Templars, typed "cha". Chapter units (Chaplain Grimaldus, Emperor's Champion) and generic Space Marines units (Chaplain, Chaplain on Bike) sit together in one A-Z list with no visual distinction. A name in both sets shows once. No Blood Angels units appear.</p>
+  <div id="d4f"></div><div class="mf-kbd">On-screen keyboard area</div></section>
+
+</div>
+<script>
+/* ---------- Faction data (sample colours and lines) ---------- */
+const FACS=[
+ ["Imperium","Space Marines","#d0a952","Wants to hold the Hollowgate until the fleet arrives."],
+ ["Imperium","Black Templars","#cfc7b4","Wants a crusade that never has to stop for breath."],
+ ["Imperium","Blood Angels","#c4443a","Wants to bury the Thirst before it wakes in the ranks."],
+ ["Imperium","Dark Angels","#4f7a5a","Wants every secret of the Reach, and none shared."],
+ ["Imperium","Deathwatch","#7f8794","Wants the alien threat found and ended, quietly."],
+ ["Imperium","Space Wolves","#7aa0b8","Wants a hard winter and a harder oath kept."],
+ ["Imperium","Astra Militarum","#8a9a5b","Wants to defend the hive they were born in."],
+ ["Imperium","Adeptus Custodes","#e0b84a","Wants the Reach cleansed under the Emperor's eye."],
+ ["Imperium","Adepta Sororitas","#b5546a","Wants every shrine-world burning with faith, not fire."],
+ ["Imperium","Adeptus Mechanicus","#c1673a","Wants the forge-relics of Kell back in the Machine's care."],
+ ["Imperium","Grey Knights","#9db0c4","Wants one sealed vault opened by no one but them."],
+ ["Imperium","Imperial Agents","#7d6a8f","Wants to finish the mission before anyone asks why."],
+ ["Imperium","Imperial Knights","#4d78b0","Wants the old oaths honoured on a world that forgot them."],
+ ["Chaos","Chaos Space Marines","#b8392e","Wants the Reach to remember who the Long War left behind."],
+ ["Chaos","Death Guard","#8c9a3c","Wants every world to rot slowly and with good grace."],
+ ["Chaos","Thousand Sons","#3d8fa6","Wants the secret that sleeps under the Hollowgate."],
+ ["Chaos","World Eaters","#a8281f","Wants a bigger war, and someone worth hitting."],
+ ["Chaos","Emperor's Children","#b05fa0","Wants a perfect victory, and an audience for it."],
+ ["Chaos","Chaos Daemons","#d1692e","Wants a thin place in the Reach to tear wide open."],
+ ["Chaos","Chaos Knights","#7a3a3a","Wants fealty paid to a throne that bleeds."],
+ ["Xenos","Orks","#6b9a34","Wants a good fight, and the scrap from every wreck."],
+ ["Xenos","Necrons","#6f9a86","Wants to put the waking tomb under Kell back to order."],
+ ["Xenos","T'au Empire","#5ea7c9","Wants the greater good to reach one more border world."],
+ ["Xenos","Aeldari","#7d9fd6","Wants a few more souls pulled back from the dark."],
+ ["Xenos","Drukhari","#8a6bb5","Wants captives, and a night long enough to take them."],
+ ["Xenos","Genestealer Cults","#c26b8f","Wants the uprising to start before the hive ships arrive."],
+ ["Xenos","Leagues of Votann","#c8914a","Wants a fair price in ore for every grudge."],
+ ["Xenos","Tyranids","#a85a8c","Wants to eat the Reach down to the bedrock."]];
+const SIDES=["Imperium","Chaos","Xenos"];
+const grp=s=>FACS.filter(f=>f[0]===s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+/* 1. Join cards */
+document.getElementById("joinFacs").innerHTML=SIDES.map(s=>`
+  <h3 class="mf-side">${s}<small>${grp(s).length} factions</small></h3>
+  <div class="ac-facs mf-grp">${grp(s).map(f=>{const on=f[1]==="Orks";
+    return `<button class="ac-fac" aria-pressed="${on}"><div class="k"><span class="mf-kl"><span class="dot" style="background:${f[2]}"></span>${s}</span><span>${on?"&#10003; Chosen":""}</span></div><div class="t">${esc(f[1])}</div><div class="e">${esc(f[3])}</div></button>`}).join("")}</div>`).join("");
+document.getElementById("joinFacs").addEventListener("click",e=>{
+  const b=e.target.closest(".ac-fac");if(!b)return;
+  document.querySelectorAll("#joinFacs .ac-fac").forEach(x=>{x.setAttribute("aria-pressed","false");x.querySelector(".k span:last-child").textContent=""});
+  b.setAttribute("aria-pressed","true");b.querySelector(".k span:last-child").innerHTML="&#10003; Chosen";
+  document.querySelector(".mf-foot .hint").textContent=b.querySelector(".t").textContent+" · "+b.querySelector(".k .mf-kl").textContent;
+});
+
+/* 2. Setup dropdown */
+const opts=sel=>SIDES.map(s=>`<optgroup label="${s}">${grp(s).map(f=>`<option${f[1]==="Necrons"?" selected":""}>${esc(f[1])}</option>`).join("")}</optgroup>`).join("");
+document.getElementById("setfac").innerHTML=opts();
+document.getElementById("setfac2").innerHTML=opts();
+
+/* 3. Factions chips */
+const PICKED=["Space Wolves","Orks","Necrons","Death Guard","Tyranids"];
+document.getElementById("facChips").innerHTML=SIDES.map(s=>`<div class="lbl" style="margin:14px 0 6px">${s}</div>
+  <div class="chips">${grp(s).map(f=>`<button class="chip" aria-pressed="${PICKED.includes(f[1])}"><span class="dot" style="background:${f[2]}"></span>${esc(f[1])}</button>`).join("")}</div>`).join("");
+document.getElementById("facChips").addEventListener("click",e=>{const b=e.target.closest(".chip");if(b)b.setAttribute("aria-pressed",b.getAttribute("aria-pressed")!=="true")});
+
+/* 4. Add unit sheet */
+const mark=(n,q)=>{if(!q)return esc(n);const i=n.toLowerCase().indexOf(q.toLowerCase());
+  return i<0?esc(n):esc(n.slice(0,i))+"<mark>"+esc(n.slice(i,i+q.length))+"</mark>"+esc(n.slice(i+q.length))};
+const ptsLbl=r=>r.sizes?`<s>from</s>${r.sizes[0][1]}`:`${r.p} pts`;
+const row=(r,q)=>`<li><button class="mf-opt${r.leg?" leg":""}" role="option"><span class="mf-nm"><b>${mark(r.n,q)}</b>${r.leg?`<span class="badge legend">Legends</span>`:""}</span><span class="mf-pts">${ptsLbl(r)}</span></button></li>`;
+const effPts=b=>Math.round(b/5)*5;
+/* o: {fac, ds, ph, q-list rows, focus, sizes[], size idx, base, loading, noData, picked} */
+function sheet(o){
+  const dsInput=`<input type="text" id="${o.id}_ds" value="${esc(o.ds||"")}" placeholder="${esc(o.ph)}" ${o.noData?"":'role="combobox" aria-autocomplete="list" aria-expanded="'+!!o.rows+'" aria-controls="'+o.id+'_l"'} autocomplete="off" class="${o.focus?"mf-focus":""}">`;
+  return `<div class="mf-sheet" role="dialog" aria-label="Add unit">
+   <h4>Add unit</h4>
+   <p class="dim" style="margin:2px 0 0">Rank is worked out from XP. Effective points add 10% per honour, rounded to the nearest 5.</p>
+   <div class="formgrid">
+    <div class="field"><label for="${o.id}_nm">Unit name</label><input type="text" id="${o.id}_nm" value="${esc(o.nm||"")}" placeholder="e.g. Anvil Squad"></div>
+    <div class="field mf-ds"><div class="mf-lblrow"><label for="${o.id}_ds">Datasheet</label>${o.noData||o.loading?"":`<span class="mf-ver">MFM 1.6</span>`}</div>
+      ${dsInput}
+      ${o.loading?`<div class="mf-loading" role="status"><i></i>Loading datasheets…</div>`:""}
+      ${o.rows?`<ul class="mf-list" id="${o.id}_l" role="listbox" aria-label="Datasheets">${o.rows.map(r=>row(r,o.q)).join("")}</ul>`:""}
+      ${o.sizes?`<div class="lbl" style="margin-top:8px">Models</div><div class="mf-sizes" role="group" aria-label="Model count" data-sz="${o.id}">${o.sizes.map((s,i)=>`<button data-i="${i}" aria-pressed="${i===o.si}">${s[0]} models · <b>${s[1]} pts</b></button>`).join("")}</div>`:""}
+    </div>
+    <div class="field" style="flex:1 1 120px"><label for="${o.id}_b">Base points</label><input type="number" id="${o.id}_b" value="${o.base}" min="0" step="5"></div>
+    <div class="field" style="flex:1 1 120px"><label for="${o.id}_x">XP</label><input type="number" id="${o.id}_x" value="0" min="0"></div>
+   </div>
+   <div class="mf-eff">RANK: <span>GREEN</span> · 0 HONOUR SLOTS · EFFECTIVE <span id="${o.id}_e">${effPts(o.base)}</span> PTS</div>
+   <div class="mf-more">Role, Battle Honours and Battle Scars continue here, unchanged.</div>
+   <div class="row sub"><button class="btn primary">Add to roster</button><button class="btn">Cancel</button></div>
+   ${o.rows?`<div style="height:${o.pad||0}px"></div>`:""}
+  </div>`;
+}
+const NEC=[
+ {n:"Immortals",sizes:[[5,80],[10,160]]},
+ {n:"Immolation Drones",p:100},
+ {n:"Immortal Overseer",p:70},
+ {n:"Imperishable Blades",leg:true,p:65},
+ {n:"Immortal Praetors",leg:true,p:90}];
+const put=(id,o)=>{document.getElementById(id).innerHTML=sheet(Object.assign({id},o))};
+put("d4a",{ph:"Search Necrons datasheets",focus:true,base:100});
+put("d4b",{ph:"Search Necrons datasheets",ds:"imm",q:"imm",focus:true,rows:NEC,base:100,pad:150});
+put("d4b2",{ph:"Search Necrons datasheets",ds:"anr",q:"anr",focus:true,rows:[{n:"Anrakyr the Traveller",leg:true,p:120}],base:100,pad:20});
+put("d4c",{ph:"Search Necrons datasheets",ds:"Immortals",sizes:[[5,80],[10,160]],si:0,base:80,nm:"Tomb Guard"});
+put("d4d",{ph:"Search Necrons datasheets",ds:"Overlord",base:85,nm:"Lord Karesh"});
+put("d4e",{ph:"Search Necrons datasheets",ds:"imm",loading:true,base:100});
+put("d4e2",{ph:"e.g. Intercessor Squad",ds:"",noData:true,base:100});
+put("d4f",{ph:"Search Black Templars datasheets",ds:"cha",q:"cha",focus:true,base:100,pad:150,rows:[
+ {n:"Chaplain",p:60},{n:"Chaplain Grimaldus",p:90},{n:"Chaplain on Bike",p:75},{n:"Emperor's Champion",p:75}]});
+/* 4c interactive: switch model count */
+document.getElementById("d4c").addEventListener("click",e=>{
+  const b=e.target.closest(".mf-sizes button");if(!b)return;
+  const S=[[5,80],[10,160]],i=+b.dataset.i;
+  b.parentNode.querySelectorAll("button").forEach((x,j)=>x.setAttribute("aria-pressed",j===i));
+  document.getElementById("d4c_b").value=S[i][1];document.getElementById("d4c_e").textContent=effPts(S[i][1]);
+});
+document.getElementById("d4d").querySelectorAll("input[type=number]").forEach(()=>{});
+document.addEventListener("input",e=>{const m=e.target.id&&e.target.id.match(/^(d4\w+)_b$/);if(m)document.getElementById(m[1]+"_e").textContent=effPts(+e.target.value||0)});
+
+const labels=[["1 Join","s1a"],["2 Setup","s2a"],["3 Factions","s3a"],["4a Empty","s4a"],["4b Typing","s4b"],["4b-ii Legends","s4b2"],["4c Multi-size","s4c"],["4d Single","s4d"],["4e Loading","s4e"],["4e-ii Fallback","s4e2"],["4f Templars","s4f"]];
+document.getElementById("jump").innerHTML=labels.map(j=>`<a class="chip" href="#${j[1]}">${j[0]}</a>`).join("");
+</script>
+</body>
+</html>

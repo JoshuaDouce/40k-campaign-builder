@@ -12,7 +12,23 @@ export type FactionName =
   | "Tyranids"
   | "Genestealer Cults"
   | "Aeldari"
-  | "T'au Empire";
+  | "T'au Empire"
+  | "Adeptus Custodes"
+  | "Black Templars"
+  | "Blood Angels"
+  | "Chaos Daemons"
+  | "Chaos Knights"
+  | "Dark Angels"
+  | "Deathwatch"
+  | "Drukhari"
+  | "Emperor's Children"
+  | "Grey Knights"
+  | "Imperial Agents"
+  | "Imperial Knights"
+  | "Leagues of Votann"
+  | "Space Wolves"
+  | "Thousand Sons"
+  | "World Eaters";
 
 export type Side = "imp" | "cha" | "xen";
 export type SideKey = "imp-imp" | "cha-cha" | "imp-cha" | "imp-xen" | "cha-xen" | "xen-xen";

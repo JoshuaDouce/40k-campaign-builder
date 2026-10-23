@@ -1,5 +1,5 @@
 // Static game data, copied verbatim from reference/index.html (rule, card, twist and faction wording must not drift).
-import type { ActionDef, Card, FactionInfo, FactionName, Hollowgate, OrbitDef, OrbitKey, PlanetType, PlanetTypeDef, ProvinceType, ProvinceTypeDef, SideKey, TwistDef } from "./types.ts";
+import type { ActionDef, Card, FactionInfo, FactionName, Hollowgate, OrbitDef, OrbitKey, PlanetType, PlanetTypeDef, ProvinceType, ProvinceTypeDef, Side, SideKey, TwistDef } from "./types.ts";
 
 export const FACTIONS: Record<FactionName, FactionInfo> = {
   "Space Marines":{c:"#4f7fc4",side:"imp",want:"to hold the Hollowgate until the fleet arrives",open:"A lone strike squad, cut off after their drop pod scattered."},
@@ -13,8 +13,31 @@ export const FACTIONS: Record<FactionName, FactionInfo> = {
   "Tyranids":{c:"#9a5ab0",side:"xen",want:"to consume every living thing in the Reach",open:"A splinter vanguard, the first scent of a hive fleet."},
   "Genestealer Cults":{c:"#a07ab8",side:"xen",want:"to welcome the Star Children by any means",open:"A cult cell revealing itself in the underhive."},
   "Aeldari":{c:"#d1b84a",side:"xen",want:"to seal the rift before it reaches their craftworld",open:"A small warhost following a farseer's warning."},
-  "T'au Empire":{c:"#6aa3b8",side:"xen",want:"to win the Reach's survivors over to the Greater Good",open:"A hunter cadre offering protection to anyone who signs."}
+  "T'au Empire":{c:"#6aa3b8",side:"xen",want:"to win the Reach's survivors over to the Greater Good",open:"A hunter cadre offering protection to anyone who signs."},
+  "Adeptus Custodes":{c:"#f2c230",side:"imp",want:"to guard the Hollowgate until the Emperor's will is known",open:"A Shield-Host detachment that left the Throneworld without explaining why."},
+  "Black Templars":{c:"#ece7da",side:"imp",want:"to cleanse the Reach in a single unbroken crusade",open:"A crusade company that marched in on the strength of a vow, not an order."},
+  "Blood Angels":{c:"#e85a50",side:"imp",want:"to rescue a brother lost in the rift's first storm",open:"A strike force drawn here by a nightmare shared across the whole company."},
+  "Chaos Daemons":{c:"#c23fd6",side:"cha",want:"to pour through the Hollowgate and never go back",open:"A herald's retinue, bound to the rift and impatient for blood."},
+  "Chaos Knights":{c:"#b03a6a",side:"cha",want:"to bring the Reach's fortress-worlds to heel",open:"A lone household, its oaths long since sold to darker masters."},
+  "Dark Angels":{c:"#78c9a8",side:"imp",want:"to find what the Hollowgate has dug up before anyone else does",open:"A cloaked task force with sealed orders and no intention of sharing them."},
+  "Deathwatch":{c:"#6e7480",side:"imp",want:"to hunt the xenos hiding in the Reach, wherever they are",open:"A kill-team assembled from five Chapters, each with its own grudge."},
+  "Drukhari":{c:"#b8e04a",side:"xen",want:"to snatch souls and slaves while the Reach is looking at the rift",open:"A raiding party that came out of the webway and left no witnesses."},
+  "Emperor's Children":{c:"#f08fb8",side:"cha",want:"to find a sensation worth the Reach's suffering",open:"A warband that arrived early, for the finest seats in the slaughter."},
+  "Grey Knights":{c:"#a9bccf",side:"imp",want:"to seal the Hollowgate before something wakes on the other side",open:"A Brotherhood strike team that was already in the warp when the rift opened."},
+  "Imperial Agents":{c:"#b08968",side:"imp",want:"to learn who opened the Hollowgate and silence them",open:"A handful of Inquisition operatives with a writ and a very small escort."},
+  "Imperial Knights":{c:"#4668d8",side:"imp",want:"to see their house's banner flying over the Reach once more",open:"A household lance answering a debt older than the Reach's colony charter."},
+  "Leagues of Votann":{c:"#cf7a50",side:"xen",want:"to claim every seam of ore in the Reach before the rift swallows it",open:"A prospecting hearthband that found the Reach's best deposits first."},
+  "Space Wolves":{c:"#8ab4e8",side:"imp",want:"to hunt a monster the rift has loosed into the ice",open:"A Great Company that took a wrong turn at the edge of the Reach and called it fate."},
+  "Thousand Sons":{c:"#2fb0c8",side:"cha",want:"to read the rift's secrets before it unravels",open:"A coven that walked out of the Hollowgate holding the same page of a book."},
+  "World Eaters":{c:"#a8201c",side:"cha",want:"to find a battle that can finally be won",open:"A warband that followed the sound of the first shot."}
 };
+/** Faction picker groups: Imperium, Chaos, Xenos, each sorted A-Z. Derived from FACTIONS. */
+export const SIDE_LABEL: Record<Side, string> = { imp: "Imperium", cha: "Chaos", xen: "Xenos" };
+export const FACTION_GROUPS: readonly { side: Side; label: string; factions: readonly FactionName[] }[] = (["imp", "cha", "xen"] as const).map((side) => ({
+  side,
+  label: SIDE_LABEL[side],
+  factions: (Object.keys(FACTIONS) as FactionName[]).filter((f) => FACTIONS[f].side === side).sort()
+}));
 export const SIDE_HOOK: Record<SideKey, readonly [string, string]> = {
   "imp-imp":["Uneasy allies","Both serve the Throne but neither trusts the other's orders. Their first clash is a misunderstanding in the dark that turns into a blood debt."],
   "cha-cha":["Rival warbands","The same dark gods, different masters. Only one of them will be chosen to open the rift."],
@@ -72,7 +95,7 @@ export const GENERIC: readonly (Card & { n: number })[] = [
   {t:"Veteran Instinct",e:"Once, one unit can shoot or fight after a Fall Back.",n:2},
   {t:"Desperate Hour",e:"Play only if you are behind on VP at the start of round 4. Gain 1 extra CP.",n:2}
 ];
-export const FACCARDS: Record<FactionName, readonly Card[]> = {
+export const FACCARDS: Partial<Record<FactionName, readonly Card[]>> = {
   "Space Marines":[{t:"Angels Descend",e:"One unit arriving from reserves may charge on the turn it arrives."},{t:"Oath of the Lost",e:"Re-roll wound rolls against one enemy unit chosen at the start of the game."}],
   "Astra Militarum":[{t:"Artillery Barrage",e:"Before round 1, roll a D6 for each enemy unit in their deployment zone: on a 6 it suffers D3 mortal wounds."},{t:"Hold the Line",e:"Infantry within 6\" of an objective get +1 OC this game."}],
   "Adepta Sororitas":[{t:"Martyr's Vow",e:"The first time a Character would be destroyed, it stays on 1 wound instead."},{t:"Relic Bearer",e:"One unit ignores Battle-shock and gains +1 to hit in melee."}],

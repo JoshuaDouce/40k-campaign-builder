@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
-import { canPerform, chartMatches, FACTIONS, setupChecklist, setupReadyCount } from "../game/index.ts";
+import { canPerform, chartMatches, setupChecklist, setupReadyCount } from "../game/index.ts";
 import type { Action, CampaignState, FactionName, Player } from "../game/index.ts";
 import { useCampaign } from "../store/useCampaign.ts";
 import type { TabId } from "../store/useDevicePrefs.ts";
+import { FactionOptions } from "./FactionOptions.tsx";
 import { PlayerNameInput } from "./PlayerNameInput.tsx";
-
-const FACTION_NAMES = Object.keys(FACTIONS) as FactionName[];
 
 const BRIEF: ReadonlyArray<readonly [string, string]> = [
   ["The setting.", "The Hollowgate rift tore open three years ago and the Reach is a scatter of worlds, each split into provinces. More players, more worlds."],
@@ -206,11 +205,7 @@ function PlayerRow({ player: p, state, color }: { player: Player; state: Campaig
           disabled={!canEdit}
           onChange={(e) => dispatch({ type: "updatePlayer", playerId: p.id, faction: e.target.value as FactionName })}
         >
-          {FACTION_NAMES.map((f) => (
-            <option key={f} value={f}>
-              {f}
-            </option>
-          ))}
+          <FactionOptions />
         </select>
         {armed ? (
           <button className="btn sm su-btn danger" disabled={!can(remove)} onBlur={() => setArmedAt(null)} onClick={() => dispatch(remove)}>
