@@ -9,7 +9,7 @@ import { PlayerNameInput } from "./PlayerNameInput.tsx";
 
 const BRIEF: ReadonlyArray<readonly [string, string]> = [
   ["The setting.", "The Hollowgate rift tore open three years ago and the Reach is a scatter of worlds, each split into provinces. More players, more worlds."],
-  ["Your start.", "A 750 pt roster led by one Warlord, 5 Requisition Points, and a Capital province on an outer world. No Epic Heroes or named characters."],
+  ["Your start.", "A 750 pt roster led by one Warlord, 0 Requisition Points (earn them from your Capital and from battles), and a Capital province on an outer world. No Epic Heroes or named characters."],
   ["The War Round.", "Everyone draws a Fate Card, then each player takes one turn, smallest empire first."],
   ["Your turn.", "Pick one action: Conquer, Raid, Recuperate, Muster, Fortify or Scout. Conquer and Raid start a battle."],
   ["Winning.", "Once 60% of the Reach is claimed (or by War Round 8) the Hollowgate opens. Hold it at the end of a War Round to win."],
@@ -133,7 +133,7 @@ export function SetupTab({ colors, onNavigate }: { colors: Record<string, string
         </Step>
 
         <Step n={4} title="Starting positions" next={nextStep === 4} marks={step4Marks}>
-          <p className="su-sub">Each warband needs exactly one Character (its Warlord), a 750 pt roster, 5 RP and a Capital. Build rosters on the Roster tab.</p>
+          <p className="su-sub">Each warband needs exactly one Character (its Warlord), a 750 pt roster and a Capital. You start on 0 RP and earn it from your Capital and battles. Build rosters on the Roster tab.</p>
           <div className="su-blist">
             {state.players.map((p) => (
               <PlayerBlock key={p.id} player={p} state={state} color={colors[p.id]} onNavigate={onNavigate} />
@@ -269,7 +269,6 @@ function PlayerBlock({ player: p, state, color, onNavigate }: { player: Player; 
           ! Needs {f.n} more {f.role}
         </div>
       ))}
-      <Check label="5 RP" ok={c.rpOk} value={`${c.rp} RP`} />
       <Check label="Capital" ok={!!c.capital} value={c.capital ?? "Chart the Reach first (step 3)"} />
       <div className="su-bfoot">
         <button className="lnk" onClick={() => onNavigate("roster")}>

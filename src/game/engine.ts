@@ -24,12 +24,15 @@ import {
 } from "./selectors.ts";
 import type { ActionId, BattleInfo, BattleRecord, CampaignState, Player, UndoSnapshot, Zone } from "./types.ts";
 
+/** Every player starts a campaign on this many Requisition Points. */
+export const START_RP = 0;
+
 export function examplePlayers(): Player[] {
   const mk = (id: string, name: string, faction: Player["faction"]): Player => ({
     id,
     name,
     faction,
-    rp: 5,
+    rp: START_RP,
     battles: 0,
     wins: 0,
     sup: 0,
@@ -60,6 +63,7 @@ export function fresh(players: Player[] | undefined, rng: Rng): CampaignState {
     sys: g.sys,
     players: pl,
     hollOpened: false,
+    rpStartZero: true,
     rosters: {},
     fallen: [],
     ready: {},
@@ -416,4 +420,14 @@ export function lateArrivalBonus(s: CampaignState, p: Player, rng: Rng): void {
       ? ` is given a late-arrival bonus: a supply limit of ${target} and 1 extra Fate Card.`
       : " is given a late-arrival bonus: 1 extra Fate Card.",
   );
+}
+
+/** One-time migration: an older round-0 save has its players' RP zeroed once. Pure. */
+export function applyStartRp(state: CampaignState): CampaignState {
+  if (state.rpStartZero) return state;
+  return {
+    ...state,
+    rpStartZero: true,
+    players: state.round === 0 ? state.players.map((p) => ({ ...p, rp: START_RP })) : state.players,
+  };
 }

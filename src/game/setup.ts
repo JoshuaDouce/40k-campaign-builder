@@ -38,9 +38,6 @@ export interface SetupChecklist {
   supply: number;
   /** Roster is non-empty and within supply. */
   rosterOk: boolean;
-  rp: number;
-  /** rp >= 5 */
-  rpOk: boolean;
   /** "Province, Planet" */
   capital?: string;
   /** Roles still short of their minimum. */
@@ -53,7 +50,6 @@ export function setupChecklist(state: CampaignState, playerId: string): SetupChe
   const chars = roster.filter((u) => u.isCharacter);
   const rosterTotal = totalEffective(roster);
   const supply = player ? supplyOf(player) : 0;
-  const rp = player?.rp ?? 0;
   const prov = state.cap[playerId] ? getProvince(state, state.cap[playerId]) : undefined;
   const planet = prov ? getPlanet(state, prov.pl) : undefined;
   return {
@@ -61,8 +57,6 @@ export function setupChecklist(state: CampaignState, playerId: string): SetupChe
     rosterTotal,
     supply,
     rosterOk: roster.length > 0 && rosterTotal <= supply,
-    rp,
-    rpOk: rp >= 5,
     capital: prov && planet ? `${prov.name}, ${planet.name}` : undefined,
     foShort: forceOrgFor(state, playerId)
       .rows.map((r) => ({ role: r.role, n: Math.max(0, r.min - r.filled) }))

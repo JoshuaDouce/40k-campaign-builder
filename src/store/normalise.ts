@@ -1,5 +1,5 @@
 // Shape check for a campaign loaded from the backend. Tolerates fields added since a save was made.
-import type { CampaignState } from "../game/index.ts";
+import { applyStartRp, type CampaignState } from "../game/index.ts";
 
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
 
@@ -23,7 +23,7 @@ export function normaliseState(v: unknown): CampaignState | null {
     typeof sys.size === "number";
   if (!ok) return null;
   const s = v as unknown as CampaignState;
-  return {
+  return applyStartRp({
     ...s,
     hollOpened: s.hollOpened === true,
     rosters: isObject(s.rosters) ? s.rosters : {},
@@ -31,5 +31,5 @@ export function normaliseState(v: unknown): CampaignState | null {
     ready: isObject(s.ready) ? s.ready : {},
     history: Array.isArray(s.history) ? s.history : [],
     undo: isObject(s.undo) && isObject(s.undo.before) ? s.undo : undefined,
-  };
+  });
 }
