@@ -277,6 +277,21 @@ function cleanUnit(u: Unit): Unit | null {
   return out;
 }
 
+/**
+ * Setup (round 0) allows one Character per roster, and it must be the Warlord. Returns the Character already on
+ * the roster that stops `unit` being a Character too, or null (after round 0, or if `unit` is no Character).
+ * Callers decide whether a save is adding a Character; saves to an existing Character skip this check.
+ */
+export function setupCharacterBlock(state: CampaignState, playerId: string, unit: Pick<Unit, "id" | "isCharacter">): Unit | null {
+  if (state.round !== 0 || !unit.isCharacter) return null;
+  return rosterOf(state, playerId).find((x) => x.isCharacter && x.id !== unit.id) ?? null;
+}
+
+/** True if saving `u` would break the Setup rule: a second Character, or a Character that is not the Warlord. */
+function breaksSetupRule(s: CampaignState, playerId: string, u: Unit): boolean {
+  return s.round === 0 && u.isCharacter && (!u.isWarlord || !!setupCharacterBlock(s, playerId, u));
+}
+
 function rosterFor(s: CampaignState, playerId: string): Unit[] {
   s.rosters ??= {};
   return (s.rosters[playerId] ??= []);
@@ -309,6 +324,7 @@ export function addUnitTo(s: CampaignState, playerId: string, unit: Unit): boole
   const u = cleanUnit(unit);
   const roster = rosterFor(s, playerId);
   if (!u || roster.some((x) => x.id === u.id)) return false;
+  if (breaksSetupRule(s, playerId, u)) return false;
   roster.push(u);
   enforceWarlord(roster, u);
   checkLegend(s, getPlayer(s, playerId)?.name ?? "", u);
@@ -322,6 +338,8 @@ export function updateUnitIn(s: CampaignState, playerId: string, unit: Unit): bo
   const u = cleanUnit(unit);
   if (!p || i === -1 || !u) return false;
   const old = roster[i];
+  // A legacy Setup roster with 2+ Characters can still edit them; only a save that adds a Character is stopped.
+  if (!old.isCharacter && breaksSetupRule(s, playerId, u)) return false;
   if (old.ex) u.ex = true;
   if (old.legendLogged) u.legendLogged = true;
   roster[i] = u;
@@ -365,7 +383,8 @@ export function removeUnitFrom(s: CampaignState, playerId: string, unitId: strin
   const roster = rosterFor(s, playerId);
   const u = roster.find((x) => x.id === unitId);
   if (!u) return false;
-  if (u.isCharacter) remember(s, p.name, playerId, u, (typeof cause === "string" ? cause.trim().slice(0, CAUSE_MAX) : "") || DEFAULT_CAUSE);
+  // No battles are fought in Setup, so nothing is memorialised.
+  if (u.isCharacter && s.round !== 0) remember(s, p.name, playerId, u, (typeof cause === "string" ? cause.trim().slice(0, CAUSE_MAX) : "") || DEFAULT_CAUSE);
   s.rosters![playerId] = roster.filter((x) => x.id !== unitId);
   return true;
 }
@@ -403,7 +422,9 @@ export function addExamplesTo(s: CampaignState, playerId: string, rng: Rng): boo
   const examples = exampleUnits(rng, kept);
   // The example Captain is a Warlord; only keep that if the player has no Warlord of their own.
   if (kept.some((x) => x.isWarlord)) for (const x of examples) x.isWarlord = false;
-  s.rosters![playerId] = [...kept, ...examples];
+  // Setup allows one Character: leave the example Captain out if the player already has one.
+  const final = s.round === 0 && kept.some((x) => x.isCharacter) ? examples.filter((x) => !x.isCharacter) : examples;
+  s.rosters![playerId] = [...kept, ...final];
   const p = getPlayer(s, playerId);
   s.fallen = (s.fallen ?? []).filter((f) => !(f.ex && f.playerId === playerId));
   s.fallen.push({
@@ -536,7 +557,7 @@ export function promoteUnit(s: CampaignState, playerId: string, unitId: string, 
     u.enhancement = enh;
     log(s, B(p.name), ` spends ${PROMOTION_COST} RP on a Promotion: `, B(u.name), " gains an enhancement.");
   } else {
-    if (u.xp < PROMOTION_MIN_XP) return false;
+    if (s.round === 0 || u.xp < PROMOTION_MIN_XP) return false; // Setup allows no new Character
     spendRp(s, playerId, PROMOTION_COST);
     u.isCharacter = true;
     u.role = "Character";
@@ -553,6 +574,7 @@ export function recruitUnit(s: CampaignState, playerId: string, unit: Unit): boo
   const u = cleanUnit(draft);
   const roster = rosterFor(s, playerId);
   if (!u || roster.some((x) => x.id === u.id)) return false;
+  if (breaksSetupRule(s, playerId, u)) return false;
   spendRp(s, playerId, RECRUITS_COST);
   roster.push(u);
   enforceWarlord(roster, u);

@@ -133,7 +133,7 @@ export function SetupTab({ colors, onNavigate }: { colors: Record<string, string
         </Step>
 
         <Step n={4} title="Starting positions" next={nextStep === 4} marks={step4Marks}>
-          <p className="su-sub">Each warband needs a Warlord, a 750 pt roster, 5 RP and a Capital. Build rosters on the Roster tab.</p>
+          <p className="su-sub">Each warband needs exactly one Character (its Warlord), a 750 pt roster, 5 RP and a Capital. Build rosters on the Roster tab.</p>
           <div className="su-blist">
             {state.players.map((p) => (
               <PlayerBlock key={p.id} player={p} state={state} color={colors[p.id]} onNavigate={onNavigate} />
@@ -249,7 +249,20 @@ function PlayerBlock({ player: p, state, color, onNavigate }: { player: Player; 
           <span>{p.name}</span>
         </div>
       </div>
-      <Check label="Warlord" ok={!!c.warlord} value={c.warlord ?? "No Warlord yet"} />
+      <Check
+        label="Character"
+        ok={c.character.count === 1 && c.character.isWarlord}
+        over={c.character.count >= 2}
+        value={
+          c.character.count === 0
+            ? "No Character yet"
+            : c.character.count >= 2
+              ? `${c.character.count} Characters: keep only the Warlord`
+              : c.character.isWarlord
+                ? (c.character.name ?? "")
+                : "Not the Warlord"
+        }
+      />
       <Check label="750 pt roster" ok={c.rosterOk} value={`${c.rosterTotal} / ${c.supply} pts`} over={c.rosterTotal > c.supply} />
       {c.foShort.map((f) => (
         <div key={f.role} className="su-flag">

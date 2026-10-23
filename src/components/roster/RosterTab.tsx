@@ -49,7 +49,7 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
   };
   const addExamples = () => {
     dispatch({ type: "addExamples", playerId: pid });
-    say("Seven example units added, tagged Example.");
+    say("Example units added, tagged Example.");
   };
 
   if (helper) {
@@ -175,6 +175,7 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
             key={u.id}
             unit={u}
             editable={editable}
+            memorial={state.round !== 0}
             overLimit={fo.overLimitIds.includes(u.id)}
             onEdit={() => setDialog({ kind: "edit", unit: u })}
             onRollRelic={() => setDialog({ kind: "relic", unit: u })}
@@ -184,7 +185,7 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
             }}
             onRemove={(cause) => {
               dispatch({ type: "removeUnit", playerId: pid, unitId: u.id, cause });
-              say(u.isCharacter ? `${u.name} moved to the Hall of Heroes.` : "Unit removed.");
+              say(u.isCharacter && state.round !== 0 ? `${u.name} moved to the Hall of Heroes.` : "Unit removed.");
             }}
           />
         ))
@@ -215,6 +216,7 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
       {editable && dialog?.kind === "add" && (
         <UnitFormSheet
           mode="add"
+          playerId={pid}
           faction={player.faction}
           roster={roster}
           fo={fo}
@@ -228,6 +230,7 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
       {editable && dialog?.kind === "edit" && (
         <UnitFormSheet
           mode="edit"
+          playerId={pid}
           faction={player.faction}
           existing={dialog.unit}
           roster={roster}

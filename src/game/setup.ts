@@ -32,7 +32,8 @@ export function exampleNames(state: CampaignState): string[] {
 }
 
 export interface SetupChecklist {
-  warlord?: string;
+  /** Characters on the roster; `name` is the first one's (the Warlord's if there is one). */
+  character: { count: number; name?: string; isWarlord: boolean };
   rosterTotal: number;
   supply: number;
   /** Roster is non-empty and within supply. */
@@ -49,13 +50,14 @@ export interface SetupChecklist {
 export function setupChecklist(state: CampaignState, playerId: string): SetupChecklist {
   const player = getPlayer(state, playerId);
   const roster = rosterOf(state, playerId);
+  const chars = roster.filter((u) => u.isCharacter);
   const rosterTotal = totalEffective(roster);
   const supply = player ? supplyOf(player) : 0;
   const rp = player?.rp ?? 0;
   const prov = state.cap[playerId] ? getProvince(state, state.cap[playerId]) : undefined;
   const planet = prov ? getPlanet(state, prov.pl) : undefined;
   return {
-    warlord: roster.find((u) => u.isWarlord)?.name,
+    character: { count: chars.length, name: (chars.find((u) => u.isWarlord) ?? chars[0])?.name, isWarlord: chars.some((u) => u.isWarlord) },
     rosterTotal,
     supply,
     rosterOk: roster.length > 0 && rosterTotal <= supply,

@@ -14,11 +14,13 @@ import {
   roleOf,
   scarName,
   scarWeapon,
+  setupCharacterBlock,
   TITLE_MAX,
   TRAIT_MAX,
   WORN_GEAR,
 } from "../../game/index.ts";
 import type { FactionName, ForceOrg, Role, Unit } from "../../game/index.ts";
+import { useCampaign } from "../../store/useCampaign.ts";
 import { DatasheetPicker } from "./DatasheetPicker.tsx";
 import { Overlay } from "./Overlay.tsx";
 import { useRng } from "./useRng.ts";
@@ -28,6 +30,8 @@ export type FormMode = "add" | "edit" | "recruits";
 interface Props {
   mode: FormMode;
   existing?: Unit;
+  /** Whose roster this is, for the Setup Character rule. */
+  playerId: string;
   roster: readonly Unit[];
   /** The player's faction, for the datasheet pick-list. Without data the field is plain text. */
   faction?: FactionName;
@@ -111,8 +115,9 @@ const COPY: Record<FormMode, { title: string; cta: string }> = {
   recruits: { title: "Seasoned Recruits", cta: `Spend ${RECRUITS_COST} RP and add unit` },
 };
 
-export function UnitFormSheet({ mode, existing, roster, faction, fo, rp, onSave, onClose }: Props) {
+export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, rp, onSave, onClose }: Props) {
   const rng = useRng();
+  const { state } = useCampaign();
   const [d, setD] = useState<Draft>(() => initial(existing, mode));
   const set = (patch: Partial<Draft>) => setD((prev) => ({ ...prev, ...patch }));
   const recruits = mode === "recruits";
@@ -122,16 +127,21 @@ export function UnitFormSheet({ mode, existing, roster, faction, fo, rp, onSave,
   const shownXp = Number.isFinite(xp) ? xp : 0;
   const allowed = honourSlots(shownXp);
   const hasWorn = d.scars.includes(WORN_GEAR);
+  // In Setup the only Character is the Warlord: making a unit a Character ticks Warlord, which then stays on.
+  const setup = state.round === 0;
   const warlord = d.isCharacter && d.isWarlord;
   const relics = d.isCharacter ? (existing?.relics ?? []) : [];
   const honourList = allowedHonours(d);
   const scarList = allowedScars(d);
   const clearChar = { isCharacter: false, isWarlord: false, enhancement: "", warlordTrait: "" } as const;
-  const pickRole = (r: Role | "") => set(r === "Character" ? { role: r, isCharacter: true } : { role: r, ...clearChar });
+  const pickRole = (r: Role | "") => set(r === "Character" ? { role: r, isCharacter: true, ...(setup && { isWarlord: true }) } : { role: r, ...clearChar });
   const roleMax = fo.rows.find((r) => r.role === d.role)?.max ?? 0;
   const others = roster.filter((u) => u.id !== existing?.id && roleOf(u) === d.role).length;
   const projected = others + 1;
   const losesDetails = !!existing?.isCharacter && !d.isCharacter && !!(existing.relics?.length || existing.title || existing.backstory || existing.enhancement);
+
+  // In Setup, a save that makes this unit a Character is stopped if the roster already has one. Saving an existing Character is fine.
+  const charBlock = existing?.isCharacter ? null : setupCharacterBlock(state, playerId, { id: existing?.id ?? "", isCharacter: d.isCharacter });
 
   let problem = "";
   if (!Number.isFinite(points) || points < 0) problem = "Base points must be 0 or more.";
@@ -142,7 +152,7 @@ export function UnitFormSheet({ mode, existing, roster, faction, fo, rp, onSave,
   else if (recruits && d.honours.length !== 1) problem = "Pick exactly one Battle Honour.";
 
   const save = () => {
-    if (problem) return;
+    if (problem || charBlock) return;
     const enh = d.isCharacter ? d.enhancement.trim() : "";
     const unit: Unit = {
       ...existing,
@@ -225,7 +235,7 @@ export function UnitFormSheet({ mode, existing, roster, faction, fo, rp, onSave,
             </button>
           ))}
         </div>
-        {d.role === "" ? (
+        {charBlock ? null : d.role === "" ? (
           <div className="hint">Unassigned units fill no slot. You can set a role later.</div>
         ) : projected > roleMax ? (
           <div className="hint bad">
@@ -243,11 +253,11 @@ export function UnitFormSheet({ mode, existing, roster, faction, fo, rp, onSave,
               type="button"
               className="chip"
               aria-pressed={d.isCharacter}
-              onClick={() => set(d.isCharacter ? { ...clearChar, role: d.role === "Character" ? "" : d.role } : { isCharacter: true, role: "Character" })}
+              onClick={() => set(d.isCharacter ? { ...clearChar, role: d.role === "Character" ? "" : d.role } : { isCharacter: true, role: "Character", ...(setup && { isWarlord: true }) })}
             >
               Character
             </button>
-            <button type="button" className="chip" aria-pressed={d.isWarlord} disabled={!d.isCharacter} onClick={() => set({ isWarlord: !d.isWarlord })}>
+            <button type="button" className="chip" aria-pressed={warlord} aria-describedby={setup && warlord ? "f_warhint" : undefined} disabled={!d.isCharacter || (setup && warlord)} onClick={() => set({ isWarlord: !d.isWarlord })}>
               Warlord
             </button>
           </div>
@@ -255,10 +265,15 @@ export function UnitFormSheet({ mode, existing, roster, faction, fo, rp, onSave,
             {d.isCharacter ? "Character ticked, so the role is Character. Choosing any other role clears Character and Warlord." : "Ticking Character sets the role to Character. Warlord is only for Characters."}
           </div>
           {losesDetails && <div className="hint bad">! Saving without Character removes this unit's title, backstory, enhancement and relics.</div>}
+          {charBlock && (
+            <div className="hint bad" id="f_charblock" role="alert">
+              ! Setup allows one Character: your {charBlock.isWarlord ? "Warlord" : "Character"} ({charBlock.name}). Change or remove them first.
+            </div>
+          )}
         </div>
-        {d.isWarlord && (
-          <div className="mono dim" style={{ fontSize: 12, marginTop: 6 }}>
-            One Warlord per roster. Saving makes this unit the Warlord.
+        {warlord && (
+          <div className="mono dim" id="f_warhint" style={{ fontSize: 12, marginTop: 6 }}>
+            {setup ? "In Setup your only Character is your Warlord." : "One Warlord per roster. Saving makes this unit the Warlord."}
           </div>
         )}
         {d.isCharacter && (
@@ -353,7 +368,7 @@ export function UnitFormSheet({ mode, existing, roster, faction, fo, rp, onSave,
       )}
 
       <div className="row sub">
-        <button type="button" className="btn primary" disabled={!!problem} onClick={save}>
+        <button type="button" className="btn primary" disabled={!!problem || !!charBlock} aria-describedby={charBlock ? "f_charblock" : undefined} onClick={save}>
           {COPY[mode].cta}
         </button>
         <button type="button" className="btn" onClick={onClose}>
