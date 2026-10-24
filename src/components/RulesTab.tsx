@@ -48,7 +48,7 @@ export function RulesTab() {
       </table></div>
 
       <h3>The Reach</h3>
-      <p>The system is charted for your group: one more world than players (at least 3 worlds), each with 5 to 7 provinces. Every player starts with a Capital on an outer world. Inner worlds sit nearest the Hollowgate.</p>
+      <p>The system is charted for your group: one outer world for each player, plus middle and inner worlds nearer the Hollowgate (at least 4 worlds), each with 5 to 7 provinces. Every player starts with a Capital on an outer world. Inner worlds sit nearest the Hollowgate.</p>
 
       <p><b>Late arrivals.</b> A player who joins after War Round 1 has begun gets a new outer world and Capital, 1 extra Fate Card, and a supply limit set to the average of the other players' limits (rounded to the nearest 50) minus 150, but never below 750. They join the turn order next round.</p>
 

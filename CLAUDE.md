@@ -122,10 +122,11 @@ entries without refreshing.
 
 ## Decisions (agreed 2026-10-19)
 
-- **The map scales to any number of players (2+, no cap).** Charting keeps the prototype's
-  "one more world than players" rule but drops the 7-world cap: worlds = max(3, players + 1).
-  Inner worlds: 1 below 6 worlds, otherwise max(2, round(worlds / 4)); middle and outer split
-  the rest as in `genSystem`. The orbit tiers and multipliers (outer ×1, middle ×1.5,
+- **The map scales to any number of players (2+, no cap).** Every player starts on an outer
+  world of their own (changed 2026-10-24; the prototype's "one more world than players" rule is
+  dropped). Inner and middle counts come from a base of max(3, players + 1): inner is 1 below 6,
+  otherwise max(2, round(base / 4)); middle is round((base - inner) / 2). Outer = one world per
+  player (at least the base's remainder). Capitals go only on outer worlds. The orbit tiers and multipliers (outer ×1, middle ×1.5,
   inner ×2) don't change. When a ring gets crowded, the system view scales up (larger orbit
   radii and SVG viewBox) instead of overlapping worlds. Player colours beyond the
   prototype's `ALT` list are generated, so every player gets a distinct colour.
