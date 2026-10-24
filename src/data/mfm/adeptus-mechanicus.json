@@ -2,7 +2,7 @@
   {"n":"Archaeopter Fusilave","p":[[1,160]],"t":9},
   {"n":"Archaeopter Stratoraptor","p":[[1,185]],"t":9},
   {"n":"Archaeopter Transvector","p":[[1,145]],"t":9},
-  {"n":"Belisarius Cawl","p":[[1,220]],"t":8},
+  {"n":"Belisarius Cawl","p":[[1,220]],"t":8,"e":1},
   {"n":"Corpuscarii Electro-Priests","p":[[5,60],[10,120]],"t":3},
   {"n":"Cybernetica Datasmith","p":[[1,20]],"t":4},
   {"n":"Fulgurite Electro-Priests","p":[[5,65],[10,130]],"t":3},
@@ -35,6 +35,6 @@
   {"n":"Tech-Priest Manipulus","p":[[1,60]],"t":4},
   {"n":"Technoarcheologist","p":[[1,45]],"t":4},
   {"n":"Terrax-Pattern Termite","p":[[1,200]],"l":1},
-  {"n":"Thulia Ghuld","p":[[1,180]],"t":8},
+  {"n":"Thulia Ghuld","p":[[1,180]],"t":8,"e":1},
   {"n":"X-101","p":[[1,40]],"l":1}
 ]}

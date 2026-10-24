@@ -26,7 +26,7 @@
   {"n":"Shield-Captain in Allarus Terminator Armour","p":[[1,185]],"t":8},
   {"n":"Shield-Captain on Dawneagle Jetbike","p":[[1,205]],"t":8},
   {"n":"Telemon Heavy Dreadnought","p":[[1,280]],"t":11},
-  {"n":"Trajann Valoris","p":[[1,265]],"t":7},
+  {"n":"Trajann Valoris","p":[[1,265]],"t":7,"e":1},
   {"n":"Valerian","p":[[1,130]],"l":1},
   {"n":"Venatari with Kinetic Destroyers","p":[[3,255]],"t":7},
   {"n":"Venatari with Verutum Lances","p":[[3,270]],"t":7},

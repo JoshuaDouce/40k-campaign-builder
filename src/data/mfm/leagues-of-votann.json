@@ -1,9 +1,9 @@
 {"units":[
   {"n":"Arkanyst Evaluator","p":[[1,70]],"t":5},
-  {"n":"Berehk Stornbröw","p":[[1,85]],"t":6},
+  {"n":"Berehk Stornbröw","p":[[1,85]],"t":6,"e":1},
   {"n":"Brôkhyr Iron-Master","p":[[5,70]],"t":5},
   {"n":"Brôkhyr Thunderkyn","p":[[3,80],[6,170]],"t":6},
-  {"n":"Buri Aegnirssen","p":[[1,85]],"t":6},
+  {"n":"Buri Aegnirssen","p":[[1,85]],"t":6,"e":1},
   {"n":"Cthonian Beserks","p":[[5,90],[10,180]],"t":6},
   {"n":"Cthonian Earthshakers","p":[[2,100]],"t":6},
   {"n":"Einhyr Champion","p":[[1,65]],"t":5},
@@ -20,5 +20,5 @@
   {"n":"Kâhl","p":[[1,65]],"t":5},
   {"n":"Memnyr Strategist","p":[[1,45]],"t":5},
   {"n":"Sagitaur","p":[[1,85]],"t":9},
-  {"n":"Ûthar the Destined","p":[[1,100]],"t":5}
+  {"n":"Ûthar the Destined","p":[[1,100]],"t":5,"e":1}
 ]}

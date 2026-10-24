@@ -24,6 +24,8 @@ interface Props {
   overLimit?: boolean;
   /** In Setup, the unit is T10 or higher. */
   toughOver?: boolean;
+  /** The unit is an Epic Hero (any round). */
+  epic?: boolean;
   onEdit(): void;
   /** Characters pass the cause entered on the "Why did they fall?" sheet. */
   onRemove(cause?: string): void;
@@ -31,7 +33,7 @@ interface Props {
   onRemoveRelic(relic: string): void;
 }
 
-export function UnitCard({ unit, editable, memorial, overLimit, toughOver, onEdit, onRemove, onRollRelic, onRemoveRelic }: Props) {
+export function UnitCard({ unit, editable, memorial, overLimit, toughOver, epic, onEdit, onRemove, onRollRelic, onRemoveRelic }: Props) {
   const [armed, setArmed] = useState(false);
   const [asking, setAsking] = useState(false);
   useEffect(() => {
@@ -223,6 +225,7 @@ export function UnitCard({ unit, editable, memorial, overLimit, toughOver, onEdi
       )}
       {danger && !unit.isWarlord && <div className="warnline">2 scars. One more and this unit is gone.</div>}
       {toughOver && unit.t != null && <div className="warnline">! T{unit.t}: over the Setup limit</div>}
+      {epic && <div className="warnline">! Epic Hero: not allowed in this campaign</div>}
       {editable && (
         <div className="acts">
           <button className="btn sm" onClick={onEdit}>

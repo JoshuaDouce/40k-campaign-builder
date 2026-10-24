@@ -36,6 +36,8 @@ export interface SetupChecklist {
   character: { count: number; name?: string; isWarlord: boolean };
   /** Units at Toughness 10+ (Setup only; a blank T never counts). `name`/`t` are set when `count` is 1. */
   toughOver: { count: number; name?: string; t?: number };
+  /** Units whose datasheet matches an Epic Hero (needs `isEpicName`; none without it). `name` is set when `count` is 1. */
+  epic: { count: number; name?: string };
   rosterTotal: number;
   supply: number;
   /** Roster is non-empty and within supply. */
@@ -46,11 +48,12 @@ export interface SetupChecklist {
   foShort: { role: Role; n: number }[];
 }
 
-export function setupChecklist(state: CampaignState, playerId: string): SetupChecklist {
+export function setupChecklist(state: CampaignState, playerId: string, isEpicName?: (name: string) => boolean): SetupChecklist {
   const player = getPlayer(state, playerId);
   const roster = rosterOf(state, playerId);
   const chars = roster.filter((u) => u.isCharacter);
   const over = roster.filter((u) => setupToughnessBlock(state, u.t));
+  const epics = (isEpicName ? roster.filter((u) => isEpicName(u.datasheet)) : []);
   const rosterTotal = totalEffective(roster);
   const supply = player ? supplyOf(player) : 0;
   const prov = state.cap[playerId] ? getProvince(state, state.cap[playerId]) : undefined;
@@ -58,6 +61,7 @@ export function setupChecklist(state: CampaignState, playerId: string): SetupChe
   return {
     character: { count: chars.length, name: (chars.find((u) => u.isWarlord) ?? chars[0])?.name, isWarlord: chars.some((u) => u.isWarlord) },
     toughOver: { count: over.length, name: over.length === 1 ? over[0].name : undefined, t: over.length === 1 ? over[0].t : undefined },
+    epic: { count: epics.length, name: epics.length === 1 ? epics[0].name : undefined },
     rosterTotal,
     supply,
     rosterOk: roster.length > 0 && rosterTotal <= supply,

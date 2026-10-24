@@ -1,5 +1,5 @@
 {"units":[
-  {"n":"Angron","p":[[1,330]],"t":11},
+  {"n":"Angron","p":[[1,330]],"t":11,"e":1},
   {"n":"Bloodcrushers","p":[[3,95],[6,190]],"t":7},
   {"n":"Bloodletters","p":[[10,90]],"t":4},
   {"n":"Bloodthirster","p":[[1,320]],"t":11},
@@ -22,11 +22,11 @@
   {"n":"Jakhals","p":[[10,65],[20,120]],"t":4},
   {"n":"Khorne Berzerkers","p":[[10,170],[20,330]],"t":5},
   {"n":"Khorne Lord of Skulls","p":[[1,505]],"t":13},
-  {"n":"Khârn the Betrayer","p":[[1,115]],"t":5},
-  {"n":"Lord Invocatus","p":[[1,100]],"t":6},
+  {"n":"Khârn the Betrayer","p":[[1,115]],"t":5,"e":1},
+  {"n":"Lord Invocatus","p":[[1,100]],"t":6,"e":1},
   {"n":"Lord on Juggernaut","p":[[1,95]],"t":6},
   {"n":"Master of Executions","p":[[1,60]],"t":5},
   {"n":"Maulerfiend","p":[[1,140]],"t":10},
-  {"n":"Skarbrand","p":[[1,315]],"t":11},
+  {"n":"Skarbrand","p":[[1,315]],"t":11,"e":1},
   {"n":"Slaughterbound","p":[[1,90]],"t":6}
 ]}

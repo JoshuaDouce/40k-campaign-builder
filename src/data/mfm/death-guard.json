@@ -27,7 +27,7 @@
   {"n":"Lord of Virulence","p":[[1,90]],"t":7},
   {"n":"Malignant Plaguecaster","p":[[1,60]],"t":6},
   {"n":"Miasmic Malignifier","p":[[1,105]],"t":10},
-  {"n":"Mortarion","p":[[1,375]],"t":12},
+  {"n":"Mortarion","p":[[1,375]],"t":12,"e":1},
   {"n":"Myphitic Blight-Haulers","p":[[1,95],[2,190]]},
   {"n":"Noxious Blightbringer","p":[[1,50]],"t":6},
   {"n":"Nurglings","p":[[3,45],[6,90]],"t":3},
@@ -37,7 +37,7 @@
   {"n":"Plaguebearers","p":[[10,115]],"t":5},
   {"n":"Plagueburst Crawler","p":[[1,170]],"t":10},
   {"n":"Poxwalkers","p":[[10,65],[20,130]],"t":4},
-  {"n":"Rotigus","p":[[1,280]],"t":12},
+  {"n":"Rotigus","p":[[1,280]],"t":12,"e":1},
   {"n":"Tallyman","p":[[1,60]],"t":6},
-  {"n":"Typhus","p":[[1,90]],"t":7}
+  {"n":"Typhus","p":[[1,90]],"t":7,"e":1}
 ]}

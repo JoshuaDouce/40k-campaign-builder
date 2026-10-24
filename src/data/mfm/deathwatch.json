@@ -100,7 +100,7 @@
   {"n":"Vanguard Veteran Squad with Jump Packs","p":[[5,110],[10,220]],"t":5},
   {"n":"Venerable Dreadnought","p":[[1,165]],"t":9,"l":1},
   {"n":"Vindicator","p":[[1,185]],"l":1},
-  {"n":"Watch Captain Artemis","p":[[1,75]],"t":5},
+  {"n":"Watch Captain Artemis","p":[[1,75]],"t":5,"e":1},
   {"n":"Watch Master","p":[[1,105]],"t":5},
   {"n":"Whirlwind","p":[[1,175]],"l":1}
 ]}
