@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { canPerform, forceOrgFor, PROMOTION_COST, RECRUITS_COST, rosterOf, setupToughnessBlock, SURGEON_COST, supplyOf, totalEffective } from "../../game/index.ts";
+import { canPerform, countsAsSetupNine, forceOrgFor, PROMOTION_COST, RECRUITS_COST, rosterOf, setupToughnessBlock, SURGEON_COST, supplyOf, totalEffective } from "../../game/index.ts";
 import type { Unit } from "../../game/index.ts";
 import { useCampaign } from "../../store/useCampaign.ts";
 import { ForceOrgChart } from "./ForceOrgChart.tsx";
@@ -38,6 +38,8 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
   const editable = canPerform(state, { type: "addExamples", playerId: pid }, viewer);
   const roster = rosterOf(state, pid);
   const fo = forceOrgFor(state, pid);
+  // Setup: the second and later non-Battleline T9 units (roster order) are flagged; the first is the one allowed.
+  const nineExtraIds = state.round === 0 ? roster.filter(countsAsSetupNine).slice(1).map((u) => u.id) : [];
   const sorted = [...roster].sort((a, b) => Number(b.isWarlord) - Number(a.isWarlord));
   const total = totalEffective(roster);
   const supply = supplyOf(player);
@@ -180,6 +182,7 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
             memorial={state.round !== 0}
             overLimit={fo.overLimitIds.includes(u.id)}
             toughOver={setupToughnessBlock(state, u.t)}
+            toughNineExtra={nineExtraIds.includes(u.id)}
             epic={isEpicName(u.datasheet)}
             onEdit={() => setDialog({ kind: "edit", unit: u })}
             onRollRelic={() => setDialog({ kind: "relic", unit: u })}
