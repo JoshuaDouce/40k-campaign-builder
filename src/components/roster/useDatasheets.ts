@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { MFM_SLUGS } from "../../data/mfm/slugs.ts";
 import type { FactionName } from "../../game/index.ts";
 
@@ -9,6 +9,8 @@ export interface Datasheet {
   legends: boolean;
   /** Toughness (highest T across the unit's models), if known. */
   t?: number;
+  /** An Epic Hero: hidden from the picker and not allowed on a roster. */
+  epic?: boolean;
   /** Name with case, accents and apostrophes folded away, for matching. */
   folded: string;
   /** For each character of `folded`, the index of the character it came from in `name`. */
@@ -22,7 +24,7 @@ export interface Datasheets {
 }
 
 interface RawFile {
-  units: { n: string; p: [number, number][]; l?: 1; t?: number }[];
+  units: { n: string; p: [number, number][]; l?: 1; t?: number; e?: 1 }[];
 }
 interface RawMeta {
   version: string;
@@ -46,7 +48,34 @@ export function fold(text: string): { folded: string; map: number[] } {
   return { folded, map };
 }
 
-// Lazy and non-eager: each faction's JSON becomes its own chunk, fetched only when a unit form opens.
+/** Matching key for an Epic Hero name: folded, dashes unified, spaces collapsed, trimmed. */
+const epicKey = (name: string): string =>
+  fold(name.trim())
+    .folded.replace(/[‐-―−]/g, "-")
+    .replace(/\s+/g, " ")
+    .trim();
+
+const epicSets = new WeakMap<readonly Datasheet[], Set<string>>();
+
+/** True if `name` matches an Epic Hero datasheet in `units` (ignores case, apostrophes, dashes and surrounding spaces). */
+export function isEpicName(units: readonly Datasheet[], name: string): boolean {
+  const key = epicKey(name);
+  if (!key) return false;
+  let set = epicSets.get(units);
+  if (!set) {
+    set = new Set(units.filter((u) => u.epic).map((u) => epicKey(u.name)));
+    epicSets.set(units, set);
+  }
+  return set.has(key);
+}
+
+/** Name matcher for the faction's Epic Heroes. Always false until the data is ready (honour system). */
+export function useIsEpicName(faction: FactionName | undefined): (name: string) => boolean {
+  const { units } = useDatasheets(faction);
+  return useMemo(() => (name: string) => isEpicName(units, name), [units]);
+}
+
+// Lazy and non-eager: each faction's JSON becomes its own chunk, fetched only when a roster, Setup checklist or unit form needs it.
 const files = import.meta.glob<RawFile>(["../../data/mfm/*.json", "!**/meta.json"], { import: "default" });
 const metas = import.meta.glob<RawMeta>("../../data/mfm/meta.json", { import: "default" });
 const fileFor = (slug: string) => files[`../../data/mfm/${slug}.json`];
@@ -67,7 +96,7 @@ function unitsFor(slug: string): Promise<Datasheet[]> {
     const loader = fileFor(slug);
     if (!loader) return Promise.reject(new Error(`No MFM data for ${slug}`));
     p = loader().then(
-      (file) => file.units.map((u) => ({ name: u.n, sizes: [...u.p].sort((a, b) => a[0] - b[0]), legends: u.l === 1, ...(u.t !== undefined && { t: u.t }), ...fold(u.n) })),
+      (file) => file.units.map((u) => ({ name: u.n, sizes: [...u.p].sort((a, b) => a[0] - b[0]), legends: u.l === 1, ...(u.t !== undefined && { t: u.t }), ...(u.e === 1 && { epic: true }), ...fold(u.n) })),
       (err: unknown) => {
         slugUnits.delete(slug); // a failed chunk (e.g. after a deploy) is retried next time
         throw err;

@@ -24,6 +24,7 @@ import {
 import type { FactionName, ForceOrg, Role, Unit } from "../../game/index.ts";
 import { useCampaign } from "../../store/useCampaign.ts";
 import { DatasheetPicker } from "./DatasheetPicker.tsx";
+import { useIsEpicName } from "./useDatasheets.ts";
 import { Overlay } from "./Overlay.tsx";
 import { useRng } from "./useRng.ts";
 
@@ -152,7 +153,8 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, r
   const toughNum = toughBlank ? NaN : Number(d.toughness);
   const toughBad = !toughBlank && !(Number.isInteger(toughNum) && toughNum >= 1);
   const toughBlock = !toughBad && setupToughnessBlock(state, toughBlank ? undefined : toughNum);
-  const describedBy = [charBlock ? "f_charblock" : "", toughBlock ? "f_toughblock" : ""].filter(Boolean).join(" ") || undefined;
+  const epicBlock = useIsEpicName(faction)(d.datasheet);
+  const describedBy = [charBlock ? "f_charblock" : "", toughBlock ? "f_toughblock" : "", epicBlock ? "f_epicblock" : ""].filter(Boolean).join(" ") || undefined;
 
   let problem = "";
   if (!Number.isFinite(points) || points < 0) problem = "Base points must be 0 or more.";
@@ -164,7 +166,7 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, r
   else if (recruits && d.honours.length !== 1) problem = "Pick exactly one Battle Honour.";
 
   const save = () => {
-    if (problem || charBlock || toughBlock) return;
+    if (problem || charBlock || toughBlock || epicBlock) return;
     const enh = d.isCharacter ? d.enhancement.trim() : "";
     const unit: Unit = {
       ...existing,
@@ -223,6 +225,7 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, r
           onPoints={(points) => set({ points })}
           onToughness={(toughness) => set({ toughness })}
           setup={setup}
+          epicBlock={epicBlock}
         />
         <div className="field" style={{ flex: "1 1 120px" }}>
           <label htmlFor="f_base">Base points</label>
@@ -408,7 +411,7 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, r
       )}
 
       <div className="row sub">
-        <button type="button" className="btn primary" disabled={!!problem || !!charBlock || toughBlock} aria-describedby={describedBy} onClick={save}>
+        <button type="button" className="btn primary" disabled={!!problem || !!charBlock || toughBlock || epicBlock} aria-describedby={describedBy} onClick={save}>
           {COPY[mode].cta}
         </button>
         <button type="button" className="btn" onClick={onClose}>

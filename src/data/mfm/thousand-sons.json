@@ -1,5 +1,5 @@
 {"units":[
-  {"n":"Ahriman","p":[[1,105]],"t":5},
+  {"n":"Ahriman","p":[[1,105]],"t":5,"e":1},
   {"n":"Blue Horrors","p":[[10,90]],"t":3},
   {"n":"Chaos Land Raider","p":[[1,220]],"t":12},
   {"n":"Chaos Predator Annihilator","p":[[1,140]],"t":10},
@@ -17,9 +17,9 @@
   {"n":"Helbrute","p":[[1,110]],"t":9},
   {"n":"Heldrake","p":[[1,175]],"t":9},
   {"n":"Infernal Master","p":[[1,105]],"t":5},
-  {"n":"Kairos Fateweaver","p":[[1,305]],"t":10},
+  {"n":"Kairos Fateweaver","p":[[1,305]],"t":10,"e":1},
   {"n":"Lord of Change","p":[[1,320]],"t":10},
-  {"n":"Magnus the Red","p":[[1,455]],"t":11},
+  {"n":"Magnus the Red","p":[[1,455]],"t":11,"e":1},
   {"n":"Maulerfiend","p":[[1,120]],"t":10},
   {"n":"Mutalith Vortex Beast","p":[[1,170]],"t":10},
   {"n":"Pink Horrors","p":[[10,115]],"t":3},

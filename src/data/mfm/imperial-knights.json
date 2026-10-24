@@ -4,7 +4,7 @@
   {"n":"Armiger Helverin","p":[[1,140]],"t":9},
   {"n":"Armiger Moirax","p":[[1,150]],"t":9},
   {"n":"Armiger Warglaive","p":[[1,140]],"t":9},
-  {"n":"Canis Rex","p":[[1,415]],"t":11},
+  {"n":"Canis Rex","p":[[1,415]],"t":11,"e":1},
   {"n":"Cerastus Knight Acheron","p":[[1,380]],"t":11},
   {"n":"Cerastus Knight Atrapos","p":[[1,420]],"t":11},
   {"n":"Cerastus Knight Castigator","p":[[1,380]],"t":11},

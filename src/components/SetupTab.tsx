@@ -4,12 +4,13 @@ import { canPerform, chartMatches, SETUP_MAX_TOUGHNESS, setupChecklist, setupRea
 import type { Action, CampaignState, FactionName, Player } from "../game/index.ts";
 import { useCampaign } from "../store/useCampaign.ts";
 import type { TabId } from "../store/useDevicePrefs.ts";
+import { useIsEpicName } from "./roster/useDatasheets.ts";
 import { FactionOptions } from "./FactionOptions.tsx";
 import { PlayerNameInput } from "./PlayerNameInput.tsx";
 
 const BRIEF: ReadonlyArray<readonly [string, string]> = [
   ["The setting.", "The Hollowgate rift tore open three years ago and the Reach is a scatter of worlds, each split into provinces. More players, more worlds."],
-  ["Your start.", "A 750 pt roster led by one Warlord, 0 Requisition Points (earn them from your Capital and from battles), and a Capital province on an outer world. No Epic Heroes or named characters."],
+  ["Your start.", "A 750 pt roster led by one Warlord, 0 Requisition Points (earn them from your Capital and from battles), and a Capital province on an outer world. No Epic Heroes."],
   ["The War Round.", "Everyone draws a Fate Card, then each player takes one turn, smallest empire first."],
   ["Your turn.", "Pick one action: Conquer, Raid, Recuperate, Muster, Fortify or Scout. Conquer and Raid start a battle."],
   ["Winning.", "Once 60% of the Reach is claimed (or by War Round 8) the Hollowgate opens. Hold it at the end of a War Round to win."],
@@ -133,7 +134,7 @@ export function SetupTab({ colors, onNavigate }: { colors: Record<string, string
         </Step>
 
         <Step n={4} title="Starting positions" next={nextStep === 4} marks={step4Marks}>
-          <p className="su-sub">Each warband needs exactly one Character (its Warlord), a 750 pt roster and a Capital. No unit may have Toughness 10 or higher yet. You start on 0 RP and earn it from your Capital and battles. Build rosters on the Roster tab.</p>
+          <p className="su-sub">Each warband needs exactly one Character (its Warlord), a 750 pt roster and a Capital. No unit may have Toughness 10 or higher yet. No Epic Heroes. You start on 0 RP and earn it from your Capital and battles. Build rosters on the Roster tab.</p>
           <div className="su-blist">
             {state.players.map((p) => (
               <PlayerBlock key={p.id} player={p} state={state} color={colors[p.id]} onNavigate={onNavigate} />
@@ -238,7 +239,8 @@ function Check({ label, ok, value, over }: { label: string; ok: boolean; value: 
 
 function PlayerBlock({ player: p, state, color, onNavigate }: { player: Player; state: CampaignState; color: string | undefined; onNavigate: (tab: TabId) => void }) {
   const { dispatch, viewer } = useCampaign();
-  const c = setupChecklist(state, p.id);
+  const isEpicName = useIsEpicName(p.faction);
+  const c = setupChecklist(state, p.id, isEpicName);
   const ready = state.ready?.[p.id] === true;
   const setReady: Action = { type: "setReady", playerId: p.id, ready: !ready };
   return (
@@ -274,6 +276,12 @@ function PlayerBlock({ player: p, state, color, onNavigate }: { player: Player; 
         ok={c.toughOver.count === 0}
         over={c.toughOver.count > 0}
         value={c.toughOver.count === 0 ? `No unit over T${SETUP_MAX_TOUGHNESS}` : c.toughOver.count === 1 ? `${c.toughOver.name ?? "A unit"} is T${c.toughOver.t ?? ""}` : `${c.toughOver.count} units over T${SETUP_MAX_TOUGHNESS}`}
+      />
+      <Check
+        label="Heroes"
+        ok={c.epic.count === 0}
+        over={c.epic.count > 0}
+        value={c.epic.count === 0 ? "No Epic Heroes" : c.epic.count === 1 ? `${c.epic.name ?? "A unit"} is an Epic Hero` : `${c.epic.count} Epic Heroes on the roster`}
       />
       <Check label="Capital" ok={!!c.capital} value={c.capital ?? "Chart the Reach first (step 3)"} />
       <div className="su-bfoot">

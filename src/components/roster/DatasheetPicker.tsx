@@ -22,6 +22,8 @@ interface Props {
   onToughness(t: string): void;
   /** True in Setup, when T10 or higher is over the limit. */
   setup?: boolean;
+  /** The typed name is an Epic Hero in this faction: shows the block message. */
+  epicBlock?: boolean;
 }
 
 interface Hit {
@@ -41,7 +43,7 @@ function highlight(name: string, at: [number, number]): ReactNode {
 }
 
 /** Datasheet field for the unit form: a searchable pick-list when MFM data exists, else today's plain text input. */
-export function DatasheetPicker({ id, faction, value, points, onText, onPoints, onToughness, setup }: Props) {
+export function DatasheetPicker({ id, faction, value, points, onText, onPoints, onToughness, setup, epicBlock }: Props) {
   const data = useDatasheets(faction);
   const listId = useId();
   const field = useRef<HTMLDivElement>(null);
@@ -55,6 +57,7 @@ export function DatasheetPicker({ id, faction, value, points, onText, onPoints, 
     if (!ready || !q) return [];
     const out: Hit[] = [];
     for (const unit of data.units) {
+      if (unit.epic) continue; // Epic Heroes are never offered
       const i = unit.folded.indexOf(q);
       if (i < 0) continue;
       out.push({ unit, at: [unit.map[i], unit.map[i + q.length - 1] + 1] });
@@ -132,6 +135,8 @@ export function DatasheetPicker({ id, faction, value, points, onText, onPoints, 
         placeholder={plain ? "e.g. Intercessor Squad" : `Search ${faction ?? ""} datasheets`}
         autoComplete="off"
         className={isOpen ? "mf-open" : undefined}
+        aria-invalid={epicBlock ? true : undefined}
+        aria-describedby={epicBlock ? "f_epicblock" : "f_epichint"}
         {...(ready
           ? {
               role: "combobox",
@@ -197,6 +202,14 @@ export function DatasheetPicker({ id, faction, value, points, onText, onPoints, 
             ))}
           </div>
         </>
+      )}
+      <div className="mono dim" id="f_epichint" style={{ fontSize: 11 }}>
+        Epic Heroes are not allowed.
+      </div>
+      {epicBlock && (
+        <div className="hint bad" id="f_epicblock" role="alert">
+          ! No Epic Heroes. {value.trim()} is a named legend of the galaxy. Pick another Character or give your own hero a new name.
+        </div>
       )}
     </div>
   );

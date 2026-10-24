@@ -7,6 +7,7 @@ import { HallOfHeroes } from "./HallOfHeroes.tsx";
 import { PostBattleHelper } from "./PostBattleHelper.tsx";
 import { FieldSurgeonDialog, PromotionDialog, SeasonedRecruitsDialog } from "./RpDialogs.tsx";
 import { RelicDialog } from "./RelicDialog.tsx";
+import { useIsEpicName } from "./useDatasheets.ts";
 import { UnitCard } from "./UnitCard.tsx";
 import { UnitFormSheet } from "./UnitFormSheet.tsx";
 
@@ -22,6 +23,7 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
 
   const own = state.players.find((p) => viewer.userId !== null && p.userId === viewer.userId);
   const player = state.players.find((p) => p.id === picked) ?? own ?? state.players[0];
+  const isEpicName = useIsEpicName(player?.faction);
 
   if (!player) {
     return (
@@ -178,6 +180,7 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
             memorial={state.round !== 0}
             overLimit={fo.overLimitIds.includes(u.id)}
             toughOver={setupToughnessBlock(state, u.t)}
+            epic={isEpicName(u.datasheet)}
             onEdit={() => setDialog({ kind: "edit", unit: u })}
             onRollRelic={() => setDialog({ kind: "relic", unit: u })}
             onRemoveRelic={(relic) => {

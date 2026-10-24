@@ -12,7 +12,7 @@
   {"n":"Bigboss","p":[[1,50]],"t":5},
   {"n":"Big’ed Bossbunka","p":[[1,135]],"t":10},
   {"n":"Blitza-Bommer","p":[[1,115]],"t":9},
-  {"n":"Boss Snikrot","p":[[1,80]],"t":5},
+  {"n":"Boss Snikrot","p":[[1,80]],"t":5,"e":1},
   {"n":"Boss Zagstruk","p":[[1,90]],"l":1},
   {"n":"Boyz","p":[[10,85],[20,170]],"t":5},
   {"n":"Breaka Boyz","p":[[6,120]],"t":5},
@@ -24,7 +24,7 @@
   {"n":"Deffkoptas","p":[[3,85],[6,170]],"t":6},
   {"n":"Flash Gitz","p":[[5,110],[10,220]],"t":5},
   {"n":"Gargantuan Squiggoth","p":[[1,500]],"t":13},
-  {"n":"Ghazghkull Thraka","p":[[1,290]],"t":10},
+  {"n":"Ghazghkull Thraka","p":[[1,290]],"t":10,"e":1},
   {"n":"Gorkanaut","p":[[1,325]],"t":12},
   {"n":"Gretchin","p":[[10,45],[20,80]],"t":2},
   {"n":"Grot Mega-Tank","p":[[1,110]],"l":1},
@@ -44,8 +44,8 @@
   {"n":"Mek Gunz","p":[[1,55],[2,110],[3,165]],"t":6},
   {"n":"Mekboy Workshop","p":[[1,80]],"l":1},
   {"n":"Morkanaut","p":[[1,345]],"t":12},
-  {"n":"Mozrog Skragbad","p":[[1,170]],"t":9},
-  {"n":"Nazdreg","p":[[1,165]],"t":7},
+  {"n":"Mozrog Skragbad","p":[[1,170]],"t":9,"e":1},
+  {"n":"Nazdreg","p":[[1,165]],"t":7,"e":1},
   {"n":"Nobz","p":[[5,115],[10,230]],"t":5},
   {"n":"Painboss","p":[[1,60]],"t":5},
   {"n":"Painboy","p":[[1,45]],"t":5},
@@ -63,7 +63,7 @@
   {"n":"Warbuggies","p":[[1,70],[2,130]],"t":7},
   {"n":"Wartrakks","p":[[1,70],[2,130]],"t":6},
   {"n":"Wazbom Blastajet","p":[[1,215]],"t":9},
-  {"n":"Wazdakka Gutsmek","p":[[1,200]],"t":8},
+  {"n":"Wazdakka Gutsmek","p":[[1,200]],"t":8,"e":1},
   {"n":"Weirdboy","p":[[1,60]],"t":5},
-  {"n":"Zodgrod Wortsnagga","p":[[1,50]],"t":5}
+  {"n":"Zodgrod Wortsnagga","p":[[1,50]],"t":5,"e":1}
 ]}

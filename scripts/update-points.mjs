@@ -70,21 +70,30 @@ async function loadToughness() {
     for (const k of ["selectionEntries", "selectionEntryGroups"]) for (const c of e[k] ?? []) bump(maxT(c));
     return m;
   };
+  const hasEpic = (e) =>
+    (e.categoryLinks ?? []).some((l) => l.name === "Epic Hero") ||
+    ["selectionEntries", "selectionEntryGroups"].some((k) => (e[k] ?? []).some(hasEpic));
   // normalised unit name -> catalogue factionKey -> max T
   const byName = new Map();
+  // normalised unit name -> catalogue factionKey -> is an Epic Hero
+  const epicByName = new Map();
   for (const [file, c] of cats) {
     const fk = factionKey(file);
     for (const e of c.sharedSelectionEntries ?? []) {
       if (e.type !== "unit" && e.type !== "model") continue;
+      const n = norm(e.name);
+      const epic = hasEpic(e);
+      if (!epicByName.has(n)) epicByName.set(n, new Map());
+      const em = epicByName.get(n);
+      em.set(fk, (em.get(fk) ?? false) || epic);
       const t = maxT(e);
       if (t == null) continue;
-      const n = norm(e.name);
       if (!byName.has(n)) byName.set(n, new Map());
       const m = byName.get(n);
       m.set(fk, Math.max(m.get(fk) ?? 0, t));
     }
   }
-  return byName;
+  return { byName, epicByName };
 }
 
 /** T for a unit name in a faction's list, or undefined if unknown or conflicting. */
@@ -95,6 +104,16 @@ function toughnessFor(byName, name, ownKeys) {
   if (all.size === 1) return [...all][0];
   const own = new Set([...m].filter(([k]) => ownKeys.includes(k)).map(([, t]) => t));
   return own.size === 1 ? [...own][0] : undefined;
+}
+
+/** True if the unit is an Epic Hero in its faction's list; on a conflict between catalogues, only its own count. */
+function epicFor(epicByName, name, ownKeys) {
+  const m = epicByName.get(norm(name));
+  if (!m) return false;
+  const all = new Set(m.values());
+  if (all.size === 1) return [...all][0];
+  const own = new Set([...m].filter(([k]) => ownKeys.includes(k)).map(([, v]) => v));
+  return own.size === 1 ? [...own][0] : false;
 }
 
 const cmp = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
@@ -111,7 +130,8 @@ if (unmapped.length) throw new Error(`Slugs in meta.yaml not mapped in MFM_SLUGS
 const missing = [...known].filter((s) => !slugs.includes(s));
 if (missing.length) throw new Error(`Slugs in MFM_SLUGS missing from meta.yaml: ${missing.join(", ")}`);
 
-const toughness = await loadToughness();
+const { byName: toughness, epicByName } = await loadToughness();
+let epicTotal = 0;
 await mkdir(OUT, { recursive: true });
 const docs = await Promise.all(slugs.map(fetchYaml));
 for (const [i, slug] of slugs.entries()) {
@@ -132,6 +152,7 @@ for (const [i, slug] of slugs.entries()) {
     if (t !== undefined) unit.t = t;
     else if (!u.legends) noT.push(unit.n);
     if (u.legends) unit.l = 1;
+    if (epicFor(epicByName, u.name, ownKeys)) unit.e = 1;
     units.push(unit);
   }
   units.sort((a, b) => cmp(a.n, b.n));
@@ -139,8 +160,10 @@ for (const [i, slug] of slugs.entries()) {
   const noTAll = units.filter((x) => x.t === undefined).length;
   matched += units.length - noTAll;
   total += units.length;
-  console.log(`${slug}: ${units.length} units, ${noTAll} without T (${noT.length} non-Legends)`);
+  const epics = units.filter((x) => x.e === 1).length;
+  epicTotal += epics;
+  console.log(`${slug}: ${units.length} units, ${noTAll} without T (${noT.length} non-Legends), ${epics} Epic Heroes`);
   if (noT.length) console.log(`  non-Legends without T: ${noT.join("; ")}`);
 }
 await writeFile(new URL("meta.json", OUT), json({ version: String(meta.version), source: REPO, licence: "MIT", toughnessSource: T_REPO }));
-console.log(`MFM version ${meta.version}; Toughness matched for ${matched} of ${total} units (source ${T_REPO})`);
+console.log(`MFM version ${meta.version}; Toughness matched for ${matched} of ${total} units (source ${T_REPO}); ${epicTotal} Epic Heroes flagged`);
