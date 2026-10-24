@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { canPerform, forceOrgFor, PROMOTION_COST, RECRUITS_COST, rosterOf, SURGEON_COST, supplyOf, totalEffective } from "../../game/index.ts";
+import { canPerform, forceOrgFor, PROMOTION_COST, RECRUITS_COST, rosterOf, setupToughnessBlock, SURGEON_COST, supplyOf, totalEffective } from "../../game/index.ts";
 import type { Unit } from "../../game/index.ts";
 import { useCampaign } from "../../store/useCampaign.ts";
 import { ForceOrgChart } from "./ForceOrgChart.tsx";
@@ -177,6 +177,7 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
             editable={editable}
             memorial={state.round !== 0}
             overLimit={fo.overLimitIds.includes(u.id)}
+            toughOver={setupToughnessBlock(state, u.t)}
             onEdit={() => setDialog({ kind: "edit", unit: u })}
             onRollRelic={() => setDialog({ kind: "relic", unit: u })}
             onRemoveRelic={(relic) => {

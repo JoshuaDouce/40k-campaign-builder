@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
-import { canPerform, chartMatches, setupChecklist, setupReadyCount } from "../game/index.ts";
+import { canPerform, chartMatches, SETUP_MAX_TOUGHNESS, setupChecklist, setupReadyCount } from "../game/index.ts";
 import type { Action, CampaignState, FactionName, Player } from "../game/index.ts";
 import { useCampaign } from "../store/useCampaign.ts";
 import type { TabId } from "../store/useDevicePrefs.ts";
@@ -133,7 +133,7 @@ export function SetupTab({ colors, onNavigate }: { colors: Record<string, string
         </Step>
 
         <Step n={4} title="Starting positions" next={nextStep === 4} marks={step4Marks}>
-          <p className="su-sub">Each warband needs exactly one Character (its Warlord), a 750 pt roster and a Capital. You start on 0 RP and earn it from your Capital and battles. Build rosters on the Roster tab.</p>
+          <p className="su-sub">Each warband needs exactly one Character (its Warlord), a 750 pt roster and a Capital. No unit may have Toughness 10 or higher yet. You start on 0 RP and earn it from your Capital and battles. Build rosters on the Roster tab.</p>
           <div className="su-blist">
             {state.players.map((p) => (
               <PlayerBlock key={p.id} player={p} state={state} color={colors[p.id]} onNavigate={onNavigate} />
@@ -269,6 +269,12 @@ function PlayerBlock({ player: p, state, color, onNavigate }: { player: Player; 
           ! Needs {f.n} more {f.role}
         </div>
       ))}
+      <Check
+        label="Toughness"
+        ok={c.toughOver.count === 0}
+        over={c.toughOver.count > 0}
+        value={c.toughOver.count === 0 ? `No unit over T${SETUP_MAX_TOUGHNESS}` : c.toughOver.count === 1 ? `${c.toughOver.name ?? "A unit"} is T${c.toughOver.t ?? ""}` : `${c.toughOver.count} units over T${SETUP_MAX_TOUGHNESS}`}
+      />
       <Check label="Capital" ok={!!c.capital} value={c.capital ?? "Chart the Reach first (step 3)"} />
       <div className="su-bfoot">
         <button className="lnk" onClick={() => onNavigate("roster")}>

@@ -1,5 +1,6 @@
 {
   "version": "1.6",
   "source": "https://github.com/BSData/wh40k-11e-mfm",
-  "licence": "MIT"
+  "licence": "MIT",
+  "toughnessSource": "https://github.com/BSData/wh40k-11e"
 }

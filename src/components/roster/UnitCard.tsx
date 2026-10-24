@@ -22,6 +22,8 @@ interface Props {
   /** False in Setup: removing a Character there leaves no Hall of Heroes memorial. */
   memorial: boolean;
   overLimit?: boolean;
+  /** In Setup, the unit is T10 or higher. */
+  toughOver?: boolean;
   onEdit(): void;
   /** Characters pass the cause entered on the "Why did they fall?" sheet. */
   onRemove(cause?: string): void;
@@ -29,7 +31,7 @@ interface Props {
   onRemoveRelic(relic: string): void;
 }
 
-export function UnitCard({ unit, editable, memorial, overLimit, onEdit, onRemove, onRollRelic, onRemoveRelic }: Props) {
+export function UnitCard({ unit, editable, memorial, overLimit, toughOver, onEdit, onRemove, onRollRelic, onRemoveRelic }: Props) {
   const [armed, setArmed] = useState(false);
   const [asking, setAsking] = useState(false);
   useEffect(() => {
@@ -62,6 +64,12 @@ export function UnitCard({ unit, editable, memorial, overLimit, onEdit, onRemove
         <div style={{ minWidth: 0 }}>
           <div className="k">
             <span>{unit.datasheet}</span>
+            {unit.t != null && (
+              <>
+                {" · "}
+                <span className="mono dim">T{unit.t}</span>
+              </>
+            )}
           </div>
           <div className="t">
             {unit.name}
@@ -214,6 +222,7 @@ export function UnitCard({ unit, editable, memorial, overLimit, onEdit, onRemove
         </div>
       )}
       {danger && !unit.isWarlord && <div className="warnline">2 scars. One more and this unit is gone.</div>}
+      {toughOver && unit.t != null && <div className="warnline">! T{unit.t}: over the Setup limit</div>}
       {editable && (
         <div className="acts">
           <button className="btn sm" onClick={onEdit}>

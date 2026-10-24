@@ -7,6 +7,8 @@ export interface Datasheet {
   name: string;
   sizes: readonly (readonly [number, number])[];
   legends: boolean;
+  /** Toughness (highest T across the unit's models), if known. */
+  t?: number;
   /** Name with case, accents and apostrophes folded away, for matching. */
   folded: string;
   /** For each character of `folded`, the index of the character it came from in `name`. */
@@ -20,7 +22,7 @@ export interface Datasheets {
 }
 
 interface RawFile {
-  units: { n: string; p: [number, number][]; l?: 1 }[];
+  units: { n: string; p: [number, number][]; l?: 1; t?: number }[];
 }
 interface RawMeta {
   version: string;
@@ -65,7 +67,7 @@ function unitsFor(slug: string): Promise<Datasheet[]> {
     const loader = fileFor(slug);
     if (!loader) return Promise.reject(new Error(`No MFM data for ${slug}`));
     p = loader().then(
-      (file) => file.units.map((u) => ({ name: u.n, sizes: [...u.p].sort((a, b) => a[0] - b[0]), legends: u.l === 1, ...fold(u.n) })),
+      (file) => file.units.map((u) => ({ name: u.n, sizes: [...u.p].sort((a, b) => a[0] - b[0]), legends: u.l === 1, ...(u.t !== undefined && { t: u.t }), ...fold(u.n) })),
       (err: unknown) => {
         slugUnits.delete(slug); // a failed chunk (e.g. after a deploy) is retried next time
         throw err;

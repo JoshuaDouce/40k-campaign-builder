@@ -198,6 +198,8 @@ export interface Unit {
   warlordTrait?: string;
   /** Characters only. Names from `RELICS`, at most 3, no duplicates. */
   relics?: string[];
+  /** Toughness (highest T among its models). Missing = unknown; never flagged. */
+  t?: number;
   /** Career record, every unit. Missing = 0. */
   battles?: number;
   kills?: number;
