@@ -86,12 +86,17 @@ export function polyCentroid(c: Pt[]): Pt {
 
 /* ---------- counts, names, layout ---------- */
 
-/** World counts for a player count: P = max(3, players + 1), split inner / middle / outer. */
+/**
+ * World counts for a player count. Inner and middle split a base of max(3, players + 1) as before;
+ * the outer ring then holds one world per player (at least the base's share), so every Capital is on
+ * an outer world of its own. P is the total.
+ */
 export function worldCounts(players: number): { P: number; nIn: number; nMid: number; nOut: number } {
-  const P = Math.max(3, Math.max(1, players) + 1);
-  const nIn = P < 6 ? 1 : Math.max(2, Math.round(P / 4));
-  const nMid = Math.round((P - nIn) / 2);
-  return { P, nIn, nMid, nOut: P - nIn - nMid };
+  const base = Math.max(3, Math.max(1, players) + 1);
+  const nIn = base < 6 ? 1 : Math.max(2, Math.round(base / 4));
+  const nMid = Math.round((base - nIn) / 2);
+  const nOut = Math.max(base - nIn - nMid, players);
+  return { P: nIn + nMid + nOut, nIn, nMid, nOut };
 }
 
 const ROMAN: Array<[number, string]> = [
@@ -293,8 +298,8 @@ export function genSystem(players: ReadonlyArray<{ id: string }>, seed: number):
   let pfx = 0;
   const nextPrefix = () => prefixes[pfx++ % prefixes.length];
   planets.forEach((pl) => sys.provs.push(...genPlanetProvinces(pl, R, nextPrefix)));
-  // capitals: spread players over outer then middle worlds
-  const homes = [...planets.filter((p) => p.orbit === "outer"), ...planets.filter((p) => p.orbit === "middle")];
+  // capitals: one outer world per player (worldCounts guarantees enough)
+  const homes = planets.filter((p) => p.orbit === "outer");
   const terr: Record<string, string> = {},
     cap: Record<string, string> = {};
   players.forEach((pl, i) => {

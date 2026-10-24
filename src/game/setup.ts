@@ -12,12 +12,12 @@ export function isExampleName(name: string): boolean {
   return name.trim().toLowerCase().endsWith(EXAMPLE_SUFFIX);
 }
 
-/** True if the Reach has one world per the player count (+1) and every player has a Capital on it. */
+/** True if the Reach has the right number of worlds for the players and every player has a Capital on an outer world. */
 export function chartMatches(state: CampaignState): boolean {
   if (state.sys.planets.length !== worldCounts(state.players.length).P) return false;
   return state.players.every((p) => {
-    const id = state.cap[p.id];
-    return !!id && !!getProvince(state, id);
+    const prov = getProvince(state, state.cap[p.id] ?? "");
+    return !!prov && getPlanet(state, prov.pl)?.orbit === "outer";
   });
 }
 

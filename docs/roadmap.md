@@ -32,7 +32,8 @@ password. On first sign-in you set a display name.
 
 ### 3. Charting the Reach before round 1 (stages 3–4)
 - Before round 1, the owner sees "Chart a new Reach". Other members do not.
-- Charting gives every current player a Capital; world count = players + 1 (minimum 3, **no cap**).
+- Charting gives every current player a Capital on an outer world of their own: one outer world per
+  player plus the middle and inner worlds (minimum 4 worlds, **no cap**).
 - With many players the system map scales up rather than overlapping worlds, and stays
   readable and tappable on a phone.
 - Every player has a distinct colour, however many there are.
