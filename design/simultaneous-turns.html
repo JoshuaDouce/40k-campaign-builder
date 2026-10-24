@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Varkesh Reach - Simultaneous Turns (design mock)</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Grenze+Gothic:wght@500;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Share+Tech+Mono&display=swap">
+<style>
+/* ===== Tokens and base: copied from reference/index.html and src/styles/prototype.css ===== */
+[hidden]{display:none!important}
+body{margin:0}
+:root{
+  --bg:#16120f; --panel:#211a16; --panel2:#2a211c; --line:#3d312a;
+  --ink:#ebdfc8; --dim:#a8977f; --brass:#d0a952; --blood:#b8392e; --verd:#6f9a86;
+  --f-display:"Grenze Gothic","Palatino Linotype",Georgia,serif;
+  --f-body:"Alegreya Sans","Segoe UI",system-ui,sans-serif;
+  --f-mono:"Share Tech Mono",ui-monospace,Menlo,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.55;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px}
+.wrap{max-width:520px;margin:0 auto}
+header.hero{padding-block:28px 18px;border-bottom:1px solid var(--line)}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass)}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(40px,11vw,68px);line-height:.95;margin:6px 0 10px;text-wrap:balance;letter-spacing:.01em}
+h1 span{color:var(--blood)}
+.lede{color:var(--dim);max-width:62ch;margin:0}
+button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible,a:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+h2{font-family:var(--f-display);font-weight:700;font-size:34px;line-height:1.05;margin:0 0 6px;text-wrap:balance}
+h3{font-family:var(--f-display);font-weight:500;font-size:23px;margin:26px 0 6px;color:var(--brass);text-wrap:balance}
+p{margin:0 0 12px;max-width:65ch}
+.dim{color:var(--dim)}
+.mono{font-family:var(--f-mono)}
+.btn{font-family:var(--f-mono);font-size:13px;letter-spacing:.05em;text-transform:uppercase;background:var(--panel2);color:var(--ink);border:1px solid var(--line);padding:9px 14px;border-radius:2px;cursor:pointer;min-height:44px}
+.btn.primary{background:var(--brass);color:var(--bg);border-color:var(--brass)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.sm{padding:5px 9px;font-size:11px;min-height:44px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.note{border-left:3px solid var(--blood);padding:8px 12px;background:var(--panel);margin:14px 0;max-width:65ch}
+.note b{color:var(--blood)}
+.chip{display:inline-flex;align-items:center;gap:6px;font-family:var(--f-mono);font-size:12px;padding:4px 9px;border:1px solid var(--line);border-radius:20px;color:var(--dim);background:none}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex:none}
+select{font:inherit;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:2px;padding:7px 9px;max-width:100%;min-height:44px}
+.field{display:grid;gap:3px;min-width:0;flex:1 1 180px}
+.field label{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.strip{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 4px}
+.strip .chip.done{opacity:.45;text-decoration:line-through}
+.strip .chip.cur{border-color:var(--brass);color:var(--ink);background:var(--panel2)}
+.turn{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:16px;margin-top:12px}
+.turn h4{font-family:var(--f-display);font-size:28px;font-weight:700;margin:0;line-height:1.05}
+.acts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px;margin:12px 0}
+.act{text-align:left;background:var(--panel2);border:1px solid var(--line);border-radius:3px;padding:12px;color:var(--ink);font:inherit;display:flex;flex-direction:column;gap:3px}
+.act .an{font-family:var(--f-display);font-size:22px;line-height:1}
+.act .at{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+.act .at.b{color:var(--blood)} .act .at.q{color:var(--verd)}
+.act .ad{font-size:14.5px;color:var(--dim)}
+.act.sel{border-color:var(--brass);background:var(--panel)}
+.battle{border:1px solid var(--brass);border-radius:3px;padding:14px;margin-top:12px;background:var(--bg)}
+.battle .size{font-family:var(--f-display);font-size:46px;line-height:1;color:var(--brass)}
+.twist{border-left:3px solid var(--blood);padding:4px 10px;margin:8px 0}
+.log{list-style:none;padding:0;margin:8px 0;font-size:14.5px}
+.log li{padding:6px 0;border-top:1px solid var(--line);color:var(--dim)}
+.log li b{color:var(--ink);font-weight:500}
+.log .r{font-family:var(--f-mono);font-size:11px;color:var(--brass);margin-right:6px}
+.hint{font-family:var(--f-mono);font-size:12px;color:var(--dim);margin-top:8px;line-height:1.4}
+
+/* ===== Simultaneous Turns additions (new, "st-" prefix, built from the same tokens) ===== */
+/* Player status list: one row per player, status on the right */
+.st-roster{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:6px}
+.st-pl{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;background:var(--panel2);border:1px solid var(--line);border-radius:3px;padding:6px 10px;min-height:44px}
+.st-pl .nm{flex:1 1 120px;min-width:0;display:flex;align-items:center;gap:8px;overflow-wrap:anywhere}
+.st-pl .you{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+.st-stat{font-family:var(--f-mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim)}
+.st-stat.ok{color:var(--verd)}
+/* Target list: selectable rows, same look as .act */
+.st-tg{list-style:none;margin:8px 0;padding:0;display:grid;gap:6px}
+.st-tg button{width:100%;text-align:left;background:var(--panel2);border:1px solid var(--line);border-radius:3px;padding:8px 12px;color:var(--ink);font:inherit;min-height:44px;display:flex;flex-direction:column}
+.st-tg button.sel{border-color:var(--brass);background:var(--panel)}
+.st-tg .pv{font-family:var(--f-display);font-size:20px;line-height:1.1}
+.st-tg .mt{font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim)}
+/* Own pick line */
+.st-mine{border-left:3px solid var(--brass);background:var(--bg);padding:8px 12px;margin-top:12px;font-family:var(--f-display);font-size:22px;line-height:1.15}
+/* Reveal list */
+.st-order{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:6px}
+.st-o{display:grid;grid-template-columns:28px 1fr;gap:8px;background:var(--panel);border:1px solid var(--line);border-left-width:3px;border-radius:3px;padding:8px 10px;min-width:0}
+.st-o .n{font-family:var(--f-mono);font-size:13px;color:var(--brass);padding-top:2px}
+.st-o .who{display:flex;align-items:center;gap:8px;overflow-wrap:anywhere}
+.st-o .act-l{font-family:var(--f-display);font-size:20px;line-height:1.1}
+.st-o .sub{font-size:14.5px;color:var(--dim);overflow-wrap:anywhere}
+.st-o.done{opacity:.45}
+.st-o.done .act-l{text-decoration:line-through}
+.st-o.cur{border-color:var(--brass);background:var(--panel2)}
+.st-tag{display:inline-block;font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--blood);border:1px solid var(--blood);border-radius:20px;padding:1px 8px;margin-top:3px}
+.st-up{font-family:var(--f-display);font-size:24px;color:var(--brass);margin:0 0 4px}
+.st-def{border-left:3px solid var(--blood);background:var(--panel);padding:8px 12px;margin-top:10px}
+.st-def b{color:var(--blood);font-weight:700}
+.st-fall{border-left:3px solid var(--blood);background:var(--bg);padding:8px 12px;margin-top:10px}
+.st-fall b{color:var(--blood)}
+
+/* mock-only: switcher and labels (not part of the product) */
+.mock{margin:20px 0 0}
+.mocktabs{display:flex;flex-wrap:wrap;gap:6px;margin:18px 0 0}
+.mocktabs .btn.on{border-color:var(--brass);color:var(--brass)}
+.mocklabel{display:flex;gap:8px;align-items:baseline;font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--brass);border-bottom:1px dashed var(--line);padding-bottom:6px;margin:22px 0 4px}
+.mocklabel b{font-weight:400;color:var(--ink)}
+.mocknote{font-family:var(--f-mono);font-size:12px;color:var(--dim);margin:6px 0 10px;line-height:1.45}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+  <div class="eyebrow">Design mock · War Room</div>
+  <h1>Simultaneous <span>Turns</span></h1>
+  <p class="lede">Runs the campaign round by round: plan in secret, reveal, then resolve weakest first. Battle results update the map and players automatically. Record XP and scars on your own rosters.</p>
+  <div class="mocktabs" role="tablist" id="tabs"></div>
+</header>
+<section class="mock" id="view"></section>
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+const COL={kaelen:"#d0a952",orks:"#6f9a86",void:"#b8392e",ash:"#8a7fb8"};
+const dot=k=>`<span class="dot" style="background:${COL[k]}"></span>`;
+
+/* ---------- shared pieces ---------- */
+const stage=(t)=>`<div class="row mono" style="font-size:13px;color:var(--brass)">${t}</div>`;
+const ACTS=[["b","Conquer","Attack a province to take it."],["b","Raid","Hit a rival for RP or a card."],["q","Fortify","Quiet action."],["q","Scout","Quiet action."],["q","Muster","Quiet action."],["q","Recuperate","Quiet action."]];
+const acts=(sel)=>`<div class="acts-grid">${ACTS.map(([t,n,d])=>`<button class="act${n===sel?" sel":""}"><span class="at ${t}">${t==="b"?"Battle":"No battle"}</span><span class="an">${n}</span><span class="ad">${d}</span></button>`).join("")}</div>`;
+const head=(round,who,sub)=>`<div class="eyebrow">War Round ${round} · Planning</div><h4>${who}</h4><p class="dim mono" style="font-size:12px;margin-top:4px">${sub}</p>`;
+
+/* roster: [key, name, locked, extra html, isYou] */
+const roster=(rows)=>`<ul class="st-roster">${rows.map(([k,n,l,x,you])=>`<li class="st-pl"><span class="nm">${dot(k)}${n}${you?' <span class="you">(you)</span>':""}</span><span class="st-stat${l?" ok":""}">${l?"Locked in":"Choosing…"}</span>${x||""}</li>`).join("")}</ul>`;
+const log=`<h3 style="margin-top:18px">Campaign log</h3><ul class="log"><li><span class="r">R4</span><b>Ash Marauders</b> collected RP and drew a Fate Card.</li><li><span class="r">R3</span><b>Void Choir</b> took <b>Choir Spire</b> on Ninth Vault.</li></ul>`;
+
+/* ---------- 1. Planning: choosing ---------- */
+function s1(){
+  return stage("War Round 4 · Plan")+
+  `<div class="turn">${head(4,"Plan your move","VOID CHOIR · NECRONS · 6 RP · SUPPLY 1200 · 3 PROVINCES · HAND 2/5")}
+   <p class="dim" style="margin:10px 0 0">Choose your action in secret. Nobody sees it until the owner reveals.</p>
+   ${acts("Conquer")}
+   <div class="eyebrow" style="margin-top:4px">Conquer · choose a province</div>
+   <ul class="st-tg">
+     <li><button><span class="pv">Gutter Reach</span><span class="mt">Dross · Hive City · 1350 pts · Ash Marauders</span></button></li>
+     <li><button class="sel"><span class="pv">Quarry Ridge</span><span class="mt">Ash Moon · Mining Hub · 1000 pts · Unclaimed</span></button></li>
+   </ul>
+   <div class="row" style="align-items:flex-end">
+     <div class="field"><label for="g1">Garrison player</label><select id="g1"><option>Kaelen</option><option>Orks Warboss</option><option>Ash Marauders</option></select></div>
+   </div>
+   <p class="dim" style="font-size:14px;margin:8px 0 0">Unclaimed province: another player fields the garrison. They gain no RP, Fate Cards or stats from this fight, so pick whoever is free to play. You fight with +20% points.</p>
+   <div class="row" style="margin-top:12px"><button class="btn primary">Lock in</button></div>
+   ${roster([["kaelen","Kaelen",true],["orks","Orks Warboss",false],["void","Void Choir",false,"",true],["ash","Ash Marauders",true]])}
+   <p class="hint">Waiting for 3 more to lock in.</p>
+  </div>`+log;
+}
+
+/* ---------- 2. Planning: locked in ---------- */
+function s2(){
+  return stage("War Round 4 · Plan")+
+  `<div class="turn">${head(4,"Plan your move","VOID CHOIR · NECRONS · 6 RP · SUPPLY 1200 · 3 PROVINCES · HAND 2/5")}
+   <div class="st-mine">You: Conquer Quarry Ridge on Ash Moon</div>
+   <div class="row" style="margin-top:10px"><button class="btn">Unlock to change</button></div>
+   ${roster([["kaelen","Kaelen",true],["orks","Orks Warboss",false],["void","Void Choir",true,"",true],["ash","Ash Marauders",true]])}
+   <p class="hint">Waiting for 1 more to lock in.</p>
+  </div>`+log;
+}
+/* spec example says "2 more": use a 5-player table for that exact count */
+function s2b(){
+  return `<div class="turn">${head(4,"Plan your move","VOID CHOIR · NECRONS · 6 RP · SUPPLY 1200 · 3 PROVINCES · HAND 2/5")}
+   <div class="st-mine">You: Conquer Quarry Ridge on Ash Moon</div>
+   <div class="row" style="margin-top:10px"><button class="btn">Unlock to change</button></div>
+   ${roster([["kaelen","Kaelen",true],["orks","Orks Warboss",false],["void","Void Choir",true,"",true],["ash","Ash Marauders",false]])}
+   <p class="hint">Waiting for 2 more to lock in.</p>
+  </div>`;
+}
+
+/* ---------- 3. Planning: owner ---------- */
+const pick=`<button class="btn sm">Pick for them</button>`;
+const unl=`<button class="btn sm">Unlock to change</button>`;
+function s3(){
+  return stage("War Round 4 · Plan")+
+  `<div class="turn">${head(4,"Plan your move","KAELEN · ADEPTUS ASTARTES · OWNER")}
+   <p class="dim" style="margin:10px 0 0">Choose your action in secret. Nobody sees it until the owner reveals.</p>
+   <div class="st-mine">You: Fortify Hive Alpha on Varkesh Prime</div>
+   ${roster([["kaelen","Kaelen",true,unl,true],["orks","Orks Warboss",false,pick],["void","Void Choir",false,pick],["ash","Ash Marauders",true,unl]])}
+   <div class="row" style="margin-top:12px"><button class="btn primary" disabled>Reveal all picks</button></div>
+   <p class="hint">Everyone must lock in first.</p>
+   <p class="hint">Waiting for 2 more to lock in.</p>
+  </div>`;
+}
+function s3b(){
+  return `<div class="turn">${head(4,"Plan your move","KAELEN · ADEPTUS ASTARTES · OWNER")}
+   <div class="st-mine">You: Fortify Hive Alpha on Varkesh Prime</div>
+   ${roster([["kaelen","Kaelen",true,unl,true],["orks","Orks Warboss",true,unl],["void","Void Choir",true,unl],["ash","Ash Marauders",true,unl]])}
+   <div class="row" style="margin-top:12px"><button class="btn primary">Reveal all picks</button></div>
+  </div>`;
+}
+
+/* ---------- reveal list ---------- */
+/* [key, name, action, sub, tag, state] */
+const ORDER=[
+ ["ash","Ash Marauders","Scout","","","done"],
+ ["orks","Orks Warboss","Conquer Quarry Ridge","Ash Moon · against Void Choir (holds it)","Kaelen","cur"],
+ ["kaelen","Kaelen","Conquer Quarry Ridge","Ash Moon · against Void Choir (holds it)","Orks Warboss",""],
+ ["void","Void Choir","Fortify Choir Spire","Ninth Vault","",""]
+];
+function order(rows){
+  return `<h3 style="margin-top:16px">The orders, weakest first</h3><ol class="st-order">${rows.map(([k,n,a,sub,tag,st],i)=>
+   `<li class="st-o ${st}" style="border-left-color:${COL[k]}"><span class="n">${i+1}</span><div>
+     <div class="who">${dot(k)}<b>${n}</b></div><div class="act-l">${a}</div>${sub?`<div class="sub">${sub}</div>`:""}
+     ${tag?`<span class="st-tag">Also targeted by ${tag}</span>`:""}</div></li>`).join("")}</ol>`;
+}
+
+/* ---------- 4. Resolution: waiting player (Void Choir, defender) ---------- */
+function s4(){
+  return stage("War Round 4 · Resolve")+
+  `<div class="turn"><div class="eyebrow">War Round 4 · Turn 2 of 4</div>
+   <p class="st-up">Orks Warboss is up</p>
+   <p class="dim mono" style="font-size:12px;margin:0">ORKS · 5 RP · SUPPLY 900 · 2 PROVINCES · HAND 3/5</p>
+   <div class="st-def"><b>Orks Warboss</b> attacks you at <b>Quarry Ridge</b></div>
+   ${order(ORDER)}
+  </div>`+log;
+}
+function s4b(){
+  /* a waiting player not involved: just the status */
+  return `<div class="turn"><div class="eyebrow">War Round 4 · Turn 2 of 4</div><p class="st-up">Orks Warboss is up</p>
+   <p class="dim mono" style="font-size:12px;margin:0">ORKS · 5 RP · SUPPLY 900 · 2 PROVINCES · HAND 3/5</p>
+   ${order(ORDER.map(r=>r.slice()))}</div>`;
+}
+
+/* ---------- 5. Resolution: active player (Kaelen) ---------- */
+const ORDER5=[
+ ["ash","Ash Marauders","Scout","","","done"],
+ ["orks","Orks Warboss","Conquer Quarry Ridge","Ash Moon · against Void Choir (holds it)","","done"],
+ ["kaelen","Kaelen","Conquer Gutter Reach","Dross · against Ash Marauders (holds it)","","cur"],
+ ["void","Void Choir","Fortify Choir Spire","Ninth Vault","",""]
+];
+function s5(){
+  return stage("War Round 4 · Resolve")+
+  `<div class="turn"><div class="eyebrow">War Round 4 · Turn 3 of 4</div><h4>Kaelen</h4>
+   <p class="dim mono" style="font-size:12px;margin-top:4px">ADEPTUS ASTARTES · 5 RP · SUPPLY 1000 · 2 PROVINCES · HAND 3/5</p>
+   <div class="st-mine">Conquer Gutter Reach on Dross</div>
+   <p class="dim" style="font-size:14.5px;margin:6px 0 0">Against Ash Marauders (holds it). This was your pick, revealed.</p>
+   <div class="battle"><div class="eyebrow">Dross · Hive City · Gutter Reach</div><div class="size">1350 pts</div>
+    <p class="mono dim" style="font-size:12px">KAELEN (ATTACKER) VS ASH MARAUDERS (DEFENDER) · FATE CARDS: UP TO 2 EACH</p>
+    <div class="row" style="margin-top:8px"><button class="btn primary">Generate battle</button></div></div>
+   ${order(ORDER5)}
+  </div>`;
+}
+function s5b(){
+  return stage("War Round 4 · Resolve")+
+  `<div class="turn"><div class="eyebrow">War Round 4 · Turn 3 of 4</div><h4>Kaelen</h4>
+   <p class="dim mono" style="font-size:12px;margin-top:4px">ADEPTUS ASTARTES · 5 RP · SUPPLY 1000 · 3 PROVINCES · HAND 3/5</p>
+   <div class="st-fall"><b>Kaelen's pick fell through:</b> you now hold Quarry Ridge. Choose again.</div>
+   <p style="margin:10px 0 0">Choose a campaign action.</p>
+   ${acts("")}
+   ${order([["ash","Ash Marauders","Scout","","","done"],["orks","Orks Warboss","Conquer Quarry Ridge","Ash Moon · against Void Choir (holds it)","","done"],["kaelen","Kaelen","Conquer Quarry Ridge","Ash Moon · pick fell through","","cur"],["void","Void Choir","Fortify Choir Spire","Ninth Vault","",""]])}
+  </div>`;
+}
+
+/* ---------- switcher ---------- */
+const STATES=[
+ ["1 Planning: choosing","My phone, nothing locked yet. Conquer picked on an unclaimed province, so the garrison player picker shows. The status list shows only Locked in or Choosing…, never a pick.",()=>s1()],
+ ["2 Planning: locked in","My phone after Lock in: own one-line pick, Unlock to change, waiting count. The action picker is replaced by the summary.",()=>s2()+`<div class="mocklabel"><span>2b</span><b>Same, with two still to go</b></div>`+s2b()],
+ ["3 Planning: owner","Owner's phone. Not-locked rows offer Pick for them; locked rows offer Unlock to change. Reveal disabled until everyone is in.",()=>s3()+`<div class="mocklabel"><span>3b</span><b>Everyone locked in</b></div><p class="mocknote">Disabled note and waiting count go; Reveal is live.</p>`+s3b()],
+ ["4 Resolution: waiting","Void Choir is not on the clock and is being attacked. Done rows are struck through, the current row is highlighted, the shared province carries the tag on both rows.",()=>s4()+`<div class="mocklabel"><span>4b</span><b>Waiting, not involved</b></div><p class="mocknote">Same panel without the defender line.</p>`+s4b()],
+ ["5 Resolution: active","Kaelen is on the clock. The revealed pick sits at the top of the battle panel; Generate battle is the same step as today.",()=>s5()+`<div class="mocklabel"><span>5b</span><b>Pick fell through</b></div><p class="mocknote">Message, then today's action picker. The revealed pick is not offered back and there is no Change action.</p>`+s5b()]
+];
+const tabs=$("#tabs"), view=$("#view");
+function show(i){
+  [...tabs.children].forEach((b,j)=>b.classList.toggle("on",i===j));
+  view.innerHTML=`<h2>${STATES[i][0].slice(2)}</h2><p class="mocknote">${STATES[i][1]}</p>`+STATES[i][2]();
+  history.replaceState(null,"","#s"+(i+1));
+}
+STATES.forEach((s,i)=>{const b=document.createElement("button");b.className="btn sm";b.textContent=s[0].split(" ")[0];b.title=s[0];b.setAttribute("role","tab");b.onclick=()=>show(i);tabs.appendChild(b);});
+show(Math.max(0,Math.min(4,(parseInt(location.hash.slice(2))||1)-1)));
+</script>
+</body>
+</html>
