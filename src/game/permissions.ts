@@ -66,6 +66,7 @@ export function canPerform(state: CampaignState, action: Action, ctx: Permission
     case "setProvinceOwner":
     case "removePlayer":
     case "deleteFallen":
+    case "setToggle":
     case "regen":
     case "reset":
       return false;

@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Varkesh Reach - Campaign rule toggles (design mock)</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Grenze+Gothic:wght@500;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Share+Tech+Mono&display=swap">
+<style>
+/* ===== Tokens and base: copied from reference/index.html (same as the other design mocks) ===== */
+[hidden]{display:none!important}
+body{margin:0}
+:root{
+  --bg:#16120f; --panel:#211a16; --panel2:#2a211c; --line:#3d312a;
+  --ink:#ebdfc8; --dim:#a8977f; --brass:#d0a952; --blood:#b8392e; --verd:#6f9a86;
+  --f-display:"Grenze Gothic","Palatino Linotype",Georgia,serif;
+  --f-body:"Alegreya Sans","Segoe UI",system-ui,sans-serif;
+  --f-mono:"Share Tech Mono",ui-monospace,Menlo,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.55;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px}
+.wrap{max-width:520px;margin:0 auto}
+header.hero{padding-block:28px 18px;border-bottom:1px solid var(--line)}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass)}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(40px,11vw,68px);line-height:.95;margin:6px 0 10px;text-wrap:balance;letter-spacing:.01em}
+h1 span{color:var(--blood)}
+.lede{color:var(--dim);max-width:62ch;margin:0}
+button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible,a:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+h2{font-family:var(--f-display);font-weight:700;font-size:34px;line-height:1.05;margin:0 0 6px;text-wrap:balance}
+h3{font-family:var(--f-display);font-weight:500;font-size:23px;margin:26px 0 6px;color:var(--brass);text-wrap:balance}
+p{margin:0 0 12px;max-width:65ch}
+a{color:var(--brass)}
+.dim{color:var(--dim)}
+.mono{font-family:var(--f-mono)}
+.btn{font-family:var(--f-mono);font-size:13px;letter-spacing:.05em;text-transform:uppercase;background:var(--panel2);color:var(--ink);border:1px solid var(--line);padding:9px 14px;border-radius:2px;cursor:pointer}
+.btn.primary{background:var(--brass);color:var(--bg);border-color:var(--brass)}
+.btn.danger{color:var(--blood)}
+.btn.sm{padding:5px 9px;font-size:11px;min-height:44px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:6px;font-family:var(--f-mono);font-size:12px;padding:4px 9px;border:1px solid var(--line);border-radius:20px;color:var(--dim);background:none;cursor:pointer;min-height:44px}
+.chip[aria-pressed="true"]{border-color:var(--brass);color:var(--ink);background:var(--panel2)}
+.chip:disabled{opacity:.4;cursor:not-allowed}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips .chip{font-size:12.5px}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex:none}
+select,input[type=text],input[type=number]{font:inherit;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:2px;padding:7px 9px;max-width:100%;min-height:44px}
+.stat{background:var(--panel2);padding:8px;border-radius:2px;text-align:center}
+.stat .l{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+.stat .v{font-family:var(--f-display);font-size:28px;line-height:1;font-variant-numeric:tabular-nums}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1 1 180px}
+.field label,.lbl{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.badge{font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:2px;border:1px solid var(--line);color:var(--ink);background:var(--panel2);white-space:nowrap}
+.badge.ex{color:var(--dim);border-style:dashed}
+.badge.char{border-color:var(--brass);color:var(--brass)}
+.badge.war{background:var(--brass);color:var(--bg);border-color:var(--brass)}
+.badge.warn{background:var(--blood);color:var(--ink);border-color:var(--blood)}
+.badge.role{color:var(--ink)}
+.badges{display:flex;flex-wrap:wrap;gap:5px}
+.hint{font-family:var(--f-mono);font-size:12px;color:var(--dim);margin-top:8px;line-height:1.4}
+.hint.bad{color:var(--blood)}
+.warnline{font-family:var(--f-mono);font-size:12px;line-height:1.4;color:var(--blood)}
+.sub{border-top:1px solid var(--line);padding-top:10px;margin-top:12px}
+.formgrid{display:flex;flex-wrap:wrap;gap:12px;margin:12px 0}
+.rhead{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:14px;margin:12px 0}
+.pick{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 4px}
+.totals{display:grid;grid-template-columns:2fr 1fr;gap:8px;margin:12px 0}
+.totals .v small{font-size:16px;color:var(--dim)}
+.unit{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:12px 12px 10px;margin:10px 0;display:flex;flex-direction:column;gap:6px;min-width:0}
+.unit .k{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.unit .t{font-family:var(--f-display);font-size:23px;line-height:1.1}
+.unit .pts{font-family:var(--f-mono);font-size:13px;white-space:nowrap;text-align:right}
+.unit .pts b{font-family:var(--f-display);font-size:26px;font-weight:500;color:var(--ink);display:block;line-height:1}
+.unit .top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.unit .acts{display:flex;gap:6px;margin-top:4px;justify-content:flex-end}
+.xp{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;font-family:var(--f-mono);font-size:12px}
+.bar{height:6px;background:var(--line);border-radius:1px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--brass)}
+.sheet-mock{background:var(--panel);border:1px solid var(--brass);border-radius:6px;padding:16px}
+.sheet-mock h4{font-family:var(--f-display);font-size:28px;font-weight:700;margin:0;line-height:1.05}
+.link{border-left:3px solid var(--brass);padding:2px 0 2px 10px;margin-top:8px}
+.link .tag{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--brass)}
+.chip.unassigned{border-style:dashed}
+.rules-card{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:14px}
+.rules-card p{max-width:none}
+.rules-card p:last-child{margin-bottom:0}
+.log{list-style:none;padding:0;margin:8px 0;font-size:14.5px}
+.log li{padding:6px 0;border-top:1px solid var(--line);color:var(--dim)}
+.log li b{color:var(--ink);font-weight:500}
+.log .r{font-family:var(--f-mono);font-size:11px;color:var(--brass);margin-right:6px}
+
+/* Campaign setup classes reused (su-) */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:12px 12px 10px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.su-step{gap:8px}
+.su-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.su-title{font-family:var(--f-display);font-size:23px;line-height:1.1;margin:0;font-weight:500}
+.su-title .n{font-family:var(--f-mono);font-size:13px;color:var(--brass);letter-spacing:.06em;margin-right:6px;vertical-align:2px}
+.su-marks{display:flex;gap:5px;flex:none;flex-wrap:wrap;justify-content:flex-end}
+.badge.su-done{border-color:var(--verd);color:var(--verd)}
+.badge.su-todo{color:var(--dim);border-style:dashed;background:none}
+.su-sub{font-size:14.5px;color:var(--dim);margin:0}
+.su-block{border:1px solid var(--line);border-left:4px solid var(--brass);background:var(--bg);border-radius:3px;padding:10px 12px;display:grid;gap:2px}
+.su-bname{font-family:var(--f-display);font-size:21px;line-height:1.1;display:flex;align-items:center;gap:8px;min-width:0}
+.su-check{display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:8px;align-items:baseline;font-size:14.5px;line-height:1.35;padding:5px 0;border-top:1px solid var(--line)}
+.su-check:first-of-type{border-top:0}
+.su-check .tk{font-family:var(--f-mono);font-size:14px;color:var(--dim);text-align:center}
+.su-check.ok .tk{color:var(--verd)}
+.su-check .vl{font-family:var(--f-mono);font-size:12.5px;color:var(--ink);text-align:right;min-width:0}
+.su-check.no .vl{color:var(--dim)}
+.su-check.over .vl{color:var(--blood)}
+.su-flag{font-family:var(--f-mono);font-size:12px;line-height:1.4;color:var(--blood)}
+.su-rules-line{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;justify-content:space-between;border:1px solid var(--line);border-radius:3px;background:var(--bg);padding:6px 6px 6px 12px}
+.su-rules-line span{font-size:14.5px;min-width:0}
+
+/* ===== Campaign rule toggles additions (new, "rt-" prefix, same tokens) ===== */
+.rt-panel{background:var(--panel);border:1px solid var(--brass);border-radius:3px;padding:14px;margin:12px 0}
+.rt-panel h3{margin:0 0 2px}
+.rt-row{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:10px;row-gap:2px;align-items:center;padding:10px 0;border-top:1px solid var(--line);min-height:56px}
+.rt-row:first-of-type{border-top:0}
+.rt-name{font-family:var(--f-display);font-size:20px;line-height:1.15;display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;min-width:0}
+.rt-desc{grid-column:1;font-size:14.5px;line-height:1.35;color:var(--dim);margin:0}
+.rt-sw{grid-column:2;grid-row:1 / span 2;position:relative;width:64px;min-height:44px;min-width:64px;border:1px solid var(--line);border-radius:22px;background:var(--panel2);cursor:pointer;padding:0}
+.rt-sw::after{content:"";position:absolute;top:50%;left:6px;width:28px;height:28px;margin-top:-14px;border-radius:50%;background:var(--dim);transition:left .15s,background .15s}
+.rt-sw[aria-pressed="true"]{border-color:var(--brass);background:var(--bg)}
+.rt-sw[aria-pressed="true"]::after{left:calc(100% - 34px);background:var(--brass)}
+.badge.rt-on{border-color:var(--verd);color:var(--verd)}
+.badge.rt-off{color:var(--dim);border-style:dashed;background:none}
+.rt-who{font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);margin:0 0 6px}
+.rt-count{font-family:var(--f-mono);font-size:12.5px;line-height:1.35;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;color:var(--ink);padding:6px 10px;border:1px solid var(--line);border-radius:3px;background:var(--bg);margin:0 0 8px}
+.rt-count.over{border-color:var(--blood);color:var(--blood)}
+.rt-note{font-family:var(--f-mono);font-size:12px;line-height:1.4;color:var(--verd);margin-top:8px}
+.rt-trait{border:1px solid var(--line);border-radius:3px;background:var(--bg);padding:8px 12px;margin-top:10px}
+.rt-trait p{margin:2px 0 0;font-size:14.5px;max-width:none}
+.rt-sw-wrap{display:contents}
+
+/* mock-only: labels and state switcher (not part of the product) */
+.mock{margin:22px 0 0}
+.mocklabel{display:flex;gap:8px;align-items:baseline;font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--brass);border-bottom:1px dashed var(--line);padding-bottom:6px;margin-bottom:4px}
+.mocklabel b{font-weight:400;color:var(--ink)}
+.mocknote{font-family:var(--f-mono);font-size:12px;color:var(--dim);margin:6px 0 0;line-height:1.45}
+.mockbar{border:1px dashed var(--line);border-radius:3px;padding:8px 10px;margin:14px 0 0;font-family:var(--f-mono);font-size:11px;color:var(--dim)}
+.mockbar .chips{margin-top:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+  <div class="eyebrow">Design mock · Rules tab, Roster tab, Setup tab</div>
+  <h1>Campaign <span>rules</span></h1>
+  <p class="lede">Four independent rules the owner can switch on or off at any time. Everyone sees which are on. Switching never changes a unit.</p>
+</header>
+
+<div class="mockbar" aria-label="Design mock state switcher">
+  MOCK ONLY - pick a state:
+  <div class="chips" id="switcher" role="group" aria-label="State"></div>
+</div>
+
+<main id="stage"></main>
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+/* ---------- Panel: Campaign rules (Rules tab top) ---------- */
+const TOG=[
+  {k:"forceOrg",n:"Force Organisation slots",d:"Role slots, minimums and over-limit warnings."},
+  {k:"datasheetLimit",n:"Datasheet limit",d:"5 datasheets in Setup, +1 each War Round."},
+  {k:"toughnessStages",n:"Toughness stages",d:"No unit above T11 in War Rounds 1–2, until supply reaches 1250."},
+  {k:"knights",n:"Knights exemption",d:"Armigers and War Dogs count as Battleline; one may be the Setup Warlord."}];
+
+function panel(root,vals,owner,live){
+  const draw=()=>{
+    root.innerHTML=`<section class="rt-panel" aria-labelledby="rt-h">
+      <h3 id="rt-h">Campaign rules</h3>
+      <p class="rt-who">${owner?"You are the owner: switch rules at any time":"Only the campaign owner can change these"}</p>
+      ${TOG.map(t=>`<div class="rt-row">
+        <div class="rt-name">${t.n} <span class="badge ${vals[t.k]?"rt-on":"rt-off"}">${vals[t.k]?"On":"Off"}</span></div>
+        <p class="rt-desc">${t.d}</p>
+        ${owner?`<button class="rt-sw" aria-pressed="${vals[t.k]}" aria-label="${t.n}" data-k="${t.k}"></button>`:""}
+      </div>`).join("")}
+    </section>`;
+  };
+  if(live) root.addEventListener("click",e=>{
+    const b=e.target.closest("button[data-k]"); if(!b)return;
+    vals[b.dataset.k]=!vals[b.dataset.k]; draw();
+    const li=$("#rt-log"); if(li) li.innerHTML=`<li><span class="r">R0</span>Campaign rule changed: <b>${TOG.find(t=>t.k===b.dataset.k).n}</b> is now ${vals[b.dataset.k]?"on":"off"}.</li>`+li.innerHTML;
+  });
+  draw();
+}
+
+/* ---------- Shared pieces ---------- */
+const supplyHead=(tot,sup,rp,extra="")=>`
+  <div class="lbl">Roster of</div>
+  <div class="pick"><button class="chip" aria-pressed="true"><span class="dot" style="background:var(--brass)"></span>Ninth Muster (you)</button></div>
+  <div class="totals">
+    <div class="stat"><div class="l">Total points</div><div class="v">${tot} <small>/ ${sup} pts</small></div></div>
+    <div class="stat"><div class="l">RP available</div><div class="v">${rp}</div></div>
+  </div>${extra}`;
+const dsLine=(x,n)=>x>n
+  ?`<div class="rt-count over"><span>Datasheets ${x} / ${n}</span><span>! ${x-n} over the datasheet limit</span></div>`
+  :`<div class="rt-count"><span>Datasheets ${x} / ${n}</span></div>`;
+const card=(o)=>`<article class="unit">
+  <div class="top"><div style="min-width:0"><div class="k"><span>${esc(o.ds)}</span></div><div class="t">${esc(o.name)}</div></div>
+  <div class="pts"><b>${o.pts} pts</b><span class="dim">${o.base} base</span></div></div>
+  <div class="badges">${o.tags}</div>
+  ${o.flag?`<div class="warnline">${o.flag}</div>`:""}
+  <div class="xp"><span>${o.xp} XP</span><div class="bar"><i style="width:${o.pct}%"></i></div><span>${o.next}</span></div>
+  <div class="acts"><button class="btn sm">Edit</button><button class="btn sm danger">Remove</button></div>
+</article>`;
+const mk=(code,title,note)=>`<div class="mocklabel"><span>${code}</span><b>${title}</b></div>${note?`<p class="mocknote">${note}</p>`:""}`;
+
+/* ---------- States ---------- */
+const STATES=[
+ {id:"s1",label:"1 Rules (owner)",render(){
+   const el=document.createElement("div");
+   el.innerHTML=mk("s1","Rules tab top: owner view","Defaults: Force Organisation on, the rest off. Each switch is 44px tall and works here: flip one and a log line is written below. Rows stack name, badge and description on a phone.")+
+     `<h2 style="margin-top:14px">Rules</h2><div id="p"></div>
+      <h3 style="margin-top:14px">Campaign log</h3><ul class="log" id="rt-log"><li><span class="r">R0</span>The Reach was charted for 4 players.</li></ul>
+      <p class="dim mono" style="font-size:12px">(The rest of the Rules tab continues below, unchanged.)</p>`;
+   panel(el.querySelector("#p"),{forceOrg:true,datasheetLimit:false,toughnessStages:false,knights:false},true,true);
+   return el;}},
+ {id:"s2",label:"2 Rules (member)",render(){
+   const el=document.createElement("div");
+   el.innerHTML=mk("s2","Rules tab top: non-owner view","Badges only, no switches. Datasheet limit and Knights exemption are on.")+
+     `<h2 style="margin-top:14px">Rules</h2><div id="p"></div>
+      <p class="dim mono" style="font-size:12px">(Each rule's paragraph below shows only while it is on.)</p>`;
+   panel(el.querySelector("#p"),{forceOrg:true,datasheetLimit:true,toughnessStages:false,knights:true},false,false);
+   return el;}},
+ {id:"s3",label:"3 Datasheets",render(){
+   const el=document.createElement("div");
+   const btns=`<div class="row"><button class="btn primary">Add unit</button><button class="btn">Add example units</button></div>`;
+   el.innerHTML=mk("s3","Roster tab with Datasheet limit on","Setup, so N = 5. The count sits directly under the totals. A blank datasheet is never counted.")+
+     `<div class="rhead">${supplyHead("735","750","5",dsLine(5,5))}${btns}</div>`+
+     mk("3b","Over the limit (switched on late)","Roster unchanged and flagged. Edits that reuse a datasheet still save.")+
+     `<div class="rhead">${supplyHead("735","750","5",dsLine(7,5))}${btns}</div>`+
+     mk("3c","Unit form: block message under the Datasheet field","Adding Eradicator Squad would be a sixth datasheet at N = 5. Hard block: Save is disabled until the datasheet is one already fielded.")+
+     `<div class="sheet-mock" style="margin-top:8px"><h4>Add unit</h4>
+       <div class="formgrid">
+         <div class="field"><label for="n3">Unit name</label><input id="n3" type="text" value="Breach Team Seven"></div>
+         <div class="field"><label for="d3">Datasheet</label><input id="d3" type="text" value="Eradicator Squad" aria-describedby="m3">
+           <div class="hint bad" id="m3" role="alert">! Your roster already uses 5 of 5 datasheets, and Eradicator Squad would be a new one. Pick a datasheet you already field, or wait: the limit rises by 1 each War Round.</div></div>
+       </div>
+       <p class="dim mono" style="font-size:12px">(Role, points and the rest of the form continue here, unchanged.)</p>
+       <div class="row sub"><button class="btn primary" disabled style="opacity:.4;cursor:not-allowed">Add to roster</button><button class="btn">Cancel</button></div>
+     </div>`;
+   return el;}},
+ {id:"s4",label:"4 Knights unit",render(){
+   const el=document.createElement("div");
+   el.innerHTML=mk("s4","Unit form: Knights player, Knights exemption on","Setup, faction Imperial Knights. Picking Armiger Helverin set the role to Battleline (the player may change it). Warlord is ticked without Character, so title, backstory, enhancement and relics are absent and the Warlord trait shows.")+
+     `<div class="sheet-mock" style="margin-top:8px"><h4>Edit unit</h4>
+       <div class="formgrid">
+         <div class="field"><label for="n4">Unit name</label><input id="n4" type="text" value="Sir Kaelen"></div>
+         <div class="field"><label for="d4">Datasheet</label><input id="d4" type="text" value="Armiger Helverin"></div>
+       </div>
+       <div class="sub"><div class="lbl">Role</div>
+         <div class="chips" style="margin-top:6px" role="group" aria-label="Role">
+           <button class="chip unassigned" aria-pressed="false">Unassigned</button>
+           <button class="chip" aria-pressed="false">Character</button>
+           <button class="chip" aria-pressed="true">Battleline</button>
+           <button class="chip" aria-pressed="false">Infantry</button>
+           <button class="chip" aria-pressed="false">Mounted</button>
+           <button class="chip" aria-pressed="false">Vehicle / Monster</button>
+           <button class="chip" aria-pressed="false">Other</button>
+         </div>
+         <div class="rt-note">Armigers and War Dogs count as Battleline in this campaign.</div>
+         <div class="link">
+           <div class="tag">Linked to the Character role</div>
+           <div class="chips" style="margin-top:6px">
+             <button class="chip" aria-pressed="false">Character</button>
+             <button class="chip" aria-pressed="true">Warlord</button>
+           </div>
+           <div class="hint" style="margin-top:6px">Knights exemption: this Armiger can be your Setup Warlord without being a Character. It counts as your one Character.</div>
+         </div>
+         <div class="rt-trait"><div class="lbl">Warlord trait</div><p>(Warlord trait picker and text continue here, unchanged.)</p></div>
+       </div>
+       <div class="sub mono dim" style="font-size:12px">(Base points, XP, Battle Honours and Battle Scars continue here, using the non-Character tables.)</div>
+       <div class="row sub"><button class="btn primary">Save changes</button><button class="btn">Cancel</button></div>
+     </div>`;
+   return el;}},
+ {id:"s5",label:"5 Setup step 4",render(){
+   const el=document.createElement("div");
+   el.innerHTML=mk("s5","Setup tab, step 4: Starting positions","Read-only rules line with a button to the Rules tab, the helper sentence appended, and the two new checklist lines. Datasheets never blocks Ready or Begin.")+
+     `<article class="card su-step" style="margin-top:10px">
+       <div class="su-head"><h3 class="su-title" style="margin:0"><span class="n">4 ·</span>Starting positions</h3><div class="su-marks"><span class="badge su-todo">To do</span></div></div>
+       <p class="su-sub">Each warband needs a Warlord, a 750 pt roster, 5 RP and a Capital. Build rosters on the Roster tab. Your owner may have switched some campaign rules on or off: see the Rules tab.</p>
+       <div class="su-rules-line"><span><b>Campaign rules:</b> Datasheet limit, Knights exemption</span><button class="btn sm">Campaign rules</button></div>
+       <div class="su-block">
+         <div class="su-bname"><span class="dot" style="background:var(--brass)"></span><span>Ninth Muster</span></div>
+         <div class="su-check ok"><span class="tk">&#10003;</span><span class="lb">Warlord</span><span class="vl">Sir Kaelen</span></div>
+         <div class="su-check ok"><span class="tk">&#10003;</span><span class="lb">Character</span><span class="vl">Sir Kaelen: Warlord (Knight)</span></div>
+         <div class="su-check ok"><span class="tk">&#10003;</span><span class="lb">Datasheets</span><span class="vl">4 / 5</span></div>
+         <div class="su-check ok"><span class="tk">&#10003;</span><span class="lb">750 pt roster</span><span class="vl">735 / 750 pts</span></div>
+         <div class="su-check ok"><span class="tk">&#10003;</span><span class="lb">5 RP</span><span class="vl">5 RP</span></div>
+         <div class="su-check ok"><span class="tk">&#10003;</span><span class="lb">Capital</span><span class="vl">Hollow Landing</span></div>
+       </div></article>
+     <p class="mocknote" style="margin-top:10px">With only Force Organisation on, the line reads "Campaign rules: Default rules", and the Datasheets line is absent.</p>`;
+   return el;}},
+ {id:"s6",label:"6 Toughness flag",render(){
+   const el=document.createElement("div");
+   el.innerHTML=mk("s6","Unit card and Roster line with Toughness stages active","War Round 1, supply limit under 1250. The flag sits under the tags. The Roster tab shows a one-line count while the cap is active.")+
+     `<div class="rhead">${supplyHead("1,020","1,050","4",`<div class="rt-count over"><span>Toughness stages</span><span>! 1 unit over the War Round 1–2 limit</span></div>`)}</div>`+
+     card({name:"The Anvil of Kharst",ds:"Knight Paladin",pts:395,base:395,xp:0,pct:0,next:"5 to Blooded",
+       tags:`<span class="badge role">Vehicle / Monster</span><span class="badge">Green</span>`,
+       flag:"! T12: over the War Round 1–2 limit"})+
+     card({name:"Anvil Squad",ds:"Intercessor Squad",pts:180,base:180,xp:1,pct:33,next:"2 to Blooded",
+       tags:`<span class="badge role">Battleline</span><span class="badge">Green</span>`})+
+     mk("6b","Unit form while the cap is active","Hint always shows while active. Datasheet picker rows at T12+ use the warning style but stay pickable.")+
+     `<div class="sheet-mock" style="margin-top:8px"><h4>Edit unit</h4>
+       <div class="formgrid"><div class="field"><label for="t6">Toughness</label><input id="t6" type="number" value="12" style="width:100%"></div></div>
+       <div class="hint">War Rounds 1 and 2 allow Toughness 11 or lower, until your supply limit reaches 1250 pts.</div>
+       <div class="hint bad" role="alert">! War Rounds 1 and 2 allow Toughness 11 or lower until your supply limit reaches 1250 pts. This unit is T12. Lower its Toughness or pick another unit.</div>
+       <div class="row sub"><button class="btn primary" disabled style="opacity:.4;cursor:not-allowed">Save changes</button><button class="btn">Cancel</button></div>
+     </div>`;
+   return el;}}
+];
+
+function show(id){
+  const st=STATES.find(s=>s.id===id);
+  $("#stage").replaceChildren(st.render());
+  document.querySelectorAll("#switcher .chip").forEach(c=>c.setAttribute("aria-pressed",c.dataset.id===id));
+  history.replaceState(null,"","#"+id);
+}
+$("#switcher").innerHTML=STATES.map(s=>`<button class="chip" data-id="${s.id}" aria-pressed="false">${s.label}</button>`).join("");
+$("#switcher").addEventListener("click",e=>{const b=e.target.closest("button[data-id]"); if(b)show(b.dataset.id)});
+show(STATES.some(s=>"#"+s.id===location.hash)?location.hash.slice(1):"s1");
+</script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
-import { canPerform, chartMatches, SETUP_MAX_TOUGHNESS, setupChecklist, setupReadyCount } from "../game/index.ts";
+import { canPerform, chartMatches, SETUP_MAX_TOUGHNESS, setupChecklist, setupReadyCount, togglesOn, TOGGLE_NAMES } from "../game/index.ts";
 import type { Action, CampaignState, FactionName, Player, SetupChecklist } from "../game/index.ts";
 import { useCampaign } from "../store/useCampaign.ts";
 import type { TabId } from "../store/useDevicePrefs.ts";
@@ -53,6 +53,7 @@ export function SetupTab({ colors, onNavigate }: { colors: Record<string, string
   const can = (a: Action) => canPerform(state, a, viewer);
   const n = state.players.length;
   const readyCount = setupReadyCount(state);
+  const rulesOn = togglesOn(state);
 
   const playersDone = n >= 2;
   const chartDone = chartMatches(state);
@@ -134,7 +135,15 @@ export function SetupTab({ colors, onNavigate }: { colors: Record<string, string
         </Step>
 
         <Step n={4} title="Starting positions" next={nextStep === 4} marks={step4Marks}>
-          <p className="su-sub">Each warband needs exactly one Character (its Warlord), a 750 pt roster and a Capital. No unit may have Toughness 10 or higher yet, and only one may be Toughness 9 (Battleline excepted). No Epic Heroes. You start on 0 RP and earn it from your Capital and battles. Build rosters on the Roster tab.</p>
+          <p className="su-sub">Each warband needs exactly one Character (its Warlord), a 750 pt roster and a Capital. No unit may have Toughness 10 or higher yet, and only one may be Toughness 9 (Battleline excepted). No Epic Heroes. You start on 0 RP and earn it from your Capital and battles. Build rosters on the Roster tab. Your owner may have switched some campaign rules on or off: see the Rules tab.</p>
+          <div className="su-rules-line">
+            <span>
+              <b>Campaign rules:</b> {rulesOn.length === 1 && rulesOn[0] === "forceOrg" ? "Default rules" : rulesOn.length === 0 ? "No optional rules" : rulesOn.map((k) => TOGGLE_NAMES[k]).join(", ")}
+            </span>
+            <button className="btn sm" onClick={() => onNavigate("rules")}>
+              Campaign rules
+            </button>
+          </div>
           <div className="su-blist">
             {state.players.map((p) => (
               <PlayerBlock key={p.id} player={p} state={state} color={colors[p.id]} onNavigate={onNavigate} />
@@ -262,10 +271,12 @@ function PlayerBlock({ player: p, state, color, onNavigate }: { player: Player; 
       </div>
       <Check
         label="Character"
-        ok={c.character.count === 1 && c.character.isWarlord}
+        ok={(c.character.count === 1 && c.character.isWarlord) || !!c.character.knightWarlord}
         over={c.character.count >= 2}
         value={
-          c.character.count === 0
+          c.character.knightWarlord
+            ? `${c.character.knightWarlord}: Warlord (Knight)`
+            : c.character.count === 0
             ? "No Character yet"
             : c.character.count >= 2
               ? `${c.character.count} Characters: keep only the Warlord`
@@ -274,6 +285,8 @@ function PlayerBlock({ player: p, state, color, onNavigate }: { player: Player; 
                 : "Not the Warlord"
         }
       />
+      {c.character.notCharacter && <div className="su-flag">! Warlord is not a Character</div>}
+      {c.datasheets && <Check label="Datasheets" ok={c.datasheets.count <= c.datasheets.limit} over={c.datasheets.count > c.datasheets.limit} value={`${c.datasheets.count} / ${c.datasheets.limit}`} />}
       <Check label="750 pt roster" ok={c.rosterOk} value={`${c.rosterTotal} / ${c.supply} pts`} over={c.rosterTotal > c.supply} />
       {c.foShort.map((f) => (
         <div key={f.role} className="su-flag">

@@ -2,6 +2,7 @@
 import { worldCounts } from "./map.ts";
 import { countsAsSetupNine, rosterOf, setupToughnessBlock, totalEffective } from "./roster.ts";
 import { forceOrgFor } from "./forceOrg.ts";
+import { datasheetLimit, distinctDatasheets, toggleOn, warlordNotCharacter } from "./toggles.ts";
 import { getPlanet, getPlayer, getProvince, supplyOf } from "./selectors.ts";
 import type { CampaignState, Role } from "./types.ts";
 
@@ -33,7 +34,17 @@ export function exampleNames(state: CampaignState): string[] {
 
 export interface SetupChecklist {
   /** Characters on the roster; `name` is the first one's (the Warlord's if there is one). */
-  character: { count: number; name?: string; isWarlord: boolean };
+  character: {
+    count: number;
+    name?: string;
+    isWarlord: boolean;
+    /** Name of an exempt (Knights) non-Character Warlord who is the warband's one Character, with no real Character beside it. */
+    knightWarlord?: string;
+    /** Name of a non-Character Warlord that is not covered by the Knights exemption. */
+    notCharacter?: string;
+  };
+  /** Distinct datasheets vs the limit; only set when the Datasheet limit rule is on. */
+  datasheets?: { count: number; limit: number };
   /** Units at Toughness 10+ (Setup only; a blank T never counts). `name`/`t` are set when `count` is 1. */
   toughOver: { count: number; name?: string; t?: number };
   /** Non-Battleline units at exactly Toughness 9 (Setup only; a blank T never counts). Setup allows one. */
@@ -59,10 +70,16 @@ export function setupChecklist(state: CampaignState, playerId: string, isEpicNam
   const epics = (isEpicName ? roster.filter((u) => isEpicName(u.datasheet)) : []);
   const rosterTotal = totalEffective(roster);
   const supply = player ? supplyOf(player) : 0;
+  const softWarlord = roster.find((u) => u.isWarlord && !u.isCharacter);
+  const notChar = softWarlord && warlordNotCharacter(state, player, softWarlord);
   const prov = state.cap[playerId] ? getProvince(state, state.cap[playerId]) : undefined;
   const planet = prov ? getPlanet(state, prov.pl) : undefined;
   return {
-    character: { count: chars.length, name: (chars.find((u) => u.isWarlord) ?? chars[0])?.name, isWarlord: chars.some((u) => u.isWarlord) },
+    character: { count: chars.length, name: (chars.find((u) => u.isWarlord) ?? chars[0])?.name, isWarlord: chars.some((u) => u.isWarlord),
+      ...(softWarlord && !notChar && chars.length === 0 && { knightWarlord: softWarlord.name }),
+      ...(softWarlord && notChar && { notCharacter: softWarlord.name }),
+    },
+    ...(toggleOn(state, "datasheetLimit") && { datasheets: { count: distinctDatasheets(roster), limit: datasheetLimit(state) } }),
     toughOver: { count: over.length, name: over.length === 1 ? over[0].name : undefined, t: over.length === 1 ? over[0].t : undefined },
     toughNine: { count: nines.length },
     epic: { count: epics.length, name: epics.length === 1 ? epics[0].name : undefined },
@@ -70,8 +87,10 @@ export function setupChecklist(state: CampaignState, playerId: string, isEpicNam
     supply,
     rosterOk: roster.length > 0 && rosterTotal <= supply,
     capital: prov && planet ? `${prov.name}, ${planet.name}` : undefined,
-    foShort: forceOrgFor(state, playerId)
-      .rows.map((r) => ({ role: r.role, n: Math.max(0, r.min - r.filled) }))
-      .filter((r) => r.n > 0),
+    foShort: !toggleOn(state, "forceOrg")
+      ? []
+      : forceOrgFor(state, playerId)
+          .rows.map((r) => ({ role: r.role, n: Math.max(0, r.min - r.filled) }))
+          .filter((r) => r.n > 0),
   };
 }

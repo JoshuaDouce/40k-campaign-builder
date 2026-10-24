@@ -336,7 +336,11 @@ export interface CampaignState {
   history?: BattleRecord[];
   /** Undo window for the latest battle result. Missing = nothing to undo. */
   undo?: UndoInfo;
+  /** Owner-switched campaign rules. Missing object or key = default (forceOrg on, the rest off). */
+  toggles?: Partial<Record<ToggleKey, boolean>>;
 }
+
+export type ToggleKey = "forceOrg" | "datasheetLimit" | "toughnessStages" | "knights";
 
 export interface BattleInfo {
   v: Zone;
@@ -383,6 +387,7 @@ export type Action =
   | { type: "fieldSurgeon"; playerId: string; unitId: string; scar: string }
   | { type: "promotion"; playerId: string; unitId: string; enhancement?: string }
   | { type: "seasonedRecruits"; playerId: string; unit: Unit }
+  | { type: "setToggle"; key: ToggleKey; on: boolean }
   | { type: "regen" }
   | { type: "reset" };
 

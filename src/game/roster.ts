@@ -6,6 +6,7 @@ import { normaliseRole, roleOf } from "./forceOrg.ts";
 import { rollInt } from "./rng.ts";
 import type { Rng } from "./rng.ts";
 import { getPlayer } from "./selectors.ts";
+import { datasheetLimit, datasheetLimitBlock, foldDatasheet, isKnightsExempt, toggleOn, toughStageBlock } from "./toggles.ts";
 import type { CampaignState, FallenCharacter, PostBattleResult, Unit } from "./types.ts";
 
 /** XP at which a unit becomes a Legend of the Reach. */
@@ -241,8 +242,8 @@ function cleanUnit(u: Unit): Unit | null {
   // Role and Character stay in sync: a non-Character role cannot be a Character (or Warlord).
   const role = normaliseRole(u.role);
   const isChar = role === "Character" ? true : role ? false : !!u.isCharacter;
-  // A Warlord with no role must be a Character; a non-Character role just drops the Warlord flag.
-  if (u.isWarlord && !isChar && !role) return null;
+  // A non-Character Warlord (Knights exemption) keeps its flag here, with or without a role;
+  // the state-aware gates in addUnitTo / updateUnitIn decide whether a save may add one.
   if (u.battles !== undefined && !isCount(u.battles)) return null;
   if (u.kills !== undefined && !isCount(u.kills)) return null;
   if (isChar && u.relics !== undefined) {
@@ -257,7 +258,7 @@ function cleanUnit(u: Unit): Unit | null {
     honours: [...u.honours],
     scars: [...u.scars],
     isCharacter: isChar,
-    isWarlord: isChar && !!u.isWarlord,
+    isWarlord: !!u.isWarlord,
   };
   if (role) out.role = role;
   const enh = u.enhancement?.trim();
@@ -267,11 +268,11 @@ function cleanUnit(u: Unit): Unit | null {
     const story = typeof u.backstory === "string" ? u.backstory.trim().slice(0, BACKSTORY_MAX) : "";
     if (title) out.title = title;
     if (story) out.backstory = story;
-    if (out.isWarlord) {
-      const trait = typeof u.warlordTrait === "string" ? u.warlordTrait.trim().slice(0, TRAIT_MAX) : "";
-      if (trait) out.warlordTrait = trait;
-    }
     if (u.relics?.length) out.relics = [...u.relics];
+  }
+  if (out.isWarlord) {
+    const trait = typeof u.warlordTrait === "string" ? u.warlordTrait.trim().slice(0, TRAIT_MAX) : "";
+    if (trait) out.warlordTrait = trait;
   }
   if (typeof u.t === "number" && Number.isInteger(u.t) && u.t >= 1) out.t = u.t;
   if (u.battles !== undefined) out.battles = u.battles;
@@ -286,7 +287,8 @@ function cleanUnit(u: Unit): Unit | null {
  */
 export function setupCharacterBlock(state: CampaignState, playerId: string, unit: Pick<Unit, "id" | "isCharacter">): Unit | null {
   if (state.round !== 0 || !unit.isCharacter) return null;
-  return rosterOf(state, playerId).find((x) => x.isCharacter && x.id !== unit.id) ?? null;
+  // An exempt non-Character Warlord counts as the warband's one Character.
+  return rosterOf(state, playerId).find((x) => (x.isCharacter || x.isWarlord) && x.id !== unit.id) ?? null;
 }
 
 /** Setup (round 0) allows Toughness 9 or lower. */
@@ -314,6 +316,27 @@ export function setupToughnessNineBlock(state: CampaignState, playerId: string, 
 /** True if saving `u` would break the Setup rule: a second Character, or a Character that is not the Warlord. */
 function breaksSetupRule(s: CampaignState, playerId: string, u: Unit): boolean {
   return s.round === 0 && u.isCharacter && (!u.isWarlord || !!setupCharacterBlock(s, playerId, u));
+}
+
+/**
+ * Warlord gate for a save. A non-Character Warlord may only be ADDED (the flag is new, or the unit just stopped being a
+ * Character) in Setup, for an exempt Knights unit, with no other Character or Warlord on the roster. Returns false to
+ * refuse the save; otherwise it may clear the flag on `u` when the add is not allowed. Keeping an existing one is free.
+ */
+function gateNonCharacterWarlord(s: CampaignState, playerId: string, u: Unit, old?: Unit): boolean {
+  if (!u.isWarlord || u.isCharacter) return true;
+  if (old?.isWarlord && !old.isCharacter) return true;
+  if (s.round !== 0 || !isKnightsExempt(s, getPlayer(s, playerId), u.datasheet)) {
+    u.isWarlord = false;
+    delete u.warlordTrait;
+    return true;
+  }
+  return !rosterOf(s, playerId).some((x) => x.id !== u.id && (x.isCharacter || x.isWarlord));
+}
+
+/** Campaign-rule blocks that stop a save adding to a problem (datasheet limit, Toughness stages). */
+function ruleBlock(s: CampaignState, playerId: string, u: Unit): boolean {
+  return datasheetLimitBlock(s, playerId, u) || toughStageBlock(s, playerId, u.t);
 }
 
 function rosterFor(s: CampaignState, playerId: string): Unit[] {
@@ -348,7 +371,8 @@ export function addUnitTo(s: CampaignState, playerId: string, unit: Unit): boole
   const u = cleanUnit(unit);
   const roster = rosterFor(s, playerId);
   if (!u || roster.some((x) => x.id === u.id)) return false;
-  if (breaksSetupRule(s, playerId, u) || setupToughnessBlock(s, u.t) || setupToughnessNineBlock(s, playerId, u)) return false;
+  if (!gateNonCharacterWarlord(s, playerId, u)) return false;
+  if (breaksSetupRule(s, playerId, u) || setupToughnessBlock(s, u.t) || setupToughnessNineBlock(s, playerId, u) || ruleBlock(s, playerId, u)) return false;
   roster.push(u);
   enforceWarlord(roster, u);
   checkLegend(s, getPlayer(s, playerId)?.name ?? "", u);
@@ -362,10 +386,11 @@ export function updateUnitIn(s: CampaignState, playerId: string, unit: Unit): bo
   const u = cleanUnit(unit);
   if (!p || i === -1 || !u) return false;
   const old = roster[i];
+  if (!gateNonCharacterWarlord(s, playerId, u, old)) return false;
   // A legacy Setup roster with 2+ Characters can still edit them; only a save that adds a Character is stopped.
   if (!old.isCharacter && breaksSetupRule(s, playerId, u)) return false;
   // Toughness is checked on the resulting unit, so a legacy T10+ unit that stays T10+ is refused.
-  if (setupToughnessBlock(s, u.t) || setupToughnessNineBlock(s, playerId, u)) return false;
+  if (setupToughnessBlock(s, u.t) || setupToughnessNineBlock(s, playerId, u) || ruleBlock(s, playerId, u)) return false;
   if (old.ex) u.ex = true;
   if (old.legendLogged) u.legendLogged = true;
   roster[i] = u;
@@ -449,9 +474,21 @@ export function addExamplesTo(s: CampaignState, playerId: string, rng: Rng): boo
   // The example Captain is a Warlord; only keep that if the player has no Warlord of their own.
   if (kept.some((x) => x.isWarlord)) for (const x of examples) x.isWarlord = false;
   // Setup allows one Character: leave the example Captain out if the player already has one.
-  let final = s.round === 0 && kept.some((x) => x.isCharacter) ? examples.filter((x) => !x.isCharacter) : examples;
+  let final = s.round === 0 && kept.some((x) => x.isCharacter || x.isWarlord) ? examples.filter((x) => !x.isCharacter) : examples;
   // Setup allows one non-Battleline unit at Toughness 9: leave the example Anvil out if the player already has one.
   if (s.round === 0 && kept.some(countsAsSetupNine)) final = final.filter((x) => !countsAsSetupNine(x));
+  // Datasheet limit: leave out examples that would go past N, in roster order.
+  if (toggleOn(s, "datasheetLimit")) {
+    const seen = new Set(kept.map((x) => foldDatasheet(x.datasheet)).filter(Boolean));
+    const limit = datasheetLimit(s);
+    final = final.filter((x) => {
+      const f = foldDatasheet(x.datasheet);
+      if (!f || seen.has(f)) return true;
+      if (seen.size >= limit) return false;
+      seen.add(f);
+      return true;
+    });
+  }
   s.rosters![playerId] = [...kept, ...final];
   const p = getPlayer(s, playerId);
   s.fallen = (s.fallen ?? []).filter((f) => !(f.ex && f.playerId === playerId));
@@ -602,7 +639,8 @@ export function recruitUnit(s: CampaignState, playerId: string, unit: Unit): boo
   const u = cleanUnit(draft);
   const roster = rosterFor(s, playerId);
   if (!u || roster.some((x) => x.id === u.id)) return false;
-  if (breaksSetupRule(s, playerId, u) || setupToughnessBlock(s, u.t) || setupToughnessNineBlock(s, playerId, u)) return false;
+  if (!gateNonCharacterWarlord(s, playerId, u)) return false;
+  if (breaksSetupRule(s, playerId, u) || setupToughnessBlock(s, u.t) || setupToughnessNineBlock(s, playerId, u) || ruleBlock(s, playerId, u)) return false;
   spendRp(s, playerId, RECRUITS_COST);
   roster.push(u);
   enforceWarlord(roster, u);
