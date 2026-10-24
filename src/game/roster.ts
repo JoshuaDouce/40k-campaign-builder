@@ -2,7 +2,7 @@
 // (through an injected Rng) and arrive here already resolved.
 import { CHAR_HONOURS, CHAR_SCARS, HONOURS, RANKS, RELICS, SCARS } from "./data.ts";
 import { B, log } from "./log.ts";
-import { isRole } from "./forceOrg.ts";
+import { normaliseRole } from "./forceOrg.ts";
 import { rollInt } from "./rng.ts";
 import type { Rng } from "./rng.ts";
 import { getPlayer } from "./selectors.ts";
@@ -218,7 +218,7 @@ export function exampleUnits(rng: Rng, existing: readonly Unit[] = EMPTY): Unit[
   });
   mk("Gatekeepers", "Bladeguard Veteran Squad", 150, 7, ["Objective Hunters"], [], { role: "Infantry", t: 5 });
   mk("Breach Team Seven", "Eradicator Squad", 100, 4, ["Hard to Kill"], ["Crippled", makeScar("Worn Gear", "melta rifles")], { role: "Infantry", t: 6 });
-  mk("The Anvil of Kharst", "Impulsor", 70, 26, ["Steady Aim", "Grizzled", "Hard to Kill", "Objective Hunters"], [], { role: "Vehicle", t: 9 });
+  mk("The Anvil of Kharst", "Impulsor", 70, 26, ["Steady Aim", "Grizzled", "Hard to Kill", "Objective Hunters"], [], { role: "Vehicle / Monster", t: 9 });
   return out;
 }
 
@@ -239,7 +239,7 @@ function cleanUnit(u: Unit): Unit | null {
   if (!Array.isArray(u.honours) || !u.honours.every(isHonour) || !unique(u.honours)) return null;
   if (!Array.isArray(u.scars) || !u.scars.every((s) => typeof s === "string" && isScar(s))) return null;
   // Role and Character stay in sync: a non-Character role cannot be a Character (or Warlord).
-  const role = isRole(u.role) ? u.role : undefined;
+  const role = normaliseRole(u.role);
   const isChar = role === "Character" ? true : role ? false : !!u.isCharacter;
   // A Warlord with no role must be a Character; a non-Character role just drops the Warlord flag.
   if (u.isWarlord && !isChar && !role) return null;
@@ -297,6 +297,15 @@ export function setupToughnessBlock(state: CampaignState, t: number | undefined)
   return state.round === 0 && typeof t === "number" && t > SETUP_MAX_TOUGHNESS;
 }
 
+/**
+ * Setup (round 0) allows one unit at Toughness 9. Returns the other T9 unit on the roster that stops `unit` being
+ * T9 too, or null (after round 0, if `unit.t` is not exactly 9, or if no other unit is T9). A blank t never counts.
+ */
+export function setupToughnessNineBlock(state: CampaignState, playerId: string, unit: Pick<Unit, "id" | "t">): Unit | null {
+  if (state.round !== 0 || unit.t !== SETUP_MAX_TOUGHNESS) return null;
+  return rosterOf(state, playerId).find((x) => x.t === SETUP_MAX_TOUGHNESS && x.id !== unit.id) ?? null;
+}
+
 /** True if saving `u` would break the Setup rule: a second Character, or a Character that is not the Warlord. */
 function breaksSetupRule(s: CampaignState, playerId: string, u: Unit): boolean {
   return s.round === 0 && u.isCharacter && (!u.isWarlord || !!setupCharacterBlock(s, playerId, u));
@@ -334,7 +343,7 @@ export function addUnitTo(s: CampaignState, playerId: string, unit: Unit): boole
   const u = cleanUnit(unit);
   const roster = rosterFor(s, playerId);
   if (!u || roster.some((x) => x.id === u.id)) return false;
-  if (breaksSetupRule(s, playerId, u) || setupToughnessBlock(s, u.t)) return false;
+  if (breaksSetupRule(s, playerId, u) || setupToughnessBlock(s, u.t) || setupToughnessNineBlock(s, playerId, u)) return false;
   roster.push(u);
   enforceWarlord(roster, u);
   checkLegend(s, getPlayer(s, playerId)?.name ?? "", u);
@@ -351,7 +360,7 @@ export function updateUnitIn(s: CampaignState, playerId: string, unit: Unit): bo
   // A legacy Setup roster with 2+ Characters can still edit them; only a save that adds a Character is stopped.
   if (!old.isCharacter && breaksSetupRule(s, playerId, u)) return false;
   // Toughness is checked on the resulting unit, so a legacy T10+ unit that stays T10+ is refused.
-  if (setupToughnessBlock(s, u.t)) return false;
+  if (setupToughnessBlock(s, u.t) || setupToughnessNineBlock(s, playerId, u)) return false;
   if (old.ex) u.ex = true;
   if (old.legendLogged) u.legendLogged = true;
   roster[i] = u;
@@ -435,7 +444,9 @@ export function addExamplesTo(s: CampaignState, playerId: string, rng: Rng): boo
   // The example Captain is a Warlord; only keep that if the player has no Warlord of their own.
   if (kept.some((x) => x.isWarlord)) for (const x of examples) x.isWarlord = false;
   // Setup allows one Character: leave the example Captain out if the player already has one.
-  const final = s.round === 0 && kept.some((x) => x.isCharacter) ? examples.filter((x) => !x.isCharacter) : examples;
+  let final = s.round === 0 && kept.some((x) => x.isCharacter) ? examples.filter((x) => !x.isCharacter) : examples;
+  // Setup allows one unit at Toughness 9: leave the example Anvil out if the player already has one.
+  if (s.round === 0 && kept.some((x) => x.t === SETUP_MAX_TOUGHNESS)) final = final.filter((x) => x.t !== SETUP_MAX_TOUGHNESS);
   s.rosters![playerId] = [...kept, ...final];
   const p = getPlayer(s, playerId);
   s.fallen = (s.fallen ?? []).filter((f) => !(f.ex && f.playerId === playerId));
@@ -586,7 +597,7 @@ export function recruitUnit(s: CampaignState, playerId: string, unit: Unit): boo
   const u = cleanUnit(draft);
   const roster = rosterFor(s, playerId);
   if (!u || roster.some((x) => x.id === u.id)) return false;
-  if (breaksSetupRule(s, playerId, u) || setupToughnessBlock(s, u.t)) return false;
+  if (breaksSetupRule(s, playerId, u) || setupToughnessBlock(s, u.t) || setupToughnessNineBlock(s, playerId, u)) return false;
   spendRp(s, playerId, RECRUITS_COST);
   roster.push(u);
   enforceWarlord(roster, u);

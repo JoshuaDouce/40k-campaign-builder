@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { canPerform, chartMatches, SETUP_MAX_TOUGHNESS, setupChecklist, setupReadyCount } from "../game/index.ts";
-import type { Action, CampaignState, FactionName, Player } from "../game/index.ts";
+import type { Action, CampaignState, FactionName, Player, SetupChecklist } from "../game/index.ts";
 import { useCampaign } from "../store/useCampaign.ts";
 import type { TabId } from "../store/useDevicePrefs.ts";
 import { useIsEpicName } from "./roster/useDatasheets.ts";
@@ -134,7 +134,7 @@ export function SetupTab({ colors, onNavigate }: { colors: Record<string, string
         </Step>
 
         <Step n={4} title="Starting positions" next={nextStep === 4} marks={step4Marks}>
-          <p className="su-sub">Each warband needs exactly one Character (its Warlord), a 750 pt roster and a Capital. No unit may have Toughness 10 or higher yet. No Epic Heroes. You start on 0 RP and earn it from your Capital and battles. Build rosters on the Roster tab.</p>
+          <p className="su-sub">Each warband needs exactly one Character (its Warlord), a 750 pt roster and a Capital. No unit may have Toughness 10 or higher yet, and only one may be Toughness 9. No Epic Heroes. You start on 0 RP and earn it from your Capital and battles. Build rosters on the Roster tab.</p>
           <div className="su-blist">
             {state.players.map((p) => (
               <PlayerBlock key={p.id} player={p} state={state} color={colors[p.id]} onNavigate={onNavigate} />
@@ -222,6 +222,15 @@ function PlayerRow({ player: p, state, color }: { player: Player; state: Campaig
   );
 }
 
+/** Toughness checklist text: a T10+ unit wins, then the one-T9 rule. */
+function toughText({ toughOver: o, toughNine: n }: SetupChecklist): string {
+  const T = SETUP_MAX_TOUGHNESS;
+  if (o.count === 1) return `${o.name ?? "A unit"} is T${o.t ?? ""}`;
+  if (o.count > 1) return `${o.count} units over T${T}`;
+  if (n.count === 0) return `No unit over T${T}`;
+  return n.count === 1 ? `One unit at T${T}` : `${n.count} units at T${T}: keep one`;
+}
+
 function Check({ label, ok, value, over }: { label: string; ok: boolean; value: string; over?: boolean }) {
   return (
     <div className={`su-check ${ok ? "ok" : "no"}${over ? " over" : ""}`}>
@@ -273,9 +282,9 @@ function PlayerBlock({ player: p, state, color, onNavigate }: { player: Player; 
       ))}
       <Check
         label="Toughness"
-        ok={c.toughOver.count === 0}
-        over={c.toughOver.count > 0}
-        value={c.toughOver.count === 0 ? `No unit over T${SETUP_MAX_TOUGHNESS}` : c.toughOver.count === 1 ? `${c.toughOver.name ?? "A unit"} is T${c.toughOver.t ?? ""}` : `${c.toughOver.count} units over T${SETUP_MAX_TOUGHNESS}`}
+        ok={c.toughOver.count === 0 && c.toughNine.count <= 1}
+        over={c.toughOver.count > 0 || c.toughNine.count > 1}
+        value={toughText(c)}
       />
       <Check
         label="Heroes"

@@ -17,6 +17,7 @@ import {
   setupCharacterBlock,
   SETUP_MAX_TOUGHNESS,
   setupToughnessBlock,
+  setupToughnessNineBlock,
   TITLE_MAX,
   TRAIT_MAX,
   WORN_GEAR,
@@ -153,8 +154,11 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, r
   const toughNum = toughBlank ? NaN : Number(d.toughness);
   const toughBad = !toughBlank && !(Number.isInteger(toughNum) && toughNum >= 1);
   const toughBlock = !toughBad && setupToughnessBlock(state, toughBlank ? undefined : toughNum);
+  // T10+ wins over the one-T9 rule: only one message is shown, under the same id.
+  const nineBlock = !toughBad && !toughBlock ? setupToughnessNineBlock(state, playerId, { id: existing?.id ?? "", t: toughBlank ? undefined : toughNum }) : null;
+  const toughStop = toughBlock || !!nineBlock;
   const epicBlock = useIsEpicName(faction)(d.datasheet);
-  const describedBy = [charBlock ? "f_charblock" : "", toughBlock ? "f_toughblock" : "", epicBlock ? "f_epicblock" : ""].filter(Boolean).join(" ") || undefined;
+  const describedBy = [charBlock ? "f_charblock" : "", toughStop ? "f_toughblock" : "", epicBlock ? "f_epicblock" : ""].filter(Boolean).join(" ") || undefined;
 
   let problem = "";
   if (!Number.isFinite(points) || points < 0) problem = "Base points must be 0 or more.";
@@ -166,7 +170,7 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, r
   else if (recruits && d.honours.length !== 1) problem = "Pick exactly one Battle Honour.";
 
   const save = () => {
-    if (problem || charBlock || toughBlock || epicBlock) return;
+    if (problem || charBlock || toughStop || epicBlock) return;
     const enh = d.isCharacter ? d.enhancement.trim() : "";
     const unit: Unit = {
       ...existing,
@@ -244,18 +248,23 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, r
             min={1}
             step={1}
             value={d.toughness}
-            aria-invalid={toughBad || toughBlock ? true : undefined}
-            aria-describedby={toughBlock ? "f_toughblock" : setup ? "f_toughhint" : undefined}
+            aria-invalid={toughBad || toughStop ? true : undefined}
+            aria-describedby={toughStop ? "f_toughblock" : setup ? "f_toughhint" : undefined}
             onChange={(e) => set({ toughness: e.target.value })}
           />
           {setup && (
             <div className="mono dim" id="f_toughhint" style={{ fontSize: 11 }}>
-              Setup allows Toughness {SETUP_MAX_TOUGHNESS} or lower.
+              Setup allows Toughness {SETUP_MAX_TOUGHNESS} or lower, and only one unit at Toughness {SETUP_MAX_TOUGHNESS}.
             </div>
           )}
           {toughBlock && (
             <div className="hint bad" id="f_toughblock" role="alert">
               ! Setup allows Toughness {SETUP_MAX_TOUGHNESS} or lower. This unit is T{toughNum}. Lower its Toughness or pick another unit.
+            </div>
+          )}
+          {nineBlock && (
+            <div className="hint bad" id="f_toughblock" role="alert">
+              ! Setup allows only one unit at Toughness {SETUP_MAX_TOUGHNESS}, and {nineBlock.name} is already T{SETUP_MAX_TOUGHNESS}. Lower this unit's Toughness or pick another unit.
             </div>
           )}
         </div>
@@ -278,6 +287,7 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, r
             </button>
           ))}
         </div>
+        <div className="hint">Beasts and Swarms are Infantry. Walkers are Vehicle / Monster. Bikes and cavalry are Mounted. Transports, Aircraft and Fortifications are Other. A unit fills one slot only.</div>
         {charBlock ? null : d.role === "" ? (
           <div className="hint">Unassigned units fill no slot. You can set a role later.</div>
         ) : projected > roleMax ? (
@@ -411,7 +421,7 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, r
       )}
 
       <div className="row sub">
-        <button type="button" className="btn primary" disabled={!!problem || !!charBlock || toughBlock || epicBlock} aria-describedby={describedBy} onClick={save}>
+        <button type="button" className="btn primary" disabled={!!problem || !!charBlock || toughStop || epicBlock} aria-describedby={describedBy} onClick={save}>
           {COPY[mode].cta}
         </button>
         <button type="button" className="btn" onClick={onClose}>

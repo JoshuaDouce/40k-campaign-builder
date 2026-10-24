@@ -24,6 +24,8 @@ interface Props {
   overLimit?: boolean;
   /** In Setup, the unit is T10 or higher. */
   toughOver?: boolean;
+  /** Setup: a second or later unit at Toughness 9. */
+  toughNineExtra?: boolean;
   /** The unit is an Epic Hero (any round). */
   epic?: boolean;
   onEdit(): void;
@@ -33,7 +35,7 @@ interface Props {
   onRemoveRelic(relic: string): void;
 }
 
-export function UnitCard({ unit, editable, memorial, overLimit, toughOver, epic, onEdit, onRemove, onRollRelic, onRemoveRelic }: Props) {
+export function UnitCard({ unit, editable, memorial, overLimit, toughOver, toughNineExtra, epic, onEdit, onRemove, onRollRelic, onRemoveRelic }: Props) {
   const [armed, setArmed] = useState(false);
   const [asking, setAsking] = useState(false);
   useEffect(() => {
@@ -225,6 +227,7 @@ export function UnitCard({ unit, editable, memorial, overLimit, toughOver, epic,
       )}
       {danger && !unit.isWarlord && <div className="warnline">2 scars. One more and this unit is gone.</div>}
       {toughOver && unit.t != null && <div className="warnline">! T{unit.t}: over the Setup limit</div>}
+      {toughNineExtra && !toughOver && <div className="warnline">! T9: only one unit at T9 in Setup</div>}
       {epic && <div className="warnline">! Epic Hero: not allowed in this campaign</div>}
       {editable && (
         <div className="acts">

@@ -15,17 +15,15 @@ export interface RoleDef {
   min: number;
   /** Province types that each grant +1 slot. A Capital counts as a Spaceport. */
   from: readonly ProvinceType[];
-  /** Holding name shown in the chart, e.g. "Forge". Empty for Unassigned-style roles with no source. */
-  holding: string;
 }
 
 export const ROLES: readonly RoleDef[] = [
-  { role: "Character", base: 2, min: 1, from: ["shrine"], holding: "Shrine" },
-  { role: "Battleline", base: 4, min: 2, from: ["fortress"], holding: "Fortress" },
-  { role: "Infantry", base: 3, min: 0, from: ["hive"], holding: "Hive City" },
-  { role: "Vehicle", base: 1, min: 0, from: ["forge"], holding: "Forge" },
-  { role: "Monster", base: 1, min: 0, from: ["refinery"], holding: "Refinery" },
-  { role: "Other", base: 1, min: 0, from: ["spaceport", "capital"], holding: "Spaceport" },
+  { role: "Character", base: 2, min: 1, from: ["shrine"] },
+  { role: "Battleline", base: 4, min: 2, from: ["fortress"] },
+  { role: "Infantry", base: 3, min: 0, from: ["hive"] },
+  { role: "Mounted", base: 1, min: 0, from: ["settlement"] },
+  { role: "Vehicle / Monster", base: 1, min: 0, from: ["forge", "refinery"] },
+  { role: "Other", base: 1, min: 0, from: ["spaceport", "capital"] },
 ];
 
 export const ROLE_NAMES: readonly Role[] = ROLES.map((r) => r.role);
@@ -34,9 +32,15 @@ export function isRole(x: unknown): x is Role {
   return typeof x === "string" && ROLE_NAMES.includes(x as Role);
 }
 
+/** A stored role as a current Role. Legacy "Vehicle" and "Monster" become "Vehicle / Monster"; anything else unknown is undefined. */
+export function normaliseRole(x: unknown): Role | undefined {
+  if (x === "Vehicle" || x === "Monster") return "Vehicle / Monster";
+  return isRole(x) ? x : undefined;
+}
+
 /** The unit's role. A legacy Character with no role counts as Character; otherwise undefined (unassigned). */
 export function roleOf(unit: Pick<Unit, "role" | "isCharacter">): Role | undefined {
-  return unit.role ?? (unit.isCharacter ? "Character" : undefined);
+  return normaliseRole(unit.role) ?? (unit.isCharacter ? "Character" : undefined);
 }
 
 export interface RoleSource {
@@ -86,7 +90,7 @@ export function forceOrgFor(state: CampaignState, playerId: string): ForceOrg {
   const rows = ROLES.map((def): ForceOrgRow => {
     const sources = held
       .filter((v) => def.from.includes(v.type))
-      .map((v) => ({ label: v.type === "capital" ? VTYPES.capital.n : def.holding, province: v.name }));
+      .map((v) => ({ label: VTYPES[v.type].n, province: v.name }));
     const mine = byRole.get(def.role) ?? [];
     // Setup (round 0): one Character, the Warlord, so the row is held at 1 and its minimum is left to the checklist.
     const setupChar = state.round === 0 && def.role === "Character";
