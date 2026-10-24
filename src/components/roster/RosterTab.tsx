@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { canPerform, countsAsSetupNine, forceOrgFor, PROMOTION_COST, RECRUITS_COST, rosterOf, setupToughnessBlock, SURGEON_COST, supplyOf, totalEffective } from "../../game/index.ts";
+import { canPerform, countsAsSetupNine, datasheetLimit, distinctDatasheets, forceOrgFor, overStageCap, PROMOTION_COST, RECRUITS_COST, rosterOf, setupToughnessBlock, SURGEON_COST, supplyOf, toggleOn, totalEffective, toughStageActive, warlordNotCharacter } from "../../game/index.ts";
 import type { Unit } from "../../game/index.ts";
 import { useCampaign } from "../../store/useCampaign.ts";
 import { ForceOrgChart } from "./ForceOrgChart.tsx";
@@ -44,6 +44,10 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
   const total = totalEffective(roster);
   const supply = supplyOf(player);
   const over = total > supply;
+  const slots = toggleOn(state, "forceOrg");
+  const dsCount = toggleOn(state, "datasheetLimit") ? { x: distinctDatasheets(roster), n: datasheetLimit(state) } : null;
+  const stage = toughStageActive(state, player);
+  const stageOver = stage ? roster.filter((u) => overStageCap(u.t)).length : 0;
   const hasEx = roster.some((u) => u.ex);
   const say = (text: string) => setToast({ pid, text });
   const closeDialog = () => setDialog(null);
@@ -123,7 +127,22 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
           </div>
         </div>
 
-        <ForceOrgChart key={pid} fo={fo} />
+        {dsCount && (
+          <div className={`rt-count${dsCount.x > dsCount.n ? " over" : ""}`}>
+            <span>
+              Datasheets {dsCount.x} / {dsCount.n}
+            </span>
+            {dsCount.x > dsCount.n && <span>! {dsCount.x - dsCount.n} over the datasheet limit</span>}
+          </div>
+        )}
+        {stageOver > 0 && (
+          <div className="rt-count over">
+            <span>Toughness stages</span>
+            <span>! {stageOver === 1 ? "1 unit" : `${stageOver} units`} over the War Round 1–2 limit</span>
+          </div>
+        )}
+
+        {slots && <ForceOrgChart key={pid} fo={fo} />}
 
         {editable ? (
           <>
@@ -180,10 +199,12 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
             unit={u}
             editable={editable}
             memorial={state.round !== 0}
-            overLimit={fo.overLimitIds.includes(u.id)}
+            overLimit={slots && fo.overLimitIds.includes(u.id)}
             toughOver={setupToughnessBlock(state, u.t)}
             toughNineExtra={nineExtraIds.includes(u.id)}
             epic={isEpicName(u.datasheet)}
+            toughStage={stage && overStageCap(u.t)}
+            warlordNotChar={warlordNotCharacter(state, player, u)}
             onEdit={() => setDialog({ kind: "edit", unit: u })}
             onRollRelic={() => setDialog({ kind: "relic", unit: u })}
             onRemoveRelic={(relic) => {

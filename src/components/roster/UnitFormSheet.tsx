@@ -18,6 +18,15 @@ import {
   SETUP_MAX_TOUGHNESS,
   setupToughnessBlock,
   setupToughnessNineBlock,
+  datasheetLimit,
+  datasheetLimitBlock,
+  distinctDatasheets,
+  isKnightsExempt,
+  STAGE_MAX_TOUGHNESS,
+  STAGE_SUPPLY,
+  toggleOn,
+  toughStageActive,
+  toughStageBlock,
   TITLE_MAX,
   TRAIT_MAX,
   WORN_GEAR,
@@ -136,19 +145,34 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, r
   const hasWorn = d.scars.includes(WORN_GEAR);
   // In Setup the only Character is the Warlord: making a unit a Character ticks Warlord, which then stays on.
   const setup = state.round === 0;
-  const warlord = d.isCharacter && d.isWarlord;
+  const playerObj = state.players.find((p) => p.id === playerId);
+  const exemptDs = isKnightsExempt(state, playerObj, d.datasheet);
+  const wasSoftWarlord = !!existing?.isWarlord && !existing.isCharacter;
+  // A non-Character Warlord is allowed for an exempt Knights unit in Setup, or kept if the unit already was one.
+  const softAllowed = (setup && exemptDs) || wasSoftWarlord;
+  const warlord = d.isWarlord && (d.isCharacter || softAllowed);
+  const slots = toggleOn(state, "forceOrg");
   const relics = d.isCharacter ? (existing?.relics ?? []) : [];
   const honourList = allowedHonours(d);
   const scarList = allowedScars(d);
   const clearChar = { isCharacter: false, isWarlord: false, enhancement: "", warlordTrait: "" } as const;
-  const pickRole = (r: Role | "") => set(r === "Character" ? { role: r, isCharacter: true, ...(setup && { isWarlord: true }) } : { role: r, ...clearChar });
+  // Leaving the Character role clears Warlord too, except a non-Character Warlord, which stays one.
+  const keepSoft = d.isWarlord && !d.isCharacter;
+  const pickRole = (r: Role | "") =>
+    set(r === "Character" ? { role: r, isCharacter: true, ...(setup && { isWarlord: true }) } : { role: r, ...clearChar, isWarlord: keepSoft, warlordTrait: keepSoft ? d.warlordTrait : "" });
+  // Picking an Armiger / War Dog datasheet (for a Knights player, rule on) sets Battleline. The player can change it.
+  const onDatasheetText = (datasheet: string) =>
+    set({ datasheet, ...(!d.isCharacter && !exemptDs && isKnightsExempt(state, playerObj, datasheet) && { role: "Battleline" as Role }) });
   const roleMax = fo.rows.find((r) => r.role === d.role)?.max ?? 0;
   const others = roster.filter((u) => u.id !== existing?.id && roleOf(u) === d.role).length;
   const projected = others + 1;
   const losesDetails = !!existing?.isCharacter && !d.isCharacter && !!(existing.relics?.length || existing.title || existing.backstory || existing.enhancement);
 
   // In Setup, a save that makes this unit a Character is stopped if the roster already has one. Saving an existing Character is fine.
-  const charBlock = existing?.isCharacter ? null : setupCharacterBlock(state, playerId, { id: existing?.id ?? "", isCharacter: d.isCharacter });
+  // A non-Character Warlord added in Setup is the one Character: it is refused beside a Character or another Warlord.
+  const addingSoft = setup && warlord && !d.isCharacter && !wasSoftWarlord;
+  const softBlock = addingSoft ? (roster.find((x) => x.id !== existing?.id && (x.isCharacter || x.isWarlord)) ?? null) : null;
+  const charBlock = (existing?.isCharacter ? null : setupCharacterBlock(state, playerId, { id: existing?.id ?? "", isCharacter: d.isCharacter })) ?? softBlock;
 
   const toughBlank = d.toughness.trim() === "";
   const toughNum = toughBlank ? NaN : Number(d.toughness);
@@ -156,9 +180,16 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, r
   const toughBlock = !toughBad && setupToughnessBlock(state, toughBlank ? undefined : toughNum);
   // T10+ wins over the one-T9 rule: only one message is shown, under the same id.
   const nineBlock = !toughBad && !toughBlock ? setupToughnessNineBlock(state, playerId, { id: existing?.id ?? "", t: toughBlank ? undefined : toughNum, role: d.role || undefined, isCharacter: d.isCharacter }) : null;
-  const toughStop = toughBlock || !!nineBlock;
+  // Precedence: Setup T10, then the Setup T9 rule, then the War Round 1-2 stage cap. One message at a time.
+  const stageActive = toughStageActive(state, playerObj);
+  const stageBlock = !toughBad && !toughBlock && !nineBlock && toughStageBlock(state, playerId, toughBlank ? undefined : toughNum);
+  const toughStop = toughBlock || !!nineBlock || stageBlock;
   const epicBlock = useIsEpicName(faction)(d.datasheet);
-  const describedBy = [charBlock ? "f_charblock" : "", toughStop ? "f_toughblock" : "", epicBlock ? "f_epicblock" : ""].filter(Boolean).join(" ") || undefined;
+  const dsBlock = datasheetLimitBlock(state, playerId, { id: existing?.id ?? "", datasheet: d.datasheet });
+  const dsN = datasheetLimit(state);
+  const dsUsed = distinctDatasheets(roster.filter((u) => u.id !== existing?.id));
+  const dsMessage = dsBlock ? "! Your roster already uses " + Math.min(dsUsed, dsN) + " of " + dsN + " datasheets, and " + d.datasheet.trim() + " would be a new one. Pick a datasheet you already field, or wait: the limit rises by 1 each War Round." : undefined;
+  const describedBy = [charBlock ? "f_charblock" : "", toughStop ? "f_toughblock" : "", epicBlock ? "f_epicblock" : "", dsBlock && !epicBlock ? "f_dsblock" : ""].filter(Boolean).join(" ") || undefined;
 
   let problem = "";
   if (!Number.isFinite(points) || points < 0) problem = "Base points must be 0 or more.";
@@ -170,7 +201,7 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, r
   else if (recruits && d.honours.length !== 1) problem = "Pick exactly one Battle Honour.";
 
   const save = () => {
-    if (problem || charBlock || toughStop || epicBlock) return;
+    if (problem || charBlock || toughStop || epicBlock || dsBlock) return;
     const enh = d.isCharacter ? d.enhancement.trim() : "";
     const unit: Unit = {
       ...existing,
@@ -225,11 +256,13 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, r
           faction={faction}
           value={d.datasheet}
           points={d.points}
-          onText={(datasheet) => set({ datasheet })}
+          onText={onDatasheetText}
           onPoints={(points) => set({ points })}
           onToughness={(toughness) => set({ toughness })}
           setup={setup}
           epicBlock={epicBlock}
+          stage={stageActive}
+          limitBlock={dsMessage}
         />
         <div className="field" style={{ flex: "1 1 120px" }}>
           <label htmlFor="f_base">Base points</label>
@@ -249,12 +282,22 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, r
             step={1}
             value={d.toughness}
             aria-invalid={toughBad || toughStop ? true : undefined}
-            aria-describedby={toughStop ? "f_toughblock" : setup ? "f_toughhint" : undefined}
+            aria-describedby={toughStop ? "f_toughblock" : setup || stageActive ? "f_toughhint" : undefined}
             onChange={(e) => set({ toughness: e.target.value })}
           />
           {setup && (
             <div className="mono dim" id="f_toughhint" style={{ fontSize: 11 }}>
               Setup allows Toughness {SETUP_MAX_TOUGHNESS} or lower, and only one unit at Toughness {SETUP_MAX_TOUGHNESS} (Battleline excepted).
+            </div>
+          )}
+          {stageActive && !setup && (
+            <div className="mono dim" id="f_toughhint" style={{ fontSize: 11 }}>
+              War Rounds 1 and 2 allow Toughness {STAGE_MAX_TOUGHNESS} or lower, until your supply limit reaches {STAGE_SUPPLY} pts.
+            </div>
+          )}
+          {stageBlock && (
+            <div className="hint bad" id="f_toughblock" role="alert">
+              ! War Rounds 1 and 2 allow Toughness {STAGE_MAX_TOUGHNESS} or lower until your supply limit reaches {STAGE_SUPPLY} pts. This unit is T{toughNum}. Lower its Toughness or pick another unit.
             </div>
           )}
           {toughBlock && (
@@ -287,8 +330,9 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, r
             </button>
           ))}
         </div>
-        <div className="hint">Beasts and Swarms are Infantry. Walkers are Vehicle / Monster. Bikes and cavalry are Mounted. Transports, Aircraft and Fortifications are Other. A unit fills one slot only.</div>
-        {charBlock ? null : d.role === "" ? (
+        <div className="hint">Beasts and Swarms are Infantry. Walkers are Vehicle / Monster. Bikes and cavalry are Mounted. Transports, Aircraft and Fortifications are Other.{slots ? " A unit fills one slot only." : ""}</div>
+        {exemptDs && d.role === "Battleline" && !d.isCharacter && <div className="rt-note">Armigers and War Dogs count as Battleline in this campaign.</div>}
+        {!slots || charBlock ? null : d.role === "" ? (
           <div className="hint">Unassigned units fill no slot. You can set a role later.</div>
         ) : projected > roleMax ? (
           <div className="hint bad">
@@ -310,13 +354,18 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, r
             >
               Character
             </button>
-            <button type="button" className="chip" aria-pressed={warlord} aria-describedby={setup && warlord ? "f_warhint" : undefined} disabled={!d.isCharacter || (setup && warlord)} onClick={() => set({ isWarlord: !d.isWarlord })}>
+            <button type="button" className="chip" aria-pressed={warlord} aria-describedby={setup && warlord ? "f_warhint" : exemptDs && setup ? "f_knighthint" : undefined} disabled={!(d.isCharacter || softAllowed) || (setup && warlord && d.isCharacter)} onClick={() => set({ isWarlord: !d.isWarlord })}>
               Warlord
             </button>
           </div>
           <div className="hint" style={{ marginTop: 6 }}>
             {d.isCharacter ? "Character ticked, so the role is Character. Choosing any other role clears Character and Warlord." : "Ticking Character sets the role to Character. Warlord is only for Characters."}
           </div>
+          {exemptDs && setup && !d.isCharacter && (
+            <div className="hint" id="f_knighthint" style={{ marginTop: 6 }}>
+              Knights exemption: this Armiger can be your Setup Warlord without being a Character. It counts as your one Character.
+            </div>
+          )}
           {losesDetails && <div className="hint bad">! Saving without Character removes this unit's title, backstory, enhancement and relics.</div>}
           {charBlock && (
             <div className="hint bad" id="f_charblock" role="alert">
@@ -336,6 +385,15 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, r
           </div>
         )}
       </div>
+
+      {warlord && !d.isCharacter && (
+        <div className="rt-trait">
+          <label className="lbl" htmlFor="f_trait">
+            Warlord trait (optional) · Warlord only
+          </label>
+          <input type="text" id="f_trait" maxLength={TRAIT_MAX} value={d.warlordTrait} placeholder="Trait name and effect" onChange={(e) => set({ warlordTrait: e.target.value })} />
+        </div>
+      )}
 
       {d.isCharacter && (
         <div className="sub">
@@ -421,7 +479,7 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, r
       )}
 
       <div className="row sub">
-        <button type="button" className="btn primary" disabled={!!problem || !!charBlock || toughStop || epicBlock} aria-describedby={describedBy} onClick={save}>
+        <button type="button" className="btn primary" disabled={!!problem || !!charBlock || toughStop || epicBlock || dsBlock} aria-describedby={describedBy} onClick={save}>
           {COPY[mode].cta}
         </button>
         <button type="button" className="btn" onClick={onClose}>
