@@ -1,6 +1,6 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent, ReactNode } from "react";
-import { SETUP_MAX_TOUGHNESS } from "../../game/index.ts";
+import { SETUP_MAX_TOUGHNESS, STAGE_MAX_TOUGHNESS } from "../../game/index.ts";
 import type { FactionName } from "../../game/index.ts";
 import { fold, useDatasheets } from "./useDatasheets.ts";
 import type { Datasheet } from "./useDatasheets.ts";
@@ -24,6 +24,10 @@ interface Props {
   setup?: boolean;
   /** The typed name is an Epic Hero in this faction: shows the block message. */
   epicBlock?: boolean;
+  /** Toughness stages is active: T12+ rows get the warning style (still pickable). */
+  stage?: boolean;
+  /** Datasheet limit message to show under the field (this datasheet would be a new one over the limit). */
+  limitBlock?: string;
 }
 
 interface Hit {
@@ -43,7 +47,7 @@ function highlight(name: string, at: [number, number]): ReactNode {
 }
 
 /** Datasheet field for the unit form: a searchable pick-list when MFM data exists, else today's plain text input. */
-export function DatasheetPicker({ id, faction, value, points, onText, onPoints, onToughness, setup, epicBlock }: Props) {
+export function DatasheetPicker({ id, faction, value, points, onText, onPoints, onToughness, setup, epicBlock, stage, limitBlock }: Props) {
   const data = useDatasheets(faction);
   const listId = useId();
   const field = useRef<HTMLDivElement>(null);
@@ -135,8 +139,8 @@ export function DatasheetPicker({ id, faction, value, points, onText, onPoints, 
         placeholder={plain ? "e.g. Intercessor Squad" : `Search ${faction ?? ""} datasheets`}
         autoComplete="off"
         className={isOpen ? "mf-open" : undefined}
-        aria-invalid={epicBlock ? true : undefined}
-        aria-describedby={epicBlock ? "f_epicblock" : "f_epichint"}
+        aria-invalid={epicBlock || limitBlock ? true : undefined}
+        aria-describedby={epicBlock ? "f_epicblock" : limitBlock ? "f_dsblock" : "f_epichint"}
         {...(ready
           ? {
               role: "combobox",
@@ -178,12 +182,16 @@ export function DatasheetPicker({ id, faction, value, points, onText, onPoints, 
                   {unit.sizes.length > 1 && <s>from</s>}
                   {unit.sizes[0][1]}
                   {unit.sizes.length === 1 && " pts"}
-                  {unit.t != null && (
-                    <span className={`mono ${setup && unit.t > SETUP_MAX_TOUGHNESS ? "bad" : "dim"}`} title={setup && unit.t > SETUP_MAX_TOUGHNESS ? "Over the Setup Toughness limit" : undefined}>
-                      {" "}T{unit.t}
-                      {setup && unit.t > SETUP_MAX_TOUGHNESS && <span className="su-sr"> (over the Setup limit)</span>}
-                    </span>
-                  )}
+                  {unit.t != null && (() => {
+                    const bad = (setup && unit.t > SETUP_MAX_TOUGHNESS) || (stage && unit.t > STAGE_MAX_TOUGHNESS);
+                    const why = setup && unit.t > SETUP_MAX_TOUGHNESS ? "Over the Setup Toughness limit" : "Over the War Round 1–2 limit";
+                    return (
+                      <span className={`mono ${bad ? "bad" : "dim"}`} title={bad ? why : undefined}>
+                        {" "}T{unit.t}
+                        {bad && <span className="su-sr"> ({setup && unit.t > SETUP_MAX_TOUGHNESS ? "over the Setup limit" : "over the War Round 1–2 limit"})</span>}
+                      </span>
+                    );
+                  })()}
                 </span>
               </li>
             ))}
@@ -206,6 +214,11 @@ export function DatasheetPicker({ id, faction, value, points, onText, onPoints, 
       <div className="mono dim" id="f_epichint" style={{ fontSize: 11 }}>
         Epic Heroes are not allowed.
       </div>
+      {limitBlock && !epicBlock && (
+        <div className="hint bad" id="f_dsblock" role="alert">
+          {limitBlock}
+        </div>
+      )}
       {epicBlock && (
         <div className="hint bad" id="f_epicblock" role="alert">
           ! No Epic Heroes. {value.trim()} is a named legend of the galaxy. Pick another Character or give your own hero a new name.

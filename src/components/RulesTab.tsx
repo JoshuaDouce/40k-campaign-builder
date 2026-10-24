@@ -1,4 +1,39 @@
-import { ACTIONS, CHAR_HONOURS, CHAR_SCARS, HONOURS, LIGHT_FORCES_MAX_PTS, LIGHT_FORCES_TWIST, ORBITS, PTYPES, RELICS, SCARS, TWISTS, VTYPES } from "../game/index.ts";
+import { ACTIONS, CHAR_HONOURS, CHAR_SCARS, HONOURS, LIGHT_FORCES_MAX_PTS, LIGHT_FORCES_TWIST, ORBITS, PTYPES, RELICS, SCARS, toggleOn, TOGGLE_KEYS, TOGGLE_NAMES, TWISTS, VTYPES } from "../game/index.ts";
+import type { ToggleKey } from "../game/index.ts";
+import { useOptionalCampaign } from "../store/useCampaign.ts";
+
+const TOGGLE_DESC: Record<ToggleKey, string> = {
+  forceOrg: "Role slots, minimums and over-limit warnings.",
+  datasheetLimit: "5 datasheets in Setup, +1 each War Round.",
+  toughnessStages: "No unit above T11 in War Rounds 1–2, until supply reaches 1250.",
+  knights: "Armigers and War Dogs count as Battleline; one may be the Setup Warlord.",
+};
+
+/** The four owner-switched campaign rules. Everyone sees the state; only the owner gets the switches. */
+function CampaignRules() {
+  const campaign = useOptionalCampaign();
+  if (!campaign) return null;
+  const { state, viewer, dispatch } = campaign;
+  return (
+    <div className="rt-panel">
+      <h3>Campaign rules</h3>
+      <p className="rt-who">{viewer.isOwner ? "You are the owner: switch rules at any time" : "Only the campaign owner can change these"}</p>
+      {TOGGLE_KEYS.map((k) => {
+        const on = toggleOn(state, k);
+        return (
+          <div className="rt-row" key={k}>
+            <div className="rt-name">
+              {TOGGLE_NAMES[k]}
+              <span className={`badge ${on ? "rt-on" : "rt-off"}`}>{on ? "On" : "Off"}</span>
+            </div>
+            <p className="rt-desc">{TOGGLE_DESC[k]}</p>
+            {viewer.isOwner && <button type="button" className="rt-sw" aria-pressed={on} aria-label={TOGGLE_NAMES[k]} onClick={() => dispatch({ type: "setToggle", key: k, on: !on })} />}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 /** A D6/D3 table of named results: honours, scars, relics. */
 function RollTable({ die, label, rows }: { die: string; label: string; rows: readonly { n: string; e: string }[] }) {
@@ -15,10 +50,15 @@ function RollTable({ die, label, rows }: { die: string; label: string; rows: rea
 }
 
 export function RulesTab() {
+  const campaign = useOptionalCampaign();
+  const toggled = campaign ? (k: ToggleKey) => toggleOn(campaign.state, k) : (k: ToggleKey) => toggleOn({}, k);
+  const slots = toggled("forceOrg");
   return (
     <section className="tab" id="rules">
       <h2>Rules</h2>
       <p className="dim">Everything the War Room does, written out so you can play it on paper too.</p>
+
+      <CampaignRules />
 
       <h3>The War Round</h3>
       <ol className="steps">
@@ -33,9 +73,23 @@ export function RulesTab() {
       <h3>Characters</h3>
       <p>Your warband starts with exactly one Character: your Warlord. More only through Promotion, or by adding them later as your supply limit grows. One Warlord per roster.</p>
       <p>Characters use their own Battle Honour and Battle Scar tables, and can carry up to three relics. Give your Character a title and a few lines of backstory; its battles and kills are kept on its record. Fallen Characters are remembered in the Hall of Heroes.</p>
-      <p><b>Force Organisation.</b> Every unit has one role: Character, Battleline, Infantry, Mounted, Vehicle / Monster or Other. A unit fills the slot of its role only, whatever its size or keywords: a Battleline Infantry unit fills Battleline and not Infantry. The one overlap is your Warlord, who is a Character and fills the Character slot. Each warband should field at least 1 Character and 2 Battleline, and no more of each role than its slots allow. Slots grow with your conquests: each Shrine held adds a Character slot, each Fortress a Battleline, each Hive City an Infantry, each Settlement a Mounted, each Forge or Refinery a Vehicle / Monster, and each Spaceport (your Capital counts) an Other, up to +3 per role. Lose the ground and you lose the slot, and any units left over are over limit. This is the Reach's guidance, not a law: your group decides how strictly to hold each other to it. Your supply limit still caps total points. Until War Round 1 begins, the Character row is held at 1: your Warlord. Until War Round 1 begins, no unit may have Toughness 10 or higher, and only one unit other than Battleline may have Toughness 9: the heavy armour comes later. No Epic Heroes, ever: your warband is built from named Characters of your own, not the galaxy's legends.</p>
+      <p><b>Setup limits.</b> Until War Round 1 begins, your warband has exactly one Character: your Warlord. No unit may have Toughness 10 or higher, and only one unit other than Battleline may have Toughness 9: the heavy armour comes later. No Epic Heroes, ever: your warband is built from named Characters of your own, not the galaxy's legends.</p>
+      {slots ? (
+        <p><b>Force Organisation.</b> Every unit has one role: Character, Battleline, Infantry, Mounted, Vehicle / Monster or Other. A unit fills the slot of its role only, whatever its size or keywords: a Battleline Infantry unit fills Battleline and not Infantry. The one overlap is your Warlord, who is a Character and fills the Character slot. Each warband should field at least 1 Character and 2 Battleline, and no more of each role than its slots allow. Slots grow with your conquests: each Shrine held adds a Character slot, each Fortress a Battleline, each Hive City an Infantry, each Settlement a Mounted, each Forge or Refinery a Vehicle / Monster, and each Spaceport (your Capital counts) an Other, up to +3 per role. Lose the ground and you lose the slot, and any units left over are over limit. This is the Reach's guidance, not a law: your group decides how strictly to hold each other to it. Your supply limit still caps total points. Until War Round 1 begins, the Character row is held at 1: your Warlord.</p>
+      ) : (
+        <p><b>Roles.</b> Every unit can be given a role: Character, Battleline, Infantry, Mounted, Vehicle / Monster or Other. This campaign does not use slots, so there are no limits or minimums. Roles still matter for the Battleline exception to the Toughness 9 limit and for the Knights exemption.</p>
+      )}
       <p><b>Which role?</b> Infantry covers foot troops of every kind, Beasts and Swarms included. Jump Pack and other flying infantry are Infantry. Bikes, cavalry and jetbikes are Mounted. Walkers, tanks and big monsters are Vehicle / Monster. Dedicated Transports, Aircraft and Fortifications are Other. Psykers take the role their datasheet gives them, usually Character. Allied units and Agents take whatever role their own datasheet gives them.</p>
-      <p><b>Slots hold models, not fixed units.</b> Your roster is the supply of models you can draw on for a battle. A slot can hold a bigger unit than you field in one go: ten Intercessors in one Battleline slot can take the field as two squads of five. When you pick your army for a game, build it from the models on your roster using the normal 40k muster rules (unit sizes, points and how many of each datasheet you may take).</p>
+      {toggled("datasheetLimit") && (
+        <p><b>Datasheet limit.</b> A roster may use at most 5 different datasheets in Setup, and 1 more at the start of each War Round: 6 in War Round 1, 7 in War Round 2, and so on. Several units of the same datasheet count once, and so does your Warlord's. A unit with no datasheet named isn't counted. At the limit, you can't add a unit of a new datasheet until the limit grows.</p>
+      )}
+      {toggled("toughnessStages") && (
+        <p><b>Toughness stages.</b> In War Rounds 1 and 2, no unit may have Toughness 12 or higher. From War Round 3, or as soon as your supply limit reaches 1250 pts, the cap is gone. The Setup limits still apply first.</p>
+      )}
+      {toggled("knights") && (
+        <p><b>Knights.</b> For Imperial Knights and Chaos Knights players: Armigers and War Dogs count as Battleline, so the one Toughness 9 limit doesn't apply to them. In Setup, your Warlord may be an Armiger or War Dog instead of a Character. It carries the Warlord trait, but no title, backstory, enhancement or relics. From War Round 1 the normal rules apply, and you may make a Character your Warlord.</p>
+      )}
+      <p><b>Slots hold models, not fixed units.</b> Your roster is the supply of models you can draw on for a battle. A slot can hold a bigger unit than you field in one go: ten Intercessors in one Battleline {slots ? "slot" : "unit"} can take the field as two squads of five. When you pick your army for a game, build it from the models on your roster using the normal 40k muster rules (unit sizes, points and how many of each datasheet you may take).</p>
 
       <h3>Campaign actions</h3>
       <div className="tbl"><table>

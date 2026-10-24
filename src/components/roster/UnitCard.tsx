@@ -28,6 +28,10 @@ interface Props {
   toughNineExtra?: boolean;
   /** The unit is an Epic Hero (any round). */
   epic?: boolean;
+  /** Toughness stages is active for this player and the unit is T12 or higher. */
+  toughStage?: boolean;
+  /** The unit is a Warlord but not a Character, and the Knights exemption does not cover it. */
+  warlordNotChar?: boolean;
   onEdit(): void;
   /** Characters pass the cause entered on the "Why did they fall?" sheet. */
   onRemove(cause?: string): void;
@@ -35,7 +39,7 @@ interface Props {
   onRemoveRelic(relic: string): void;
 }
 
-export function UnitCard({ unit, editable, memorial, overLimit, toughOver, toughNineExtra, epic, onEdit, onRemove, onRollRelic, onRemoveRelic }: Props) {
+export function UnitCard({ unit, editable, memorial, overLimit, toughOver, toughNineExtra, epic, toughStage, warlordNotChar, onEdit, onRemove, onRollRelic, onRemoveRelic }: Props) {
   const [armed, setArmed] = useState(false);
   const [asking, setAsking] = useState(false);
   useEffect(() => {
@@ -182,6 +186,12 @@ export function UnitCard({ unit, editable, memorial, overLimit, toughOver, tough
           </div>
         </details>
       )}
+      {!unit.isCharacter && unit.isWarlord && unit.warlordTrait && (
+        <div className="enh">
+          <span>Warlord trait</span>
+          {unit.warlordTrait}
+        </div>
+      )}
       {!unit.isCharacter && unit.enhancement && (
         <div className="enh">
           <span>Enhancement</span>
@@ -228,6 +238,8 @@ export function UnitCard({ unit, editable, memorial, overLimit, toughOver, tough
       {danger && !unit.isWarlord && <div className="warnline">2 scars. One more and this unit is gone.</div>}
       {toughOver && unit.t != null && <div className="warnline">! T{unit.t}: over the Setup limit</div>}
       {toughNineExtra && !toughOver && <div className="warnline">! T9: only one non-Battleline unit at T9 in Setup</div>}
+      {toughStage && unit.t != null && <div className="warnline">! T{unit.t}: over the War Round 1–2 limit</div>}
+      {warlordNotChar && <div className="warnline">! Warlord is not a Character</div>}
       {epic && <div className="warnline">! Epic Hero: not allowed in this campaign</div>}
       {editable && (
         <div className="acts">

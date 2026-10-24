@@ -20,6 +20,7 @@ import {
   removeUnitFrom,
   updateUnitIn,
 } from "./roster.ts";
+import { isToggleKey, toggleOn, TOGGLE_NAMES } from "./toggles.ts";
 import { currentActor, getPlayer, getZone, hollOpen, provsOf } from "./selectors.ts";
 import type { Action, ActionType, CampaignState, Player } from "./types.ts";
 
@@ -37,6 +38,7 @@ const ROSTER_ONLY: ReadonlySet<ActionType> = new Set<ActionType>([
   "applyPostBattle",
   "addExamples",
   "clearExamples",
+  "setToggle",
 ]);
 
 export interface ApplyContext {
@@ -211,6 +213,14 @@ function run(s: CampaignState, a: Action, rng: Rng): boolean {
       if (a.ready) ready[a.playerId] = true;
       else delete ready[a.playerId];
       s.ready = ready;
+      return true;
+    }
+
+    case "setToggle": {
+      if (!isToggleKey(a.key) || typeof a.on !== "boolean") return false;
+      if (toggleOn(s, a.key) === a.on) return false; // unchanged: no-op, no log line
+      s.toggles = { ...s.toggles, [a.key]: a.on };
+      log(s, "Campaign rule changed: ", B(TOGGLE_NAMES[a.key]), ` is now ${a.on ? "on" : "off"}.`);
       return true;
     }
 

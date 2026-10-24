@@ -194,13 +194,13 @@ function Fallen({ v, rolls, put }: { v: UnitView; rolls: Rolls; put: Put }) {
       <div className="warlord-row">
         <div className="rt">{unit.name} was destroyed</div>
         <div className="mono" style={{ fontSize: 12, color: "var(--brass)" }}>
-          WARLORD — TAKES A CHARACTER BATTLE SCAR
+          {unit.isCharacter ? "WARLORD — TAKES A CHARACTER BATTLE SCAR" : "WARLORD — TAKES A BATTLE SCAR"}
         </div>
         <div className="mono dim" style={{ fontSize: 12 }}>
           NO ROLL FOR THE FALLEN. NEVER REMOVED. NO RP PENALTY. {scarNote}.
         </div>
         <div className="lbl" style={{ marginTop: 8 }}>
-          Character Battle Scar
+          {unit.isCharacter ? "Character Battle Scar" : "Battle Scar"}
         </div>
         <div className="row" style={{ marginTop: 4 }}>
           <DieControl faces={3} value={f.scarRoll} label="scar D3" onChange={(d) => put("scar", unit.id, d)} />
