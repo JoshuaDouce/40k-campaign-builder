@@ -200,11 +200,12 @@ export function exampleUnits(rng: Rng, existing: readonly Unit[] = EMPTY): Unit[
       ...o,
     });
   };
-  mk("Anvil Squad", "Intercessor Squad", 180, 1, [], [], { role: "Battleline" });
-  mk("Red Hand Assault", "Assault Intercessor Squad", 150, 4, ["Brawlers"], [], { role: "Battleline" });
-  mk("Ashfall Gun-Line", "Hellblasters", 110, 9, ["Steady Aim", "Fleet"], ["Shaken"], { role: "Infantry" });
+  mk("Anvil Squad", "Intercessor Squad", 180, 1, [], [], { role: "Battleline", t: 5 });
+  mk("Red Hand Assault", "Assault Intercessor Squad", 150, 4, ["Brawlers"], [], { role: "Battleline", t: 5 });
+  mk("Ashfall Gun-Line", "Hellblasters", 110, 9, ["Steady Aim", "Fleet"], ["Shaken"], { role: "Infantry", t: 5 });
   mk("Captain Idris Valen", "Captain", 85, 6, ["Grizzled"], [], {
     role: "Character",
+    t: 5,
     isCharacter: true,
     isWarlord: true,
     enhancement: 'Gilded Standard of the Ninth: friendly units within 6" re-roll Battle-shock tests.',
@@ -215,9 +216,9 @@ export function exampleUnits(rng: Rng, existing: readonly Unit[] = EMPTY): Unit[
     battles: 7,
     kills: 12,
   });
-  mk("Gatekeepers", "Bladeguard Veteran Squad", 150, 7, ["Objective Hunters"], [], { role: "Infantry" });
-  mk("Breach Team Seven", "Eradicator Squad", 100, 4, ["Hard to Kill"], ["Crippled", makeScar("Worn Gear", "melta rifles")], { role: "Infantry" });
-  mk("The Anvil of Kharst", "Redemptor Dreadnought", 210, 26, ["Steady Aim", "Grizzled", "Hard to Kill", "Objective Hunters"], [], { role: "Vehicle" });
+  mk("Gatekeepers", "Bladeguard Veteran Squad", 150, 7, ["Objective Hunters"], [], { role: "Infantry", t: 5 });
+  mk("Breach Team Seven", "Eradicator Squad", 100, 4, ["Hard to Kill"], ["Crippled", makeScar("Worn Gear", "melta rifles")], { role: "Infantry", t: 6 });
+  mk("The Anvil of Kharst", "Impulsor", 70, 26, ["Steady Aim", "Grizzled", "Hard to Kill", "Objective Hunters"], [], { role: "Vehicle", t: 9 });
   return out;
 }
 
@@ -272,6 +273,7 @@ function cleanUnit(u: Unit): Unit | null {
     }
     if (u.relics?.length) out.relics = [...u.relics];
   }
+  if (typeof u.t === "number" && Number.isInteger(u.t) && u.t >= 1) out.t = u.t;
   if (u.battles !== undefined) out.battles = u.battles;
   if (u.kills !== undefined) out.kills = u.kills;
   return out;
@@ -285,6 +287,14 @@ function cleanUnit(u: Unit): Unit | null {
 export function setupCharacterBlock(state: CampaignState, playerId: string, unit: Pick<Unit, "id" | "isCharacter">): Unit | null {
   if (state.round !== 0 || !unit.isCharacter) return null;
   return rosterOf(state, playerId).find((x) => x.isCharacter && x.id !== unit.id) ?? null;
+}
+
+/** Setup (round 0) allows Toughness 9 or lower. */
+export const SETUP_MAX_TOUGHNESS = 9;
+
+/** True only in Setup (round 0) when `t` is a number over the cap. Blank/undefined is never blocked. */
+export function setupToughnessBlock(state: CampaignState, t: number | undefined): boolean {
+  return state.round === 0 && typeof t === "number" && t > SETUP_MAX_TOUGHNESS;
 }
 
 /** True if saving `u` would break the Setup rule: a second Character, or a Character that is not the Warlord. */
@@ -324,7 +334,7 @@ export function addUnitTo(s: CampaignState, playerId: string, unit: Unit): boole
   const u = cleanUnit(unit);
   const roster = rosterFor(s, playerId);
   if (!u || roster.some((x) => x.id === u.id)) return false;
-  if (breaksSetupRule(s, playerId, u)) return false;
+  if (breaksSetupRule(s, playerId, u) || setupToughnessBlock(s, u.t)) return false;
   roster.push(u);
   enforceWarlord(roster, u);
   checkLegend(s, getPlayer(s, playerId)?.name ?? "", u);
@@ -340,6 +350,8 @@ export function updateUnitIn(s: CampaignState, playerId: string, unit: Unit): bo
   const old = roster[i];
   // A legacy Setup roster with 2+ Characters can still edit them; only a save that adds a Character is stopped.
   if (!old.isCharacter && breaksSetupRule(s, playerId, u)) return false;
+  // Toughness is checked on the resulting unit, so a legacy T10+ unit that stays T10+ is refused.
+  if (setupToughnessBlock(s, u.t)) return false;
   if (old.ex) u.ex = true;
   if (old.legendLogged) u.legendLogged = true;
   roster[i] = u;
@@ -574,7 +586,7 @@ export function recruitUnit(s: CampaignState, playerId: string, unit: Unit): boo
   const u = cleanUnit(draft);
   const roster = rosterFor(s, playerId);
   if (!u || roster.some((x) => x.id === u.id)) return false;
-  if (breaksSetupRule(s, playerId, u)) return false;
+  if (breaksSetupRule(s, playerId, u) || setupToughnessBlock(s, u.t)) return false;
   spendRp(s, playerId, RECRUITS_COST);
   roster.push(u);
   enforceWarlord(roster, u);

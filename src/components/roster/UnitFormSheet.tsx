@@ -15,6 +15,8 @@ import {
   scarName,
   scarWeapon,
   setupCharacterBlock,
+  SETUP_MAX_TOUGHNESS,
+  setupToughnessBlock,
   TITLE_MAX,
   TRAIT_MAX,
   WORN_GEAR,
@@ -48,6 +50,7 @@ interface Draft {
   datasheet: string;
   points: string;
   xp: string;
+  toughness: string;
   role: Role | "";
   isCharacter: boolean;
   isWarlord: boolean;
@@ -69,6 +72,7 @@ function initial(existing: Unit | undefined, mode: FormMode): Draft {
       datasheet: "",
       points: "100",
       xp: String(mode === "recruits" ? RECRUITS_XP : 0),
+      toughness: "",
       role: "",
       isCharacter: false,
       isWarlord: false,
@@ -89,6 +93,7 @@ function initial(existing: Unit | undefined, mode: FormMode): Draft {
     datasheet: existing.datasheet,
     points: String(existing.points),
     xp: String(existing.xp),
+    toughness: existing.t != null ? String(existing.t) : "",
     role: roleOf(existing) ?? "",
     isCharacter: existing.isCharacter,
     isWarlord: existing.isWarlord,
@@ -143,16 +148,23 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, r
   // In Setup, a save that makes this unit a Character is stopped if the roster already has one. Saving an existing Character is fine.
   const charBlock = existing?.isCharacter ? null : setupCharacterBlock(state, playerId, { id: existing?.id ?? "", isCharacter: d.isCharacter });
 
+  const toughBlank = d.toughness.trim() === "";
+  const toughNum = toughBlank ? NaN : Number(d.toughness);
+  const toughBad = !toughBlank && !(Number.isInteger(toughNum) && toughNum >= 1);
+  const toughBlock = !toughBad && setupToughnessBlock(state, toughBlank ? undefined : toughNum);
+  const describedBy = [charBlock ? "f_charblock" : "", toughBlock ? "f_toughblock" : ""].filter(Boolean).join(" ") || undefined;
+
   let problem = "";
   if (!Number.isFinite(points) || points < 0) problem = "Base points must be 0 or more.";
   else if (!Number.isInteger(xp) || xp < 0) problem = "XP must be a whole number, 0 or more.";
+  else if (toughBad) problem = "Toughness must be a whole number, 1 or more.";
   else if (!wholeOrEmpty(d.battles)) problem = "Battles must be a whole number, 0 or more.";
   else if (!wholeOrEmpty(d.kills)) problem = "Kills must be a whole number, 0 or more.";
   else if (hasWorn && !d.weapon.trim()) problem = "Worn Gear needs a weapon.";
   else if (recruits && d.honours.length !== 1) problem = "Pick exactly one Battle Honour.";
 
   const save = () => {
-    if (problem || charBlock) return;
+    if (problem || charBlock || toughBlock) return;
     const enh = d.isCharacter ? d.enhancement.trim() : "";
     const unit: Unit = {
       ...existing,
@@ -179,6 +191,8 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, r
     text("backstory", d.backstory, d.isCharacter);
     text("warlordTrait", d.warlordTrait, warlord);
     if (!d.isCharacter) delete unit.relics;
+    if (!toughBlank) unit.t = toughNum;
+    else delete unit.t;
     if (d.battles.trim() !== "") unit.battles = Number(d.battles);
     else delete unit.battles;
     if (d.kills.trim() !== "") unit.kills = Number(d.kills);
@@ -207,6 +221,8 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, r
           points={d.points}
           onText={(datasheet) => set({ datasheet })}
           onPoints={(points) => set({ points })}
+          onToughness={(toughness) => set({ toughness })}
+          setup={setup}
         />
         <div className="field" style={{ flex: "1 1 120px" }}>
           <label htmlFor="f_base">Base points</label>
@@ -215,6 +231,30 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, r
         <div className="field" style={{ flex: "1 1 120px" }}>
           <label htmlFor="f_xp">XP</label>
           {recruits ? <input type="number" id="f_xp" value={RECRUITS_XP} disabled /> : <input type="number" id="f_xp" inputMode="numeric" min={0} step={1} value={d.xp} onChange={(e) => set({ xp: e.target.value })} />}
+        </div>
+        <div className="field" style={{ flex: "1 1 120px" }}>
+          <label htmlFor="f_tough">Toughness (T)</label>
+          <input
+            type="number"
+            id="f_tough"
+            inputMode="numeric"
+            min={1}
+            step={1}
+            value={d.toughness}
+            aria-invalid={toughBad || toughBlock ? true : undefined}
+            aria-describedby={toughBlock ? "f_toughblock" : setup ? "f_toughhint" : undefined}
+            onChange={(e) => set({ toughness: e.target.value })}
+          />
+          {setup && (
+            <div className="mono dim" id="f_toughhint" style={{ fontSize: 11 }}>
+              Setup allows Toughness {SETUP_MAX_TOUGHNESS} or lower.
+            </div>
+          )}
+          {toughBlock && (
+            <div className="hint bad" id="f_toughblock" role="alert">
+              ! Setup allows Toughness {SETUP_MAX_TOUGHNESS} or lower. This unit is T{toughNum}. Lower its Toughness or pick another unit.
+            </div>
+          )}
         </div>
       </div>
       <div className="mono" style={{ fontSize: 12 }}>
@@ -368,7 +408,7 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, r
       )}
 
       <div className="row sub">
-        <button type="button" className="btn primary" disabled={!!problem || !!charBlock} aria-describedby={charBlock ? "f_charblock" : undefined} onClick={save}>
+        <button type="button" className="btn primary" disabled={!!problem || !!charBlock || toughBlock} aria-describedby={describedBy} onClick={save}>
           {COPY[mode].cta}
         </button>
         <button type="button" className="btn" onClick={onClose}>

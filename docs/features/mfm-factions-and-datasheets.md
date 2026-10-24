@@ -97,3 +97,6 @@ The datasheet data is a small file committed to the repo. A developer-run script
 5. **Cards and colours:** generic-only Fate Cards need no draw-pool change; distinct colours.
 6. **Cost and deploy:** no new AWS resource, no runtime fetch; static assets only.
 7. **Licence:** MFM is MIT; place the attribution notice.
+
+## Toughness data
+`npm run update-points` also reads Toughness (highest T across a unit's models) from the BSData `wh40k-11e` datasheet catalogues and writes `t` on each unit. It is credited as `toughnessSource` in `src/data/mfm/meta.json`. See [setup-toughness-cap.md](setup-toughness-cap.md).

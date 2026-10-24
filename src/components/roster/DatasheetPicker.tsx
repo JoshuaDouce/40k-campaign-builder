@@ -1,5 +1,6 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent, ReactNode } from "react";
+import { SETUP_MAX_TOUGHNESS } from "../../game/index.ts";
 import type { FactionName } from "../../game/index.ts";
 import { fold, useDatasheets } from "./useDatasheets.ts";
 import type { Datasheet } from "./useDatasheets.ts";
@@ -17,6 +18,10 @@ interface Props {
   points: string;
   onText(text: string): void;
   onPoints(points: string): void;
+  /** Called with the datasheet's Toughness, or "" when it has none. */
+  onToughness(t: string): void;
+  /** True in Setup, when T10 or higher is over the limit. */
+  setup?: boolean;
 }
 
 interface Hit {
@@ -36,7 +41,7 @@ function highlight(name: string, at: [number, number]): ReactNode {
 }
 
 /** Datasheet field for the unit form: a searchable pick-list when MFM data exists, else today's plain text input. */
-export function DatasheetPicker({ id, faction, value, points, onText, onPoints }: Props) {
+export function DatasheetPicker({ id, faction, value, points, onText, onPoints, onToughness, setup }: Props) {
   const data = useDatasheets(faction);
   const listId = useId();
   const field = useRef<HTMLDivElement>(null);
@@ -77,6 +82,7 @@ export function DatasheetPicker({ id, faction, value, points, onText, onPoints }
     setOpen(false);
     onText(unit.name);
     if (unit.sizes.length > 0) onPoints(String(unit.sizes[0][1]));
+    onToughness(unit.t != null ? String(unit.t) : "");
   };
 
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
@@ -111,6 +117,11 @@ export function DatasheetPicker({ id, faction, value, points, onText, onPoints }
         {ready && data.version && (
           <a className="mf-ver" href="https://github.com/BSData/wh40k-11e-mfm" target="_blank" rel="noreferrer" title="Points from BSData/wh40k-11e-mfm (MIT licence)">
             MFM {data.version}
+          </a>
+        )}
+        {ready && (
+          <a className="mf-ver" href="https://github.com/BSData/wh40k-11e" target="_blank" rel="noreferrer" title="Toughness from BSData/wh40k-11e">
+            T: BSData 11e
           </a>
         )}
       </div>
@@ -162,6 +173,12 @@ export function DatasheetPicker({ id, faction, value, points, onText, onPoints }
                   {unit.sizes.length > 1 && <s>from</s>}
                   {unit.sizes[0][1]}
                   {unit.sizes.length === 1 && " pts"}
+                  {unit.t != null && (
+                    <span className={`mono ${setup && unit.t > SETUP_MAX_TOUGHNESS ? "bad" : "dim"}`} title={setup && unit.t > SETUP_MAX_TOUGHNESS ? "Over the Setup Toughness limit" : undefined}>
+                      {" "}T{unit.t}
+                      {setup && unit.t > SETUP_MAX_TOUGHNESS && <span className="su-sr"> (over the Setup limit)</span>}
+                    </span>
+                  )}
                 </span>
               </li>
             ))}

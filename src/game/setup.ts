@@ -1,6 +1,6 @@
 // Read-only helpers for the round-0 Setup tab. None of these mutate.
 import { worldCounts } from "./map.ts";
-import { rosterOf, totalEffective } from "./roster.ts";
+import { rosterOf, setupToughnessBlock, totalEffective } from "./roster.ts";
 import { forceOrgFor } from "./forceOrg.ts";
 import { getPlanet, getPlayer, getProvince, supplyOf } from "./selectors.ts";
 import type { CampaignState, Role } from "./types.ts";
@@ -34,6 +34,8 @@ export function exampleNames(state: CampaignState): string[] {
 export interface SetupChecklist {
   /** Characters on the roster; `name` is the first one's (the Warlord's if there is one). */
   character: { count: number; name?: string; isWarlord: boolean };
+  /** Units at Toughness 10+ (Setup only; a blank T never counts). `name`/`t` are set when `count` is 1. */
+  toughOver: { count: number; name?: string; t?: number };
   rosterTotal: number;
   supply: number;
   /** Roster is non-empty and within supply. */
@@ -48,12 +50,14 @@ export function setupChecklist(state: CampaignState, playerId: string): SetupChe
   const player = getPlayer(state, playerId);
   const roster = rosterOf(state, playerId);
   const chars = roster.filter((u) => u.isCharacter);
+  const over = roster.filter((u) => setupToughnessBlock(state, u.t));
   const rosterTotal = totalEffective(roster);
   const supply = player ? supplyOf(player) : 0;
   const prov = state.cap[playerId] ? getProvince(state, state.cap[playerId]) : undefined;
   const planet = prov ? getPlanet(state, prov.pl) : undefined;
   return {
     character: { count: chars.length, name: (chars.find((u) => u.isWarlord) ?? chars[0])?.name, isWarlord: chars.some((u) => u.isWarlord) },
+    toughOver: { count: over.length, name: over.length === 1 ? over[0].name : undefined, t: over.length === 1 ? over[0].t : undefined },
     rosterTotal,
     supply,
     rosterOk: roster.length > 0 && rosterTotal <= supply,
