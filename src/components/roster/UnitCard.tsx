@@ -24,7 +24,7 @@ interface Props {
   overLimit?: boolean;
   /** In Setup, the unit is T10 or higher. */
   toughOver?: boolean;
-  /** Setup: a second or later unit at Toughness 9. */
+  /** Setup: a second or later non-Battleline unit at Toughness 9. */
   toughNineExtra?: boolean;
   /** The unit is an Epic Hero (any round). */
   epic?: boolean;
@@ -227,7 +227,7 @@ export function UnitCard({ unit, editable, memorial, overLimit, toughOver, tough
       )}
       {danger && !unit.isWarlord && <div className="warnline">2 scars. One more and this unit is gone.</div>}
       {toughOver && unit.t != null && <div className="warnline">! T{unit.t}: over the Setup limit</div>}
-      {toughNineExtra && !toughOver && <div className="warnline">! T9: only one unit at T9 in Setup</div>}
+      {toughNineExtra && !toughOver && <div className="warnline">! T9: only one non-Battleline unit at T9 in Setup</div>}
       {epic && <div className="warnline">! Epic Hero: not allowed in this campaign</div>}
       {editable && (
         <div className="acts">

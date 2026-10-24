@@ -19,8 +19,8 @@ export interface RoleDef {
 
 export const ROLES: readonly RoleDef[] = [
   { role: "Character", base: 2, min: 1, from: ["shrine"] },
-  { role: "Battleline", base: 4, min: 2, from: ["fortress"] },
-  { role: "Infantry", base: 3, min: 0, from: ["hive"] },
+  { role: "Battleline", base: 5, min: 2, from: ["fortress"] },
+  { role: "Infantry", base: 4, min: 0, from: ["hive"] },
   { role: "Mounted", base: 1, min: 0, from: ["settlement"] },
   { role: "Vehicle / Monster", base: 1, min: 0, from: ["forge", "refinery"] },
   { role: "Other", base: 1, min: 0, from: ["spaceport", "capital"] },

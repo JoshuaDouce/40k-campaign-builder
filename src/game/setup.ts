@@ -1,6 +1,6 @@
 // Read-only helpers for the round-0 Setup tab. None of these mutate.
 import { worldCounts } from "./map.ts";
-import { rosterOf, SETUP_MAX_TOUGHNESS, setupToughnessBlock, totalEffective } from "./roster.ts";
+import { countsAsSetupNine, rosterOf, setupToughnessBlock, totalEffective } from "./roster.ts";
 import { forceOrgFor } from "./forceOrg.ts";
 import { getPlanet, getPlayer, getProvince, supplyOf } from "./selectors.ts";
 import type { CampaignState, Role } from "./types.ts";
@@ -36,7 +36,7 @@ export interface SetupChecklist {
   character: { count: number; name?: string; isWarlord: boolean };
   /** Units at Toughness 10+ (Setup only; a blank T never counts). `name`/`t` are set when `count` is 1. */
   toughOver: { count: number; name?: string; t?: number };
-  /** Units at exactly Toughness 9 (Setup only; a blank T never counts). Setup allows one. */
+  /** Non-Battleline units at exactly Toughness 9 (Setup only; a blank T never counts). Setup allows one. */
   toughNine: { count: number };
   /** Units whose datasheet matches an Epic Hero (needs `isEpicName`; none without it). `name` is set when `count` is 1. */
   epic: { count: number; name?: string };
@@ -55,7 +55,7 @@ export function setupChecklist(state: CampaignState, playerId: string, isEpicNam
   const roster = rosterOf(state, playerId);
   const chars = roster.filter((u) => u.isCharacter);
   const over = roster.filter((u) => setupToughnessBlock(state, u.t));
-  const nines = state.round === 0 ? roster.filter((u) => u.t === SETUP_MAX_TOUGHNESS) : [];
+  const nines = state.round === 0 ? roster.filter(countsAsSetupNine) : [];
   const epics = (isEpicName ? roster.filter((u) => isEpicName(u.datasheet)) : []);
   const rosterTotal = totalEffective(roster);
   const supply = player ? supplyOf(player) : 0;

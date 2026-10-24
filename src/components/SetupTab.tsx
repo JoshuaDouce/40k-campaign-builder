@@ -134,7 +134,7 @@ export function SetupTab({ colors, onNavigate }: { colors: Record<string, string
         </Step>
 
         <Step n={4} title="Starting positions" next={nextStep === 4} marks={step4Marks}>
-          <p className="su-sub">Each warband needs exactly one Character (its Warlord), a 750 pt roster and a Capital. No unit may have Toughness 10 or higher yet, and only one may be Toughness 9. No Epic Heroes. You start on 0 RP and earn it from your Capital and battles. Build rosters on the Roster tab.</p>
+          <p className="su-sub">Each warband needs exactly one Character (its Warlord), a 750 pt roster and a Capital. No unit may have Toughness 10 or higher yet, and only one may be Toughness 9 (Battleline excepted). No Epic Heroes. You start on 0 RP and earn it from your Capital and battles. Build rosters on the Roster tab.</p>
           <div className="su-blist">
             {state.players.map((p) => (
               <PlayerBlock key={p.id} player={p} state={state} color={colors[p.id]} onNavigate={onNavigate} />

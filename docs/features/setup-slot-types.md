@@ -18,8 +18,8 @@ it. When War Round 1 begins, the limit goes away.
 | Role | Min (always) | Base max | Extra slots from holdings |
 |---|---|---|---|
 | Character | 1 | 2 | +1 per Shrine held |
-| Battleline | 2 | 4 | +1 per Fortress held |
-| Infantry | 0 | 3 | +1 per Hive City held (Beasts and Swarms included) |
+| Battleline | 2 | 5 | +1 per Fortress held |
+| Infantry | 0 | 4 | +1 per Hive City held (Beasts and Swarms included) |
 | Mounted | 0 | 1 | +1 per Settlement held |
 | Vehicle / Monster | 0 | 1 | +1 per Forge held and +1 per Refinery held |
 | Other | 0 | 1 | +1 per Spaceport held (a Capital counts as a Spaceport) |
@@ -87,7 +87,7 @@ it. When War Round 1 begins, the limit goes away.
 ## Acceptance criteria (check by hand at ~400px)
 1. The role picker shows Unassigned, Character, Battleline, Infantry, Mounted, Vehicle / Monster, Other. No Vehicle or
    Monster chip. The hint shows under the chips. Nothing overflows sideways.
-2. The chart shows six rows in that order. A fresh roster reads Mounted 0 / 1 and Vehicle / Monster 0 / 1.
+2. The chart shows six rows in that order. A fresh roster reads Battleline 0 / 5, Infantry 0 / 4, Mounted 0 / 1 and Vehicle / Monster 0 / 1.
 3. A Settlement adds a Mounted slot ("+1 Settlement ({province})"). A Forge and a Refinery each add a Vehicle / Monster
    slot, listed in that row. The +3 cap shows as today.
 4. A saved unit with role "Vehicle" or "Monster" shows in the Vehicle / Monster row with that tag. Nothing that had a
@@ -113,6 +113,18 @@ it. When War Round 1 begins, the limit goes away.
 17. The owner gets the same stops on another player's roster.
 18. The Rules tab, Setup step 4 helper and Toughness hint carry the new wording.
 19. A blank Toughness never counts as T9 and never causes an error.
+
+## Extension (owner request, 2026-10-24)
+- **Battleline is exempt from the one-T9 rule.** A Battleline unit at T9 never counts toward the limit and never blocks
+  another unit. Any number of Battleline units may be T9. The T10+ ban still applies to Battleline. Switching a T9 unit's
+  role away from Battleline makes it count again (the form re-checks live).
+- **Base slots:** Battleline 4 → 5, Infantry 3 → 4. Minimums unchanged.
+- **Slots hold models, not fixed units.** The roster is a model supply. A slot can hold a bigger unit than is fielded
+  at once (ten Intercessors in one slot can take the field as two squads of five). Armies for a game are built from
+  roster models using the normal 40k muster rules. Wording only.
+- Text: Rules tab adds the "Slots hold models, not fixed units." paragraph after "Which role?" and the T9 sentence reads
+  "only one unit other than Battleline may have Toughness 9". The form hint, block message, card flag and Setup step 4
+  helper say "(Battleline excepted)" / "non-Battleline".
 
 ## Edge cases
 - The rule follows the campaign stage (round 0), not the player.

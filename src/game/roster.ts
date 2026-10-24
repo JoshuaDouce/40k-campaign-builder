@@ -2,7 +2,7 @@
 // (through an injected Rng) and arrive here already resolved.
 import { CHAR_HONOURS, CHAR_SCARS, HONOURS, RANKS, RELICS, SCARS } from "./data.ts";
 import { B, log } from "./log.ts";
-import { normaliseRole } from "./forceOrg.ts";
+import { normaliseRole, roleOf } from "./forceOrg.ts";
 import { rollInt } from "./rng.ts";
 import type { Rng } from "./rng.ts";
 import { getPlayer } from "./selectors.ts";
@@ -297,13 +297,18 @@ export function setupToughnessBlock(state: CampaignState, t: number | undefined)
   return state.round === 0 && typeof t === "number" && t > SETUP_MAX_TOUGHNESS;
 }
 
+/** True if the unit counts toward Setup's one-T9 limit: exactly T9 and not Battleline. A blank t never counts. */
+export function countsAsSetupNine(u: Pick<Unit, "t" | "role" | "isCharacter">): boolean {
+  return u.t === SETUP_MAX_TOUGHNESS && roleOf(u) !== "Battleline";
+}
+
 /**
- * Setup (round 0) allows one unit at Toughness 9. Returns the other T9 unit on the roster that stops `unit` being
- * T9 too, or null (after round 0, if `unit.t` is not exactly 9, or if no other unit is T9). A blank t never counts.
+ * Setup (round 0) allows one non-Battleline unit at Toughness 9. Returns the other counting T9 unit on the roster that
+ * stops `unit` being one too, or null (after round 0, or if `unit` does not count, or no other unit does).
  */
-export function setupToughnessNineBlock(state: CampaignState, playerId: string, unit: Pick<Unit, "id" | "t">): Unit | null {
-  if (state.round !== 0 || unit.t !== SETUP_MAX_TOUGHNESS) return null;
-  return rosterOf(state, playerId).find((x) => x.t === SETUP_MAX_TOUGHNESS && x.id !== unit.id) ?? null;
+export function setupToughnessNineBlock(state: CampaignState, playerId: string, unit: Pick<Unit, "id" | "t" | "role" | "isCharacter">): Unit | null {
+  if (state.round !== 0 || !countsAsSetupNine(unit)) return null;
+  return rosterOf(state, playerId).find((x) => x.id !== unit.id && countsAsSetupNine(x)) ?? null;
 }
 
 /** True if saving `u` would break the Setup rule: a second Character, or a Character that is not the Warlord. */
@@ -445,8 +450,8 @@ export function addExamplesTo(s: CampaignState, playerId: string, rng: Rng): boo
   if (kept.some((x) => x.isWarlord)) for (const x of examples) x.isWarlord = false;
   // Setup allows one Character: leave the example Captain out if the player already has one.
   let final = s.round === 0 && kept.some((x) => x.isCharacter) ? examples.filter((x) => !x.isCharacter) : examples;
-  // Setup allows one unit at Toughness 9: leave the example Anvil out if the player already has one.
-  if (s.round === 0 && kept.some((x) => x.t === SETUP_MAX_TOUGHNESS)) final = final.filter((x) => x.t !== SETUP_MAX_TOUGHNESS);
+  // Setup allows one non-Battleline unit at Toughness 9: leave the example Anvil out if the player already has one.
+  if (s.round === 0 && kept.some(countsAsSetupNine)) final = final.filter((x) => !countsAsSetupNine(x));
   s.rosters![playerId] = [...kept, ...final];
   const p = getPlayer(s, playerId);
   s.fallen = (s.fallen ?? []).filter((f) => !(f.ex && f.playerId === playerId));

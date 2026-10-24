@@ -155,7 +155,7 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, r
   const toughBad = !toughBlank && !(Number.isInteger(toughNum) && toughNum >= 1);
   const toughBlock = !toughBad && setupToughnessBlock(state, toughBlank ? undefined : toughNum);
   // T10+ wins over the one-T9 rule: only one message is shown, under the same id.
-  const nineBlock = !toughBad && !toughBlock ? setupToughnessNineBlock(state, playerId, { id: existing?.id ?? "", t: toughBlank ? undefined : toughNum }) : null;
+  const nineBlock = !toughBad && !toughBlock ? setupToughnessNineBlock(state, playerId, { id: existing?.id ?? "", t: toughBlank ? undefined : toughNum, role: d.role || undefined, isCharacter: d.isCharacter }) : null;
   const toughStop = toughBlock || !!nineBlock;
   const epicBlock = useIsEpicName(faction)(d.datasheet);
   const describedBy = [charBlock ? "f_charblock" : "", toughStop ? "f_toughblock" : "", epicBlock ? "f_epicblock" : ""].filter(Boolean).join(" ") || undefined;
@@ -254,7 +254,7 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, r
           />
           {setup && (
             <div className="mono dim" id="f_toughhint" style={{ fontSize: 11 }}>
-              Setup allows Toughness {SETUP_MAX_TOUGHNESS} or lower, and only one unit at Toughness {SETUP_MAX_TOUGHNESS}.
+              Setup allows Toughness {SETUP_MAX_TOUGHNESS} or lower, and only one unit at Toughness {SETUP_MAX_TOUGHNESS} (Battleline excepted).
             </div>
           )}
           {toughBlock && (
@@ -264,7 +264,7 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, r
           )}
           {nineBlock && (
             <div className="hint bad" id="f_toughblock" role="alert">
-              ! Setup allows only one unit at Toughness {SETUP_MAX_TOUGHNESS}, and {nineBlock.name} is already T{SETUP_MAX_TOUGHNESS}. Lower this unit's Toughness or pick another unit.
+              ! Setup allows only one unit at Toughness {SETUP_MAX_TOUGHNESS} (Battleline excepted), and {nineBlock.name} is already T{SETUP_MAX_TOUGHNESS}. Lower this unit's Toughness, make it Battleline if its datasheet is, or pick another unit.
             </div>
           )}
         </div>

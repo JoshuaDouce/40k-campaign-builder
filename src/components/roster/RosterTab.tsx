@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { canPerform, forceOrgFor, PROMOTION_COST, RECRUITS_COST, rosterOf, SETUP_MAX_TOUGHNESS, setupToughnessBlock, SURGEON_COST, supplyOf, totalEffective } from "../../game/index.ts";
+import { canPerform, countsAsSetupNine, forceOrgFor, PROMOTION_COST, RECRUITS_COST, rosterOf, setupToughnessBlock, SURGEON_COST, supplyOf, totalEffective } from "../../game/index.ts";
 import type { Unit } from "../../game/index.ts";
 import { useCampaign } from "../../store/useCampaign.ts";
 import { ForceOrgChart } from "./ForceOrgChart.tsx";
@@ -38,8 +38,8 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
   const editable = canPerform(state, { type: "addExamples", playerId: pid }, viewer);
   const roster = rosterOf(state, pid);
   const fo = forceOrgFor(state, pid);
-  // Setup: the second and later units at exactly T9 (roster order) are flagged; the first is the one allowed.
-  const nineExtraIds = state.round === 0 ? roster.filter((u) => u.t === SETUP_MAX_TOUGHNESS).slice(1).map((u) => u.id) : [];
+  // Setup: the second and later non-Battleline T9 units (roster order) are flagged; the first is the one allowed.
+  const nineExtraIds = state.round === 0 ? roster.filter(countsAsSetupNine).slice(1).map((u) => u.id) : [];
   const sorted = [...roster].sort((a, b) => Number(b.isWarlord) - Number(a.isWarlord));
   const total = totalEffective(roster);
   const supply = supplyOf(player);
