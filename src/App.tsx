@@ -24,7 +24,7 @@ import { CampaignProvider } from "./store/CampaignProvider.tsx";
 import { useAuth } from "./store/useAuth.ts";
 import type { AuthUser } from "./store/useAuth.ts";
 import { useCampaign } from "./store/useCampaign.ts";
-import { isPublicTab, isTabId, readCampaignStartTab, readPublicStartTab, saveTab } from "./store/useDevicePrefs.ts";
+import { isPublicTab, isReferencePage, isTabId, readCampaignStartTab, readPublicStartTab, readReferencePage, REFERENCE_PAGE_IDS, saveReferencePage, saveTab } from "./store/useDevicePrefs.ts";
 import type { PublicTabId, TabId } from "./store/useDevicePrefs.ts";
 import { useRemoteCampaign } from "./store/useRemoteCampaign.ts";
 
@@ -39,7 +39,14 @@ const TABS: ReadonlyArray<{ id: TabId; label: string }> = [
   { id: "cards", label: "Fate Deck" },
   { id: "factions", label: "Factions" },
   { id: "tracker", label: "Players" },
+  { id: "reference", label: "Reference" },
 ];
+
+const byId = (ids: readonly TabId[]) => ids.map((id) => TABS.find((t) => t.id === id)!);
+// Before War Round 1 the bar is flat; from Round 1 the reading pages sit under one Reference tab.
+const FLAT_TABS = TABS.filter((t) => t.id !== "reference");
+const STARTED_TABS = byId(["war", "map", "roster", "tracker", "reference"]);
+const REFERENCE_TABS = byId(REFERENCE_PAGE_IDS);
 
 const PUBLIC_TABS = TABS.filter((t) => isPublicTab(t.id));
 
@@ -55,7 +62,7 @@ const HERO = (
 
 type Screen = { kind: "public" } | { kind: "signin" } | { kind: "list" } | { kind: "new" } | { kind: "campaign"; id: string };
 
-function TabBar({ tabs, current, label, onSelect }: { tabs: ReadonlyArray<{ id: TabId; label: string }>; current: TabId; label: string; onSelect: (t: TabId) => void }) {
+function TabBar({ tabs, current, label, onSelect, className = "tabs" }: { tabs: ReadonlyArray<{ id: TabId; label: string }>; current: TabId; label: string; onSelect: (t: TabId) => void; className?: string }) {
   const ref = useRef<HTMLElement>(null);
   // On a phone the bar scrolls sideways: keep the selected tab in view (e.g. Players, the last one).
   useEffect(() => {
@@ -67,7 +74,7 @@ function TabBar({ tabs, current, label, onSelect }: { tabs: ReadonlyArray<{ id: 
     }
   }, [current]);
   return (
-    <nav ref={ref} className="tabs" role="tablist" aria-label={label}>
+    <nav ref={ref} className={className} role="tablist" aria-label={label}>
       {tabs.map((t) => (
         <button key={t.id} role="tab" aria-selected={t.id === current} onClick={() => onSelect(t.id)}>
           {t.label}
@@ -117,6 +124,7 @@ function CampaignTabs({ onPlay, onDeleted }: { onPlay: () => void; onDeleted: ()
   const [view, setView] = useState("system");
   const [selProv, setSelProv] = useState<string | null>(null);
   const colors = useMemo(() => playerColors(state), [state]);
+  const started = state.round >= 1;
 
   // A new Reach (chart, reset) invalidates the open planet: go back to the system view.
   const [seed, setSeed] = useState(state.sys.seed);
@@ -129,24 +137,37 @@ function CampaignTabs({ onPlay, onDeleted }: { onPlay: () => void; onDeleted: ()
   useEffect(() => {
     const onHash = () => {
       const h = location.hash.slice(1);
-      if (isTabId(h)) setTab(h);
+      // "reference" is a grouping, never a page: ignore it.
+      if (!isTabId(h) || h === "reference") return;
+      setTab(h);
+      if (isReferencePage(h)) saveReferencePage(h);
     };
     window.addEventListener("hashchange", onHash);
     return () => window.removeEventListener("hashchange", onHash);
   }, []);
 
   const show = (t: TabId) => {
-    setTab(t);
-    saveTab(t);
+    // The Reference tab opens the page last viewed there.
+    const page = t === "reference" ? readReferencePage() : t;
+    setTab(page);
+    saveTab(page);
+    if (isReferencePage(page)) saveReferencePage(page);
   };
-  const visibleTabs = state.round === 0 ? TABS : TABS.filter((t) => t.id !== "setup");
   // Setup only exists before War Round 1; if it is gone, show the War Room.
-  const current: TabId = tab === "setup" && state.round > 0 ? "war" : tab;
+  const current: TabId = tab === "setup" && started ? "war" : tab;
+  const refSelected = started && isReferencePage(current);
   const map: MapViewState = { view, selProv, setView, setSelProv };
 
   return (
     <>
-      <TabBar tabs={visibleTabs} current={current} label="Campaign sections" onSelect={show} />
+      <TabBar
+        tabs={started ? STARTED_TABS : FLAT_TABS}
+        current={refSelected ? "reference" : current}
+        label="Campaign sections"
+        onSelect={show}
+        className={started ? "tabs tabs-five" : "tabs"}
+      />
+      {refSelected && <TabBar tabs={REFERENCE_TABS} current={current} label="Reference pages" onSelect={show} className="subtabs" />}
       {current === "setup" && <SetupTab colors={colors} onNavigate={show} />}
       {current === "pitch" && <PitchTab onNavigate={show} />}
       {current === "war" && <WarRoomTab colors={colors} onNavigate={show} />}

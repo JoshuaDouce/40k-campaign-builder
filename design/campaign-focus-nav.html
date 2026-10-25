@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Varkesh Reach - Campaign focus navigation (design mock)</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Grenze+Gothic:wght@500;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Share+Tech+Mono&display=swap">
+<style>
+/* ===== Tokens and base: copied from reference/index.html / src/styles/prototype.css ===== */
+[hidden]{display:none!important}
+body{margin:0}
+:root{
+  --bg:#16120f; --panel:#211a16; --panel2:#2a211c; --line:#3d312a;
+  --ink:#ebdfc8; --dim:#a8977f; --brass:#d0a952; --blood:#b8392e; --verd:#6f9a86;
+  --f-display:"Grenze Gothic","Palatino Linotype",Georgia,serif;
+  --f-body:"Alegreya Sans","Segoe UI",system-ui,sans-serif;
+  --f-mono:"Share Tech Mono",ui-monospace,Menlo,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.55;overflow-wrap:break-word;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px}
+.wrap{max-width:760px;margin:0 auto}
+header.hero{padding-block:28px 18px;border-bottom:1px solid var(--line)}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass)}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(40px,11vw,68px);line-height:.95;margin:6px 0 10px;text-wrap:balance;letter-spacing:.01em}
+h1 span{color:var(--blood)}
+.lede{color:var(--dim);max-width:62ch;margin:0}
+h2{font-family:var(--f-display);font-weight:700;font-size:34px;line-height:1.05;margin:0 0 6px;text-wrap:balance}
+h3{font-family:var(--f-display);font-weight:500;font-size:23px;margin:26px 0 6px;color:var(--brass);text-wrap:balance}
+p{margin:0 0 12px;max-width:65ch}
+.dim{color:var(--dim)}
+.mono{font-family:var(--f-mono)}
+.chip{display:inline-flex;align-items:center;gap:6px;font-family:var(--f-mono);font-size:12px;padding:4px 9px;border:1px solid var(--line);border-radius:20px;color:var(--dim);background:none;cursor:pointer}
+.chip[aria-pressed="true"]{border-color:var(--brass);color:var(--ink);background:var(--panel2)}
+.badge{font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:2px;border:1px solid var(--line);color:var(--ink);background:var(--panel2)}
+.btn{font-family:var(--f-mono);font-size:13px;letter-spacing:.05em;text-transform:uppercase;background:var(--panel2);color:var(--ink);border:1px solid var(--line);padding:9px 14px;border-radius:2px;cursor:pointer}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:12px 12px 10px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.card .k{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);display:flex;justify-content:space-between;gap:8px}
+.card .t{font-family:var(--f-display);font-size:21px;line-height:1.1}
+.card .e{font-size:14.5px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin:12px 0}
+ol.steps{list-style:none;padding:0;margin:14px 0;display:grid;gap:0;counter-reset:s}
+ol.steps li{counter-increment:s;display:grid;grid-template-columns:44px 1fr;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+ol.steps li::before{content:counter(s,upper-roman);font-family:var(--f-display);font-size:26px;color:var(--blood);line-height:1}
+ol.steps b{display:block;font-size:17px}
+section.tab{padding-block:18px}
+
+/* Main tab bar: existing nav.tabs, unchanged (sticky is switched off inside the mock frames) */
+nav.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);display:flex;gap:4px;overflow-x:auto;padding-block:10px;border-bottom:1px solid var(--line);scrollbar-width:none;margin-inline:-4px}
+nav.tabs::-webkit-scrollbar{display:none}
+nav.tabs button{flex:0 0 auto;font-family:var(--f-mono);font-size:13px;letter-spacing:.06em;text-transform:uppercase;background:none;color:var(--dim);border:1px solid transparent;padding:8px 12px;border-radius:2px;cursor:pointer}
+nav.tabs button[aria-selected="true"]{color:var(--bg);background:var(--brass)}
+@media (min-width:600px){nav.tabs{flex-wrap:wrap}nav.tabs button{padding:8px 9px}}
+button:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+
+/* ===== NEW: nav.subtabs (proposed addition to src/styles/prototype.css, right after the nav.tabs rules) ===== */
+nav.subtabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;margin-inline:-4px;padding-inline:4px;background:var(--panel);border-bottom:1px solid var(--line)}
+nav.subtabs::-webkit-scrollbar{display:none}
+nav.subtabs button{flex:0 0 auto;min-height:40px;font-family:var(--f-body);font-size:15px;font-weight:500;letter-spacing:.01em;background:none;color:var(--dim);border:0;border-bottom:3px solid transparent;border-radius:0;padding:6px 10px 3px;cursor:pointer}
+nav.subtabs button[aria-selected="true"]{color:var(--brass);border-bottom-color:var(--brass);font-weight:700;background:var(--panel2)}
+
+/* mock-only: frames and labels (not part of the product) */
+.mock{margin:26px 0 0}
+.mocklabel{display:flex;gap:8px;align-items:baseline;font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--brass);border-bottom:1px dashed var(--line);padding-bottom:6px;margin-bottom:4px}
+.mocklabel b{font-weight:400;color:var(--ink)}
+.mocknote{font-family:var(--f-mono);font-size:12px;color:var(--dim);margin:6px 0 10px;line-height:1.45;max-width:none}
+.frame{border:1px dashed var(--line);border-radius:3px;padding:0 16px 12px;background:var(--bg);overflow:hidden}
+.frame.phone{width:400px;max-width:100%}
+.frame nav.tabs{position:static}
+.frame .camp{padding:12px 0 8px;border-bottom:1px solid var(--line)}
+.frame .camp b{font-family:var(--f-display);font-size:24px;font-weight:700;line-height:1.1;display:block}
+.frame .camp span{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.frame section.tab h2{font-size:30px}
+.notes{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:14px;margin-top:26px}
+.notes pre{margin:8px 0 0;white-space:pre-wrap;font-family:var(--f-mono);font-size:12px;line-height:1.5;color:var(--ink)}
+.notes ul{margin:6px 0 0;padding-left:20px;font-size:14.5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+  <div class="eyebrow">Design mock · Campaign tab bar</div>
+  <h1>Campaign <span>focus</span></h1>
+  <p class="lede">From War Round 1 the tab bar shrinks to five tabs. Reading material moves behind Reference, with a quieter row of page buttons under the bar. Setup (round 0) is unchanged.</p>
+</header>
+
+<main id="stage"></main>
+
+<aside class="notes" aria-label="Implementation notes">
+  <div class="lbl mono dim" style="font-size:11px;letter-spacing:.1em;text-transform:uppercase">Notes for frontend: proposed class <b style="color:var(--brass)">nav.subtabs</b></div>
+  <pre>nav.subtabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;margin-inline:-4px;padding-inline:4px;
+  background:var(--panel);border-bottom:1px solid var(--line)}
+nav.subtabs::-webkit-scrollbar{display:none}
+nav.subtabs button{flex:0 0 auto;min-height:40px;font-family:var(--f-body);font-size:15px;font-weight:500;
+  letter-spacing:.01em;background:none;color:var(--dim);border:0;border-bottom:3px solid transparent;
+  border-radius:0;padding:6px 10px 3px;cursor:pointer}
+nav.subtabs button[aria-selected="true"]{color:var(--brass);border-bottom-color:var(--brass);
+  font-weight:700;background:var(--panel2)}</pre>
+  <ul>
+    <li>Markup: <code>&lt;nav class="subtabs" aria-label="Reference pages"&gt;</code> with <code>&lt;button aria-selected&gt;</code>, rendered directly after the main <code>nav.tabs</code> (aria-label "Campaign sections"), only while Reference is the main tab.</li>
+    <li>Uses only existing tokens. No new colours or fonts. Focus ring comes from the existing global <code>button:focus-visible</code>.</li>
+    <li>Not sticky: only the main bar sticks. The sub-row scrolls away with the page, which keeps the pinned header short on a phone.</li>
+    <li>Sentence-case body font at 15px (not mono caps) is what makes it read as secondary and lets all five labels fit at 400px without scrolling. If a longer label or a 360px screen overflows, the row scrolls sideways like nav.tabs.</li>
+    <li>At 600px and wider, the main bar wraps; the sub-row needs no wide rule since it always fits.</li>
+  </ul>
+</aside>
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+const MAIN=[["war","War Room"],["map","Map"],["roster","Roster"],["players","Players"],["ref","Reference"]];
+const SUB=[["rules","Rules"],["turn","Turn Guide"],["cards","Fate Deck"],["factions","Factions"],["pitch","Pitch"]];
+const FLAT=["Setup","Pitch","War Room","Map","Roster","Rules","Turn Guide","Fate Deck","Factions","Players"];
+
+const mainBar=(sel)=>`<nav class="tabs" aria-label="Campaign sections">${MAIN.map(([k,l])=>`<button role="tab" data-main="${k}" aria-selected="${k===sel}">${l}</button>`).join("")}</nav>`;
+const subBar=(sel)=>`<nav class="subtabs" aria-label="Reference pages">${SUB.map(([k,l])=>`<button data-sub="${k}" aria-selected="${k===sel}"${k===sel?' aria-current="page"':""}>${l}</button>`).join("")}</nav>`;
+const camp=`<div class="camp"><b>Ashes of Varkesh</b><span>War Round 3 · 4 players</span></div>`;
+
+const PAGES={
+  war:`<h2>War Room</h2><p class="dim">(War Round turn order, actions and the Fate hand continue here, unchanged.)</p>`,
+  map:`<h2>Map</h2><p class="dim">(Star map continues here, unchanged.)</p>`,
+  roster:`<h2>Roster</h2><p class="dim">(Roster continues here, unchanged.)</p>`,
+  players:`<h2>Players</h2><p class="dim">(Player cards continue here, unchanged.)</p>`,
+  rules:`<h2>Rules</h2>
+    <p class="dim">Short placeholder of the Rules content.</p>
+    <ol class="steps"><li><div><b>Start of a War Round</b>Each player in turn order takes one campaign action.</div></li>
+    <li><div><b>Battles</b>Contested provinces are fought over; the loser may fall back.</div></li></ol>`,
+  turn:`<h2>Turn Guide</h2><p class="dim">(A practice run of one turn continues here, unchanged.)</p>`,
+  cards:`<h2>Fate Deck</h2><p class="dim">(Card list continues here, unchanged.)</p>`,
+  factions:`<h2>Factions</h2>
+    <p class="dim">Short placeholder of the Factions content.</p>
+    <div class="cards"><div class="card"><div class="k"><span>Faction</span></div><div class="t">Ninth Muster</div><div class="e">Rivalries and side hooks continue here, unchanged.</div></div></div>`,
+  pitch:`<h2>Pitch</h2><p class="dim">(The story of the Reach continues here, unchanged.)</p>`
+};
+
+const mk=(code,title,note)=>`<div class="mocklabel"><span>${code}</span><b>${title}</b></div><p class="mocknote">${note}</p>`;
+const frame=(inner,cls="phone")=>`<div class="frame ${cls}">${camp}${inner}</div>`;
+
+/* Interactive frames: tap a main tab or a sub button to see the selected state move */
+function live(main,sub){
+  return `<div class="live" data-main="${main}" data-sub="${sub}"></div>`;
+}
+function draw(el){
+  const m=el.dataset.main,s=el.dataset.sub;
+  el.innerHTML=mainBar(m)+(m==="ref"?subBar(s):"")+`<section class="tab">${PAGES[m==="ref"?s:m]}</section>`;
+}
+
+$("#stage").innerHTML=
+ `<div class="mock">${mk("1","Started campaign: opens on War Room","Round 1 or later. Five tabs, War Room selected by default. No sub-row. All five fit at 400px. Frames are tappable.")}
+   <div class="frame phone">${camp}${live("war","rules")}</div></div>`+
+ `<div class="mock">${mk("2","Reference selected: Rules page","Reference is filled brass in the main bar. The sub-row sits directly under it: smaller, sentence case, on a quiet panel strip. Rules is selected with a brass colour, a 3px brass underline and bold weight, so it is not colour alone. 40px tall.")}
+   <div class="frame phone">${camp}${live("ref","rules")}</div></div>`+
+ `<div class="mock">${mk("3","Reference selected: Factions page","The selected state moves to Factions; the main bar is unchanged. Tap the sub-buttons or other main tabs to try it.")}
+   <div class="frame phone">${camp}${live("ref","factions")}</div></div>`+
+ `<div class="mock">${mk("4","Round 0 Setup: flat bar, unchanged","Before War Round 1 nothing changes: ten tabs scroll sideways inside the bar, Setup first and selected. No Reference tab and no sub-row.")}
+   <div class="frame phone">${camp}<nav class="tabs" aria-label="Campaign sections">${FLAT.map((l,i)=>`<button role="tab" aria-selected="${i===0}">${l}</button>`).join("")}</nav>
+   <section class="tab"><h2>Setup</h2><p class="dim">(Setup steps continue here, unchanged.)</p></section></div></div>`+
+ `<div class="mock">${mk("5","Wider screen (open this page at 600px or wider)","The main bar wraps at 600px+ as today; the five-tab bar fits on one line. The sub-row is the same and stays left-aligned. Shown here at full page width.")}
+   <div class="frame">${camp}${live("ref","rules")}</div></div>`;
+
+document.querySelectorAll(".live").forEach(el=>{
+  draw(el);
+  el.addEventListener("click",e=>{
+    const m=e.target.closest("[data-main]"),s=e.target.closest("[data-sub]");
+    if(m&&m!==el){el.dataset.main=m.dataset.main;}
+    else if(s){el.dataset.sub=s.dataset.sub;}
+    else return;
+    draw(el);
+  });
+});
+</script>
+</body>
+</html>
