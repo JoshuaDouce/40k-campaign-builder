@@ -56,9 +56,9 @@ export function foldDatasheet(text: string): string {
 /** RP cost of one extra datasheet. */
 export const DATASHEET_COST = 1;
 
-/** Different datasheets a player's roster may use: 5 in Setup, +1 each War Round, +1 per datasheet bought with RP. */
-export function datasheetLimit(state: Pick<CampaignState, "round" | "players">, playerId: string): number {
-  return 5 + state.round + (state.players.find((p) => p.id === playerId)?.dsx ?? 0);
+/** Different datasheets a player's roster may use: 5, +1 per datasheet bought with RP. */
+export function datasheetLimit(state: Pick<CampaignState, "players">, playerId: string): number {
+  return 5 + (state.players.find((p) => p.id === playerId)?.dsx ?? 0);
 }
 
 /** Distinct non-blank datasheets (folded) among `units`. */
