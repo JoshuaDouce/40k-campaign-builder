@@ -208,6 +208,9 @@ select,textarea,input[type=text],input[type=number]{font:inherit;background:var(
 .totals .v small{font-size:16px;color:var(--dim)}
 .overline{font-family:var(--f-mono);font-size:12px;color:var(--blood);margin-top:6px}
 .rp-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.rgroup{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin:20px 0 0;padding-bottom:4px;border-bottom:1px solid var(--line);font-family:var(--f-mono);font-size:12px;font-weight:400;letter-spacing:.1em;text-transform:uppercase;color:var(--brass)}
+.rgroup span{color:var(--dim);white-space:nowrap}
+.rgroup.over span{color:var(--blood)}
 .unit{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:12px 12px 10px;margin:10px 0;display:flex;flex-direction:column;gap:6px;min-width:0}
 .unit.legend{border-color:var(--brass);background:linear-gradient(180deg,var(--panel2),var(--panel))}
 .unit.danger{border-color:var(--blood)}
