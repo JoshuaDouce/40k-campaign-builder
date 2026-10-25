@@ -135,7 +135,7 @@ export function SetupTab({ colors, onNavigate }: { colors: Record<string, string
         </Step>
 
         <Step n={4} title="Starting positions" next={nextStep === 4} marks={step4Marks}>
-          <p className="su-sub">Each warband needs exactly one Character (its Warlord), a 750 pt roster and a Capital. No unit may have Toughness 10 or higher yet, and only one may be Toughness 9 (Battleline excepted). No Epic Heroes. You start on 0 RP and earn it from your Capital and by winning battles. Build rosters on the Roster tab. Your owner may have switched some campaign rules on or off: see the Rules tab.</p>
+          <p className="su-sub">Each warband needs exactly one Character (its Warlord), a 750 pt roster and a Capital. No unit may have Toughness 10 or higher yet, and only one may be Toughness 9 (Battleline excepted). No Epic Heroes. You start on 0 RP and earn it from your Capital and by winning battles. Build rosters on the My Warband tab. Your owner may have switched some campaign rules on or off: see the Rules tab.</p>
           <div className="su-rules-line">
             <span>
               <b>Campaign rules:</b> {rulesOn.length === 1 && rulesOn[0] === "forceOrg" ? "Default rules" : rulesOn.length === 0 ? "No optional rules" : rulesOn.map((k) => TOGGLE_NAMES[k]).join(", ")}

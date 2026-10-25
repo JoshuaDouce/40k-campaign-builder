@@ -33,7 +33,7 @@ const TABS: ReadonlyArray<{ id: TabId; label: string }> = [
   { id: "pitch", label: "Pitch" },
   { id: "war", label: "War Room" },
   { id: "map", label: "Map" },
-  { id: "roster", label: "Roster" },
+  { id: "roster", label: "My Warband" },
   { id: "rules", label: "Rules" },
   { id: "turn", label: "Turn Guide" },
   { id: "cards", label: "Fate Deck" },

@@ -189,7 +189,7 @@ export function RulesTab() {
       <p>A unit can't hold the same scar twice: re-roll duplicates. Worn Gear: choose the weapon when the scar is gained and note it on your roster. Scars never change a unit's points.</p>
       <p className="dim">Three scars and the unit is gone: remove it from your roster. That's the cost of a long war. A Character's third scar removes it like any other unit, except the Warlord, which is never removed.</p>
       <p className="dim">Example: Breach Team Seven is destroyed and rolls a 1: a scar. The D3 comes up 2: Crippled. With one scar already, one more and the squad is gone.</p>
-      <p className="dim">The Roster tab tracks all of this: XP, ranks, honours, scars, relics, each unit's career record and points, with a post-battle helper for the rolls. Fallen Characters are kept in its Hall of Heroes.</p>
+      <p className="dim">The My Warband tab tracks all of this: XP, ranks, honours, scars, relics, each unit's career record and points, with a post-battle helper for the rolls. Fallen Characters are kept in its Hall of Heroes.</p>
 
       <h3>Character Battle Honours (roll D6 or pick)</h3>
       <RollTable die="D6" label="Honour" rows={CHAR_HONOURS} />

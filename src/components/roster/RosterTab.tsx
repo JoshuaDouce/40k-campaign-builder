@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { canPerform, HAND_LIMIT, ROLE_NAMES, roleOf, countsAsSetupNine, datasheetLimit, distinctDatasheets, forceOrgFor, overStageCap, PROMOTION_COST, RECRUITS_COST, rosterOf, setupToughnessBlock, SURGEON_COST, supplyOf, toggleOn, totalEffective, toughStageActive, warlordNotCharacter } from "../../game/index.ts";
+import { canPerform, count, HAND_LIMIT, ROLE_NAMES, roleOf, countsAsSetupNine, datasheetLimit, distinctDatasheets, forceOrgFor, overStageCap, PROMOTION_COST, RECRUITS_COST, rosterOf, setupToughnessBlock, SURGEON_COST, supplyOf, toggleOn, totalEffective, toughStageActive, warlordNotCharacter } from "../../game/index.ts";
 import type { Unit } from "../../game/index.ts";
 import { useCampaign } from "../../store/useCampaign.ts";
+import { FateHand } from "../FateHand.tsx";
 import { ForceOrgChart } from "./ForceOrgChart.tsx";
 import { HallOfHeroes } from "./HallOfHeroes.tsx";
 import { PostBattleHelper } from "./PostBattleHelper.tsx";
@@ -22,13 +23,14 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
   const [toast, setToast] = useState<{ pid: string; text: string } | null>(null);
 
   const own = state.players.find((p) => viewer.userId !== null && p.userId === viewer.userId);
-  const player = state.players.find((p) => p.id === picked) ?? own ?? state.players[0];
+  // Your own warband. Only the owner can switch, to act for a player without their phone.
+  const player = (viewer.isOwner ? state.players.find((p) => p.id === picked) : undefined) ?? own ?? state.players[0];
   const isEpicName = useIsEpicName(player?.faction);
 
   if (!player) {
     return (
       <section className="tab" id="roster">
-        <h2>Roster</h2>
+        <h2>My Warband</h2>
         <p>{state.round === 0 ? "Add players on the Setup tab first." : "Add players on the Players tab first."}</p>
       </section>
     );
@@ -46,6 +48,7 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
     .map((role) => ({ role, units: sorted.filter((u) => roleOf(u) === role), row: fo.rows.find((r) => r.role === role) }))
     .filter((g) => g.units.length > 0);
   const total = totalEffective(roster);
+  const provinces = count(state, player);
   const supply = supplyOf(state, player);
   const over = total > supply;
   const slots = toggleOn(state, "forceOrg");
@@ -82,8 +85,8 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
 
   return (
     <section className="tab" id="roster">
-      <h2>Roster</h2>
-      <p className="dim">Your units, their XP, honours and scars. The War Room doesn't track these; this is your paper roster made digital. Points over supply only warn, they never block.</p>
+      <h2>My Warband</h2>
+      <p className="dim">Your hub: your Fate Cards, your RP and your units with their XP, honours and scars. Points over supply only warn, they never block.</p>
       <div className="seg hallseg" role="group" aria-label="Roster view">
         <button type="button" className="chip" aria-pressed={view === "roster"} onClick={() => setView("roster")}>
           Roster
@@ -99,17 +102,26 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
         <>
 
       <div className="rhead">
-        <div className="lbl">Roster of</div>
-        <div className="pick" role="group" aria-label="Choose a player's roster">
-          {state.players.map((p) => (
-            <button key={p.id} className="chip" aria-pressed={p.id === pid} onClick={() => setPicked(p.id)}>
-              <span className="dot" style={{ background: colors[p.id] }}></span>
-              {p.name}
-            </button>
-          ))}
-        </div>
+        {viewer.isOwner && state.players.length > 1 ? (
+          <>
+            <div className="lbl">Acting for</div>
+            <div className="pick" role="group" aria-label="Choose a player's warband">
+              {state.players.map((p) => (
+                <button key={p.id} className="chip" aria-pressed={p.id === pid} onClick={() => setPicked(p.id)}>
+                  <span className="dot" style={{ background: colors[p.id] }}></span>
+                  {p.name}
+                </button>
+              ))}
+            </div>
+          </>
+        ) : (
+          <div className="row" style={{ gap: 8 }}>
+            <span className="dot" style={{ background: colors[pid] }}></span>
+            <b>{player.name}</b>
+          </div>
+        )}
         <div className="mono dim" style={{ fontSize: 12 }}>
-          {player.faction.toUpperCase()}
+          {player.faction.toUpperCase()} · {provinces} PROVINCE{provinces === 1 ? "" : "S"} · {player.battles} BATTLE{player.battles === 1 ? "" : "S"} · {player.wins} WIN{player.wins === 1 ? "" : "S"}
         </div>
         <div className="totals">
           <div className="stat">
@@ -130,6 +142,8 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
             <div className="v">{player.rp}</div>
           </div>
         </div>
+
+        <FateHand key={pid} player={player} />
 
         {dsCount && (
           <div className={`rt-count${dsCount.x > dsCount.n ? " over" : ""}`}>
@@ -177,6 +191,17 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
               Spend Requisition
             </div>
             <div className="rp-row">
+              <button
+                className="btn sm"
+                disabled={player.rp < 1}
+                title="Spend 1 RP for +200 pts to your supply limit"
+                onClick={() => {
+                  dispatch({ type: "buyReinforcements", playerId: pid });
+                  say("Reinforcements: +200 supply.");
+                }}
+              >
+                Reinforcements · 1 RP
+              </button>
               <button className="btn sm" disabled={player.rp < SURGEON_COST} onClick={() => setDialog({ kind: "surgeon" })}>
                 Field Surgeon · {SURGEON_COST} RP
               </button>

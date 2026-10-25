@@ -42,7 +42,7 @@ export function EndSummary({ step, env, crumbs }: { step: Step; env: Env; crumbs
           </ul>
           {env.ctx.result && (
             <button className="btn sm tg-tap" onClick={() => (location.hash = "roster")}>
-              Open the Roster tab
+              Open My Warband
             </button>
           )}
         </>
