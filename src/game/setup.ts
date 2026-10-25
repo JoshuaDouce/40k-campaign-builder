@@ -1,7 +1,7 @@
 // Read-only helpers for the round-0 Setup tab. None of these mutate.
 import { worldCounts } from "./map.ts";
 import { countsAsSetupNine, rosterOf, setupToughnessBlock, totalEffective } from "./roster.ts";
-import { forceOrgFor } from "./forceOrg.ts";
+import { forceOrgFor, roleRuleOn } from "./forceOrg.ts";
 import { datasheetLimit, distinctDatasheets, toggleOn, warlordNotCharacter } from "./toggles.ts";
 import { getPlanet, getPlayer, getProvince, supplyOf } from "./selectors.ts";
 import type { CampaignState, Role } from "./types.ts";
@@ -57,7 +57,7 @@ export interface SetupChecklist {
   rosterOk: boolean;
   /** "Province, Planet" */
   capital?: string;
-  /** Roles still short of their minimum. */
+  /** Roles still short of their minimum (only Character and Battleline when slots are off). */
   foShort: { role: Role; n: number }[];
 }
 
@@ -87,10 +87,10 @@ export function setupChecklist(state: CampaignState, playerId: string, isEpicNam
     supply,
     rosterOk: roster.length > 0 && rosterTotal <= supply,
     capital: prov && planet ? `${prov.name}, ${planet.name}` : undefined,
-    foShort: !toggleOn(state, "forceOrg")
-      ? []
-      : forceOrgFor(state, playerId)
-          .rows.map((r) => ({ role: r.role, n: Math.max(0, r.min - r.filled) }))
-          .filter((r) => r.n > 0),
+    // Character and Battleline minimums hold in every campaign; the others come with Force Organisation slots.
+    foShort: forceOrgFor(state, playerId)
+      .rows.filter((r) => roleRuleOn(state, r.role))
+      .map((r) => ({ role: r.role, n: Math.max(0, r.min - r.filled) }))
+      .filter((r) => r.n > 0),
   };
 }
