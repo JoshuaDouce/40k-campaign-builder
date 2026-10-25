@@ -297,6 +297,7 @@ textarea{width:100%;resize:vertical;min-height:96px}
 .fo-row:first-of-type{border-top:0}
 .fo-row.warn{border-left-color:var(--blood)}
 .fo-row .nm{font-family:var(--f-display);font-size:20px;line-height:1.15}
+.fo-row .nm .cv{display:block;font-family:var(--f-mono);font-size:11.5px;line-height:1.4;color:var(--dim);overflow-wrap:anywhere}
 .fo-row .ct{font-family:var(--f-display);font-size:24px;line-height:1;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 .fo-row .ct small{font-size:16px;color:var(--dim)}
 .fo-row.warn .ct{color:var(--blood)}

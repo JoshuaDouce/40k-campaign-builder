@@ -17,7 +17,7 @@ lose it and you're asked to stand one down.
 ## Decided rules
 | Role | Min (always) | Base max | Extra slots from holdings |
 |---|---|---|---|
-| Character | 1 | 2 | +1 per Shrine held |
+| Character | 1 | 1 | +1 per Shrine held |
 | Battleline | 2 | 4 | +1 per Fortress held |
 | Infantry | 0 | 3 | +1 per Hive City held |
 | Vehicle | 0 | 1 | +1 per Forge held |

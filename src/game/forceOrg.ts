@@ -15,15 +15,17 @@ export interface RoleDef {
   min: number;
   /** Province types that each grant +1 slot. A Capital counts as a Spaceport. */
   from: readonly ProvinceType[];
+  /** What the role covers, shown under its name where the name alone is unclear. */
+  covers?: string;
 }
 
 export const ROLES: readonly RoleDef[] = [
-  { role: "Character", base: 2, min: 1, from: ["shrine"] },
-  { role: "Battleline", base: 5, min: 2, from: ["fortress"] },
-  { role: "Infantry", base: 4, min: 0, from: ["hive"] },
+  { role: "Character", base: 1, min: 1, from: ["shrine"] },
+  { role: "Battleline", base: 4, min: 2, from: ["fortress"] },
+  { role: "Infantry", base: 3, min: 0, from: ["hive"] },
   { role: "Mounted", base: 1, min: 0, from: ["settlement"] },
   { role: "Vehicle / Monster", base: 1, min: 0, from: ["forge", "refinery"] },
-  { role: "Other", base: 1, min: 0, from: ["spaceport", "capital"] },
+  { role: "Other", base: 1, min: 0, from: ["spaceport", "capital"], covers: "Dedicated Transports, Aircraft, Fortifications" },
 ];
 
 export const ROLE_NAMES: readonly Role[] = ROLES.map((r) => r.role);
@@ -58,6 +60,7 @@ export interface ForceOrgRow {
   min: number;
   /** base + min(HOLDING_CAP, matching). */
   max: number;
+  covers?: string;
   /** Setup only: replaces the "Base N" source line (e.g. "One Character: your Warlord"). */
   note?: string;
   /** Matching provinces held (uncapped). */
@@ -92,11 +95,12 @@ export function forceOrgFor(state: CampaignState, playerId: string): ForceOrg {
       .filter((v) => def.from.includes(v.type))
       .map((v) => ({ label: VTYPES[v.type].n, province: v.name }));
     const mine = byRole.get(def.role) ?? [];
-    // Setup (round 0): one Character, the Warlord, so the row is held at 1 and its minimum is left to the checklist.
+    // Setup (round 0): one Character, the Warlord, so the row is held at 1 (Shrines ignored) and its minimum is left to the checklist.
     const setupChar = state.round === 0 && def.role === "Character";
     const max = setupChar ? 1 : def.base + Math.min(HOLDING_CAP, sources.length);
     if (mine.length > max) overLimitIds.push(...mine.slice(max).map((u) => u.id));
-    const row: ForceOrgRow = { role: def.role, filled: mine.length, base: setupChar ? 1 : def.base, min: setupChar ? 0 : def.min, max, matching: sources.length, sources };
+    const row: ForceOrgRow = { role: def.role, filled: mine.length, base: def.base, min: setupChar ? 0 : def.min, max, matching: sources.length, sources };
+    if (def.covers) row.covers = def.covers;
     if (setupChar) row.note = "One Character: your Warlord";
     return row;
   });

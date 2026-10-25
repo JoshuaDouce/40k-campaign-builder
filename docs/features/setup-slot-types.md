@@ -17,9 +17,9 @@ it. When War Round 1 begins, the limit goes away.
 ## Decided rules
 | Role | Min (always) | Base max | Extra slots from holdings |
 |---|---|---|---|
-| Character | 1 | 2 | +1 per Shrine held |
-| Battleline | 2 | 5 | +1 per Fortress held |
-| Infantry | 0 | 4 | +1 per Hive City held (Beasts and Swarms included) |
+| Character | 1 | 1 | +1 per Shrine held |
+| Battleline | 2 | 4 | +1 per Fortress held |
+| Infantry | 0 | 3 | +1 per Hive City held (Beasts and Swarms included) |
 | Mounted | 0 | 1 | +1 per Settlement held |
 | Vehicle / Monster | 0 | 1 | +1 per Forge held and +1 per Refinery held |
 | Other | 0 | 1 | +1 per Spaceport held (a Capital counts as a Spaceport) |
