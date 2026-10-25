@@ -137,6 +137,15 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, r
   const [d, setD] = useState<Draft>(() => initial(existing, mode));
   const set = (patch: Partial<Draft>) => setD((prev) => ({ ...prev, ...patch }));
   const recruits = mode === "recruits";
+  // Kills give XP one for one: a whole-number change to Kills moves XP by the same amount (never below 0).
+  const setKills = (kills: string) =>
+    setD((prev) => {
+      const whole = (v: string) => (v.trim() === "" ? 0 : Number.isInteger(Number(v)) ? Number(v) : NaN);
+      const delta = whole(kills) - whole(prev.kills);
+      const xpNow = whole(prev.xp);
+      if (recruits || !Number.isFinite(delta) || !Number.isFinite(xpNow) || prev.xp.trim() === "") return { ...prev, kills };
+      return { ...prev, kills, xp: String(Math.max(0, xpNow + delta)) };
+    });
 
   const points = d.points.trim() === "" ? NaN : Number(d.points);
   const xp = recruits ? RECRUITS_XP : d.xp.trim() === "" ? NaN : Number(d.xp);
@@ -444,11 +453,11 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, r
           </div>
           <div className="field" style={{ flex: "1 1 120px" }}>
             <label htmlFor="f_kills">Kills</label>
-            <input type="number" id="f_kills" inputMode="numeric" min={0} step={1} value={d.kills} onChange={(e) => set({ kills: e.target.value })} />
+            <input type="number" id="f_kills" inputMode="numeric" min={0} step={1} value={d.kills} onChange={(e) => setKills(e.target.value)} />
           </div>
         </div>
         <div className="mono dim" style={{ fontSize: 11 }}>
-          THE POST-BATTLE HELPER ADDS TO THESE. EDIT ONLY TO CORRECT THEM.
+          THE POST-BATTLE HELPER ADDS TO THESE. EDIT ONLY TO CORRECT THEM. EACH KILL ADDED OR REMOVED HERE MOVES XP BY 1; ADD MARKED FOR GLORY'S +2 XP BY HAND.
         </div>
       </div>
 

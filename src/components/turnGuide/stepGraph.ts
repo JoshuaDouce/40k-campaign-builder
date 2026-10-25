@@ -99,7 +99,7 @@ const twistOptions = (): StepOption[] =>
   }));
 
 function resultEffects(ctx: Ctx, outcome: "win" | "lose" | "draw"): Effects {
-  // You are the attacker: you always gain Requisition and supply, even in a garrison battle.
+  // You are the attacker: you always gain Requisition, even in a garrison battle.
   let rp = 1;
   let cards = 0;
   let provinces = 0;
@@ -114,7 +114,7 @@ function resultEffects(ctx: Ctx, outcome: "win" | "lose" | "draw"): Effects {
       cards += 1;
     }
   }
-  return { rp, cards, provinces, supply: 150 };
+  return { rp, cards, provinces, supply: 0 };
 }
 
 // ---------- Text ----------
@@ -190,7 +190,7 @@ export function afterReminders(ctx: Ctx, sc: Scenario): string[] {
     "2. Rank-up and honour: a unit that reaches a new rank rolls a D6 (or picks) for 1 Battle Honour per rank gained. No duplicates: re-roll or pick another.",
     "3. Roll for the fallen: each destroyed unit rolls a D6 (Hard to Kill adds 1). On a 1 it gains a Battle Scar; Characters on a 1–2.",
     "4. Battle Scar: roll a D3 on the Battle Scars table and re-roll duplicates. Three scars and the unit is gone.",
-    "5. RP, supply and spoils: collect your Requisition, supply growth and spoils as listed above.",
+    "5. RP and spoils: collect your Requisition and spoils as listed above.",
     "Underdog's grit: any player now holding the fewest provinces draws 1 Fate Card, which may include you and players who didn't fight.",
   ];
   if (ctx.prov === "shrine") l.push("Shrine: both players' Marked for Glory units also get +1 XP.");
@@ -217,8 +217,8 @@ function aftermathText({ ctx }: Env): string {
   );
   l.push(
     garrison
-      ? "Requisition and supply: you gain +1 RP and +150 supply. The garrison player gets nothing."
-      : `Requisition and supply: both players gain +1 RP and +150 supply${r === "win" ? ", and as the winner you gain +1 RP more." : "."}`,
+      ? "Requisition: you gain +1 RP. The garrison player gets nothing."
+      : `Requisition: both players gain +1 RP${r === "win" ? ", and as the winner you gain +1 RP more." : "."}`,
   );
   if (r === "win") l.push("Spoils: the winner draws 1 Fate Card.");
   l.push("Bank up to 10 RP; hand limit 5.");
@@ -430,7 +430,7 @@ const STEP_LIST: Step[] = [
     notes: [
       { cat: "judged", text: "The rules multiply the province size by the orbit but never say how to round an odd result, such as 750 × 1.5." },
       { cat: "judged", text: "A Raid is 'half size' while battles run from 500 to 2000 pts. A Raid on a small province, or Vanguard Only on a 500 pt outpost, drops below 500 and the rules don't say which wins." },
-      { cat: "quirk", text: "The Hollowgate is a 2000 pt war, but each player can only field their supply limit, which starts at 750. It takes many battles, Musters and Reinforcements before anyone can play it at full size." },
+      { cat: "quirk", text: "The Hollowgate is a 2000 pt war, but each player can only field their supply limit, which starts at 750. It takes many Musters, Reinforcements, Outposts and Ruins before anyone can play it at full size." },
     ],
   },
   {
@@ -464,7 +464,7 @@ const STEP_LIST: Step[] = [
     roll: { die: 6, outcome: (v) => (v <= 3 ? "win" : v <= 5 ? "lose" : "draw"), legend: "Practice roll: 1–3 win, 4–5 lose, 6 draw." },
     options: [resultOption("win", "I won", "You win"), resultOption("lose", "I lost", "You lose"), resultOption("draw", "It was a draw", "A draw")],
     notes: [
-      { cat: "nodown", text: "Losing still pays: both players gain +1 RP and +150 supply after every battle, so attacking costs nothing in the campaign beyond the units you lose." },
+      { cat: "nodown", text: "Losing still pays: both players gain +1 RP after every battle, so attacking costs nothing in the campaign beyond the units you lose." },
     ],
   },
   {
