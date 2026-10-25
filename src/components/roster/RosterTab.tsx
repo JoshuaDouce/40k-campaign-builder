@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { canPerform, countsAsSetupNine, datasheetLimit, distinctDatasheets, forceOrgFor, overStageCap, PROMOTION_COST, RECRUITS_COST, rosterOf, setupToughnessBlock, SURGEON_COST, supplyOf, toggleOn, totalEffective, toughStageActive, warlordNotCharacter } from "../../game/index.ts";
+import { canPerform, ROLE_NAMES, roleOf, countsAsSetupNine, datasheetLimit, distinctDatasheets, forceOrgFor, overStageCap, PROMOTION_COST, RECRUITS_COST, rosterOf, setupToughnessBlock, SURGEON_COST, supplyOf, toggleOn, totalEffective, toughStageActive, warlordNotCharacter } from "../../game/index.ts";
 import type { Unit } from "../../game/index.ts";
 import { useCampaign } from "../../store/useCampaign.ts";
 import { ForceOrgChart } from "./ForceOrgChart.tsx";
@@ -41,6 +41,10 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
   // Setup: the second and later non-Battleline T9 units (roster order) are flagged; the first is the one allowed.
   const nineExtraIds = state.round === 0 ? roster.filter(countsAsSetupNine).slice(1).map((u) => u.id) : [];
   const sorted = [...roster].sort((a, b) => Number(b.isWarlord) - Number(a.isWarlord));
+  // One group per role in chart order, then units with no role. Empty groups are left out.
+  const groups = [...ROLE_NAMES, undefined]
+    .map((role) => ({ role, units: sorted.filter((u) => roleOf(u) === role), row: fo.rows.find((r) => r.role === role) }))
+    .filter((g) => g.units.length > 0);
   const total = totalEffective(roster);
   const supply = supplyOf(player);
   const over = total > supply;
@@ -193,30 +197,41 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
       </div>
 
       {sorted.length ? (
-        sorted.map((u) => (
-          <UnitCard
-            key={u.id}
-            unit={u}
-            editable={editable}
-            memorial={state.round !== 0}
-            overLimit={slots && fo.overLimitIds.includes(u.id)}
-            toughOver={setupToughnessBlock(state, u.t)}
-            toughNineExtra={nineExtraIds.includes(u.id)}
-            epic={isEpicName(u.datasheet)}
-            toughStage={stage && overStageCap(u.t)}
-            warlordNotChar={warlordNotCharacter(state, player, u)}
-            onEdit={() => setDialog({ kind: "edit", unit: u })}
-            onRollRelic={() => setDialog({ kind: "relic", unit: u })}
-            onRemoveRelic={(relic) => {
-              dispatch({ type: "removeRelic", playerId: pid, unitId: u.id, relic });
-              say(`${relic} removed from ${u.name}.`);
-            }}
-            onRemove={(cause) => {
-              dispatch({ type: "removeUnit", playerId: pid, unitId: u.id, cause });
-              say(u.isCharacter && state.round !== 0 ? `${u.name} moved to the Hall of Heroes.` : "Unit removed.");
-            }}
-          />
-        ))
+        groups.map(({ role, units, row }) => {
+          const over = slots && row ? row.filled > row.max : false;
+          return (
+            <section key={role ?? "none"} aria-label={role ?? "Unassigned"}>
+              <h3 className={`rgroup${over ? " over" : ""}`}>
+                {role ?? "Unassigned"}
+                <span>{slots && row ? `${row.filled} / ${row.max} slots` : `${units.length} unit${units.length === 1 ? "" : "s"}`}</span>
+              </h3>
+              {units.map((u) => (
+                <UnitCard
+                  key={u.id}
+                  unit={u}
+                  editable={editable}
+                  memorial={state.round !== 0}
+                  overLimit={slots && fo.overLimitIds.includes(u.id)}
+                  toughOver={setupToughnessBlock(state, u.t)}
+                  toughNineExtra={nineExtraIds.includes(u.id)}
+                  epic={isEpicName(u.datasheet)}
+                  toughStage={stage && overStageCap(u.t)}
+                  warlordNotChar={warlordNotCharacter(state, player, u)}
+                  onEdit={() => setDialog({ kind: "edit", unit: u })}
+                  onRollRelic={() => setDialog({ kind: "relic", unit: u })}
+                  onRemoveRelic={(relic) => {
+                    dispatch({ type: "removeRelic", playerId: pid, unitId: u.id, relic });
+                    say(`${relic} removed from ${u.name}.`);
+                  }}
+                  onRemove={(cause) => {
+                    dispatch({ type: "removeUnit", playerId: pid, unitId: u.id, cause });
+                    say(u.isCharacter && state.round !== 0 ? `${u.name} moved to the Hall of Heroes.` : "Unit removed.");
+                  }}
+                />
+              ))}
+            </section>
+          );
+        })
       ) : editable ? (
         <div className="empty">
           <b>No units yet</b>
