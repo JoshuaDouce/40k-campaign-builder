@@ -494,7 +494,7 @@ export function addExamplesTo(s: CampaignState, playerId: string, rng: Rng): boo
   // Datasheet limit: leave out examples that would go past N, in roster order.
   if (toggleOn(s, "datasheetLimit")) {
     const seen = new Set(kept.map((x) => foldDatasheet(x.datasheet)).filter(Boolean));
-    const limit = datasheetLimit(s);
+    const limit = datasheetLimit(s, playerId);
     final = final.filter((x) => {
       const f = foldDatasheet(x.datasheet);
       if (!f || seen.has(f)) return true;

@@ -79,7 +79,7 @@ export function setupChecklist(state: CampaignState, playerId: string, isEpicNam
       ...(softWarlord && !notChar && chars.length === 0 && { knightWarlord: softWarlord.name }),
       ...(softWarlord && notChar && { notCharacter: softWarlord.name }),
     },
-    ...(toggleOn(state, "datasheetLimit") && { datasheets: { count: distinctDatasheets(roster), limit: datasheetLimit(state) } }),
+    ...(toggleOn(state, "datasheetLimit") && { datasheets: { count: distinctDatasheets(roster), limit: datasheetLimit(state, playerId) } }),
     toughOver: { count: over.length, name: over.length === 1 ? over[0].name : undefined, t: over.length === 1 ? over[0].t : undefined },
     toughNine: { count: nines.length },
     epic: { count: epics.length, name: epics.length === 1 ? epics[0].name : undefined },

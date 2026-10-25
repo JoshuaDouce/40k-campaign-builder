@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { canPerform, count, HAND_LIMIT, ROLE_NAMES, roleOf, countsAsSetupNine, datasheetLimit, distinctDatasheets, forceOrgFor, overStageCap, PROMOTION_COST, RECRUITS_COST, rosterOf, setupToughnessBlock, SURGEON_COST, supplyOf, toggleOn, totalEffective, toughStageActive, warlordNotCharacter } from "../../game/index.ts";
+import { canPerform, count, DATASHEET_COST, HAND_LIMIT, ROLE_NAMES, roleOf, countsAsSetupNine, datasheetLimit, distinctDatasheets, forceOrgFor, overStageCap, PROMOTION_COST, RECRUITS_COST, rosterOf, setupToughnessBlock, SURGEON_COST, supplyOf, toggleOn, totalEffective, toughStageActive, warlordNotCharacter } from "../../game/index.ts";
 import type { Unit } from "../../game/index.ts";
 import { useCampaign } from "../../store/useCampaign.ts";
 import { FateHand } from "../FateHand.tsx";
@@ -52,7 +52,7 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
   const supply = supplyOf(state, player);
   const over = total > supply;
   const slots = toggleOn(state, "forceOrg");
-  const dsCount = toggleOn(state, "datasheetLimit") ? { x: distinctDatasheets(roster), n: datasheetLimit(state) } : null;
+  const dsCount = toggleOn(state, "datasheetLimit") ? { x: distinctDatasheets(roster), n: datasheetLimit(state, pid) } : null;
   const stage = toughStageActive(state, player);
   const stageOver = stage ? roster.filter((u) => overStageCap(u.t)).length : 0;
   const hasEx = roster.some((u) => u.ex);
@@ -222,6 +222,19 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
               >
                 Requisition the Deck · 1 RP
               </button>
+              {dsCount && (
+                <button
+                  className="btn sm"
+                  disabled={player.rp < DATASHEET_COST}
+                  title="Spend 1 RP for +1 to your datasheet limit, for the rest of the campaign"
+                  onClick={() => {
+                    dispatch({ type: "buyDatasheet", playerId: pid });
+                    say(`Datasheet limit is now ${dsCount.n + 1}.`);
+                  }}
+                >
+                  Extra Datasheet · {DATASHEET_COST} RP
+                </button>
+              )}
             </div>
           </>
         ) : (

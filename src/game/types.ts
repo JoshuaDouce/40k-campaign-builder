@@ -103,6 +103,8 @@ export interface Player {
   wins: number;
   /** Bonus supply from Muster and Reinforcements. */
   sup: number;
+  /** Extra datasheets bought with RP (Datasheet limit rule). Missing means 0. */
+  dsx?: number;
   /** True after a Scout action until the player's next battle resolves. */
   scout: boolean;
   hand: Card[];
@@ -413,6 +415,7 @@ export type Action =
   | { type: "playCard"; playerId: string; index: number }
   | { type: "discardCard"; playerId: string; index: number }
   | { type: "buyReinforcements"; playerId: string }
+  | { type: "buyDatasheet"; playerId: string }
   | { type: "adjustStat"; playerId: string; stat: StatKey; delta: number }
   | { type: "setProvinceOwner"; provId: string; playerId: string | null }
   | { type: "updatePlayer"; playerId: string; name?: string; faction?: FactionName }
