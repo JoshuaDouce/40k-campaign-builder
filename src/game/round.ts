@@ -448,10 +448,7 @@ export function resolvePick(s: CampaignState, playerId: string, res: "a" | "d" |
   // A garrison player fields the defence as a favour: only the attacker takes part in the campaign.
   const sides = info.garrison ? [a] : [a, d];
   const rewarded = win && sides.includes(win) ? win : null;
-  sides.forEach((p) => {
-    p.battles++;
-    p.rp = Math.min(10, p.rp + 1);
-  });
+  sides.forEach((p) => p.battles++);
   if (rewarded) {
     rewarded.wins++;
     rewarded.rp = Math.min(10, rewarded.rp + 1);

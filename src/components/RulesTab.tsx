@@ -62,8 +62,7 @@ export function RulesTab() {
 
       <h3>The War Round</h3>
       <ol className="steps">
-        <li><div><b>Muster</b>Every player draws 1 Fate Card (hand limit 5).</div></li>
-        <li><div><b>Income</b>+1 RP for your Capital and each Hive City you hold. Refineries draw extra cards.</div></li>
+        <li><div><b>Income</b>+1 RP for your Capital and each Hive City you hold. Draw 1 Fate Card for each Refinery you hold (hand limit 5).</div></li>
       </ol>
       <p>Each War Round has four steps. Plan: every player secretly chooses an action and target at the same time, then marks Ready. Reveal: once everyone is Ready, the owner reveals all picks at once. Play: everyone plays their own pick at the same time. If two players picked the same province, the weaker goes first and the other waits, or switches to something else. Round end: when every pick is done. If a pick is no longer possible when its turn comes, that player chooses again.</p>
       <p>If someone holds the Hollowgate when the round ends, they win the Reach. Otherwise start the next War Round. The weakest is whoever holds the fewest provinces; break ties with a roll-off.</p>
@@ -163,7 +162,7 @@ export function RulesTab() {
       <ol className="steps">
         <li><div><b>Award XP</b>+1 to every unit that fought and was not destroyed. +1 per enemy unit it destroyed. +2 to one unit you <i>Marked for Glory</i> before the game.</div></li>
         <li><div><b>Roll for the fallen</b>Every unit destroyed rolls a D6 (Hard to Kill adds 1). On a 1 it gains a Battle Scar; Characters on a 1–2. Roll a D3 on the Battle Scars table. The Warlord never rolls: see Battle Scars.</div></li>
-        <li><div><b>Requisition</b>+1 RP to both players, +1 more to the winner. Bank up to 10. (Garrison battles: the attacker only.)</div></li>
+        <li><div><b>Requisition</b>+1 RP to the winner. Nothing for a loss or a draw. Bank up to 10. (Garrison battles: the garrison player never gains RP.)</div></li>
         <li><div><b>Spoils</b>The winner draws 1 Fate Card. A Conquer winner takes the province. A Raid winner steals 1 RP and a random Fate Card.</div></li>
         <li><div><b>Underdog's grit</b>Any player now holding the fewest provinces in the campaign draws 1 Fate Card.</div></li>
       </ol>

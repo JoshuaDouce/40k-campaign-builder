@@ -10,8 +10,8 @@ import { PlayerNameInput } from "./PlayerNameInput.tsx";
 
 const BRIEF: ReadonlyArray<readonly [string, string]> = [
   ["The setting.", "The Hollowgate rift tore open three years ago and the Reach is a scatter of worlds, each split into provinces. More players, more worlds."],
-  ["Your start.", "A 750 pt roster led by one Warlord, 0 Requisition Points (earn them from your Capital and from battles), and a Capital province on an outer world. No Epic Heroes."],
-  ["The War Round.", "Everyone draws a Fate Card, then everyone plans in secret and plays at the same time; only players on the same province wait."],
+  ["Your start.", "A 750 pt roster led by one Warlord, 0 Requisition Points (earn them from your Capital and by winning battles), and a Capital province on an outer world. No Epic Heroes."],
+  ["The War Round.", "Everyone collects RP from Capitals and Hive Cities, then everyone plans in secret and plays at the same time; only players on the same province wait."],
   ["Your move.", "Pick one action: Conquer, Raid, Recuperate, Muster, Fortify or Scout. Conquer and Raid start a battle."],
   ["Winning.", "Once 60% of the Reach is claimed (or by War Round 8) the Hollowgate opens. Hold it at the end of a War Round to win."],
 ];
@@ -135,7 +135,7 @@ export function SetupTab({ colors, onNavigate }: { colors: Record<string, string
         </Step>
 
         <Step n={4} title="Starting positions" next={nextStep === 4} marks={step4Marks}>
-          <p className="su-sub">Each warband needs exactly one Character (its Warlord), a 750 pt roster and a Capital. No unit may have Toughness 10 or higher yet, and only one may be Toughness 9 (Battleline excepted). No Epic Heroes. You start on 0 RP and earn it from your Capital and battles. Build rosters on the Roster tab. Your owner may have switched some campaign rules on or off: see the Rules tab.</p>
+          <p className="su-sub">Each warband needs exactly one Character (its Warlord), a 750 pt roster and a Capital. No unit may have Toughness 10 or higher yet, and only one may be Toughness 9 (Battleline excepted). No Epic Heroes. You start on 0 RP and earn it from your Capital and by winning battles. Build rosters on the Roster tab. Your owner may have switched some campaign rules on or off: see the Rules tab.</p>
           <div className="su-rules-line">
             <span>
               <b>Campaign rules:</b> {rulesOn.length === 1 && rulesOn[0] === "forceOrg" ? "Default rules" : rulesOn.length === 0 ? "No optional rules" : rulesOn.map((k) => TOGGLE_NAMES[k]).join(", ")}

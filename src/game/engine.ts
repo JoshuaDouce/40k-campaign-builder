@@ -100,7 +100,8 @@ export function beginRound(s: CampaignState, rng: Rng): void {
       p.rp = Math.min(10, p.rp + inc);
       log(s, B(p.name), ` collects ${inc} RP from their cities.`);
     }
-    drawFor(s, p, 1 + holdsType(s, p, "refinery"), "start of War Round", rng);
+    const refineries = holdsType(s, p, "refinery");
+    if (refineries) drawFor(s, p, refineries, "Refinery", rng);
   });
   s.order = s.players
     .map((p) => ({ id: p.id, z: count(s, p), r: rng() }))
