@@ -34,7 +34,7 @@ interface RawMeta {
 
 /** Role codes written by scripts/update-points.mjs from each datasheet's keywords. */
 type RoleCode = "c" | "b" | "i" | "v" | "o";
-const ROLE_CODES: Record<RoleCode, Role> = { c: "Character", b: "Battleline", i: "Infantry / Mounted", v: "Vehicle / Monster", o: "Other" };
+const ROLE_CODES: Record<RoleCode, Role> = { c: "Character", b: "Battleline", i: "Non-Monster / Vehicle", v: "Vehicle / Monster", o: "Other" };
 
 const QUOTES = /['‘’`]/;
 

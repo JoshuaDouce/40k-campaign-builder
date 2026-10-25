@@ -342,7 +342,7 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, r
             </button>
           ))}
         </div>
-        <div className="hint">Picking a datasheet fills this in from its keywords; you can change it. A Character always fills a Character slot. Beasts and Swarms are Infantry / Mounted. Walkers and Aircraft are Vehicle / Monster. Transports and Fortifications are Other.{slots ? " A unit fills one slot only." : ""}</div>
+        <div className="hint">Picking a datasheet fills this in from its keywords; you can change it. A Character always fills a Character slot. Beasts and Swarms are Non-Monster / Vehicle. Walkers and Aircraft are Vehicle / Monster. Transports and Fortifications are Other.{slots ? " A unit fills one slot only." : ""}</div>
         {exemptDs && d.role === "Battleline" && !d.isCharacter && <div className="rt-note">Armigers and War Dogs count as Battleline in this campaign.</div>}
         {!slots || charBlock ? null : d.role === "" ? (
           <div className="hint">Unassigned units fill no slot. You can set a role later.</div>
