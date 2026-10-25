@@ -213,7 +213,7 @@ export function exampleUnits(rng: Rng, existing: readonly Unit[] = EMPTY): Unit[
   };
   mk("Anvil Squad", "Intercessor Squad", 180, 1, [], [], { role: "Battleline", t: 5 });
   mk("Red Hand Assault", "Assault Intercessor Squad", 150, 4, ["Brawlers"], [], { role: "Battleline", t: 5 });
-  mk("Ashfall Gun-Line", "Hellblasters", 110, 9, ["Steady Aim", "Fleet"], ["Shaken"], { role: "Infantry", t: 5 });
+  mk("Ashfall Gun-Line", "Hellblasters", 110, 9, ["Steady Aim", "Fleet"], ["Shaken"], { role: "Infantry / Mounted", t: 5 });
   mk("Captain Idris Valen", "Captain", 85, 6, ["Grizzled"], [], {
     role: "Character",
     t: 5,
@@ -227,8 +227,8 @@ export function exampleUnits(rng: Rng, existing: readonly Unit[] = EMPTY): Unit[
     battles: 7,
     kills: 12,
   });
-  mk("Gatekeepers", "Bladeguard Veteran Squad", 150, 7, ["Objective Hunters"], [], { role: "Infantry", t: 5 });
-  mk("Breach Team Seven", "Eradicator Squad", 100, 4, ["Hard to Kill"], ["Crippled", makeScar("Worn Gear", "melta rifles")], { role: "Infantry", t: 6 });
+  mk("Gatekeepers", "Bladeguard Veteran Squad", 150, 7, ["Objective Hunters"], [], { role: "Infantry / Mounted", t: 5 });
+  mk("Breach Team Seven", "Eradicator Squad", 100, 4, ["Hard to Kill"], ["Crippled", makeScar("Worn Gear", "melta rifles")], { role: "Infantry / Mounted", t: 6 });
   mk("The Anvil of Kharst", "Impulsor", 70, 26, ["Steady Aim", "Grizzled", "Hard to Kill", "Objective Hunters"], [], { role: "Vehicle / Monster", t: 9 });
   return out;
 }

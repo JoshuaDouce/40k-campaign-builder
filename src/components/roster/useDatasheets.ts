@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { MFM_SLUGS } from "../../data/mfm/slugs.ts";
-import type { FactionName } from "../../game/index.ts";
+import type { FactionName, Role } from "../../game/index.ts";
 
 /** One datasheet in the pick-list. `sizes` are [models, points] pairs, smallest squad first. */
 export interface Datasheet {
@@ -11,6 +11,8 @@ export interface Datasheet {
   t?: number;
   /** An Epic Hero: hidden from the picker and not allowed on a roster. */
   epic?: boolean;
+  /** Force Organisation role from the datasheet's keywords, if known. */
+  role?: Role;
   /** Name with case, accents and apostrophes folded away, for matching. */
   folded: string;
   /** For each character of `folded`, the index of the character it came from in `name`. */
@@ -24,11 +26,15 @@ export interface Datasheets {
 }
 
 interface RawFile {
-  units: { n: string; p: [number, number][]; l?: 1; t?: number; e?: 1 }[];
+  units: { n: string; p: [number, number][]; l?: 1; t?: number; e?: 1; r?: RoleCode }[];
 }
 interface RawMeta {
   version: string;
 }
+
+/** Role codes written by scripts/update-points.mjs from each datasheet's keywords. */
+type RoleCode = "c" | "b" | "i" | "v" | "o";
+const ROLE_CODES: Record<RoleCode, Role> = { c: "Character", b: "Battleline", i: "Infantry / Mounted", v: "Vehicle / Monster", o: "Other" };
 
 const QUOTES = /['‘’`]/;
 
@@ -96,7 +102,7 @@ function unitsFor(slug: string): Promise<Datasheet[]> {
     const loader = fileFor(slug);
     if (!loader) return Promise.reject(new Error(`No MFM data for ${slug}`));
     p = loader().then(
-      (file) => file.units.map((u) => ({ name: u.n, sizes: [...u.p].sort((a, b) => a[0] - b[0]), legends: u.l === 1, ...(u.t !== undefined && { t: u.t }), ...(u.e === 1 && { epic: true }), ...fold(u.n) })),
+      (file) => file.units.map((u) => ({ name: u.n, sizes: [...u.p].sort((a, b) => a[0] - b[0]), legends: u.l === 1, ...(u.t !== undefined && { t: u.t }), ...(u.e === 1 && { epic: true }), ...(u.r && ROLE_CODES[u.r] && { role: ROLE_CODES[u.r] }), ...fold(u.n) })),
       (err: unknown) => {
         slugUnits.delete(slug); // a failed chunk (e.g. after a deploy) is retried next time
         throw err;
