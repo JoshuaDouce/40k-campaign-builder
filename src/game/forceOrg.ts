@@ -50,10 +50,10 @@ export function isRole(x: unknown): x is Role {
   return typeof x === "string" && ROLE_NAMES.includes(x as Role);
 }
 
-/** A stored role as a current Role. Legacy "Vehicle" and "Monster" become "Vehicle / Monster", legacy "Infantry" and "Mounted" become "Non-Monster / Vehicle"; anything else unknown is undefined. */
+/** A stored role as a current Role. Legacy "Vehicle" and "Monster" become "Vehicle / Monster", legacy "Infantry", "Mounted" and "Infantry / Mounted" become "Non-Monster / Vehicle"; anything else unknown is undefined. */
 export function normaliseRole(x: unknown): Role | undefined {
   if (x === "Vehicle" || x === "Monster") return "Vehicle / Monster";
-  if (x === "Infantry" || x === "Mounted") return "Non-Monster / Vehicle";
+  if (x === "Infantry" || x === "Mounted" || x === "Infantry / Mounted") return "Non-Monster / Vehicle";
   return isRole(x) ? x : undefined;
 }
 
