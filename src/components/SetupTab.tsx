@@ -10,7 +10,7 @@ import { PlayerNameInput } from "./PlayerNameInput.tsx";
 
 const BRIEF: ReadonlyArray<readonly [string, string]> = [
   ["The setting.", "The Hollowgate rift tore open three years ago and the Reach is a scatter of worlds, each split into provinces. More players, more worlds."],
-  ["Your start.", "A 750 pt roster led by one Warlord, 0 Requisition Points (earn them from your Capital and by winning battles), and a Capital province on an outer world. No Epic Heroes."],
+  ["Your start.", "A 750 pt roster led by one Warlord with at least 2 Battleline, 0 Requisition Points (earn them from your Capital and by winning battles), and a Capital province on an outer world. No Epic Heroes."],
   ["The War Round.", "Everyone collects RP from Capitals and Hive Cities, then everyone plans in secret and plays at the same time; only players on the same province wait."],
   ["Your move.", "Pick one action: Conquer, Raid, Recuperate, Muster, Fortify or Scout. Conquer and Raid start a battle."],
   ["Winning.", "Once 60% of the Reach is claimed (or by War Round 8) the Hollowgate opens. Hold it at the end of a War Round to win."],
@@ -135,10 +135,10 @@ export function SetupTab({ colors, onNavigate }: { colors: Record<string, string
         </Step>
 
         <Step n={4} title="Starting positions" next={nextStep === 4} marks={step4Marks}>
-          <p className="su-sub">Each warband needs exactly one Character (its Warlord), a 750 pt roster and a Capital. No unit may have Toughness 10 or higher yet, and only one may be Toughness 9 (Battleline excepted). No Epic Heroes. You start on 0 RP and earn it from your Capital and by winning battles. Build rosters on the My Warband tab. Your owner may have switched some campaign rules on or off: see the Rules tab.</p>
+          <p className="su-sub">Each warband needs exactly one Character (its Warlord), at least 2 Battleline, a 750 pt roster and a Capital. No unit may be Toughness 10 or higher, and only one non-Battleline unit may be Toughness 9. No Epic Heroes. With the Datasheet limit on, use at most 5 different datasheets. Build rosters on the My Warband tab. Get it right now: once War Round 1 begins, units can't be removed or made smaller.</p>
           <div className="su-rules-line">
             <span>
-              <b>Campaign rules:</b> {rulesOn.length === 1 && rulesOn[0] === "forceOrg" ? "Default rules" : rulesOn.length === 0 ? "No optional rules" : rulesOn.map((k) => TOGGLE_NAMES[k]).join(", ")}
+              <b>Campaign rules:</b> {rulesOn.length === 0 ? "No optional rules" : rulesOn.map((k) => TOGGLE_NAMES[k]).join(", ")}
             </span>
             <button className="btn sm" onClick={() => onNavigate("rules")}>
               Campaign rules
@@ -171,6 +171,7 @@ export function SetupTab({ colors, onNavigate }: { colors: Record<string, string
                     </p>
                   ) : null}
                   <p className="mono">You can still begin. This is a reminder, not a rule.</p>
+                  <p className="mono">Rosters lock when War Round 1 begins: no removing units, no shrinking them.</p>
                 </div>
               ) : null}
               <div className="row">
