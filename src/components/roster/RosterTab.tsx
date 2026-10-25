@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { canPerform, count, DATASHEET_COST, HAND_LIMIT, ROLE_NAMES, roleOf, countsAsSetupNine, datasheetLimit, distinctDatasheets, forceOrgFor, overStageCap, PROMOTION_COST, RECRUITS_COST, rosterOf, setupToughnessBlock, SURGEON_COST, supplyOf, toggleOn, totalEffective, toughStageActive, unitLocked, warlordNotCharacter } from "../../game/index.ts";
+import { ALWAYS_ROLES, canPerform, count, DATASHEET_COST, HAND_LIMIT, ROLE_NAMES, roleOf, countsAsSetupNine, datasheetLimit, distinctDatasheets, forceOrgFor, overStageCap, PROMOTION_COST, RECRUITS_COST, roleRuleOn, rosterOf, setupToughnessBlock, SURGEON_COST, supplyOf, toggleOn, totalEffective, toughStageActive, unitLocked, warlordNotCharacter } from "../../game/index.ts";
 import type { Unit } from "../../game/index.ts";
 import { useCampaign } from "../../store/useCampaign.ts";
 import { FateHand } from "../FateHand.tsx";
@@ -56,8 +56,8 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
   const dsCount = toggleOn(state, "datasheetLimit") ? { x: distinctDatasheets(roster), n: datasheetLimit(state, pid) } : null;
   const stage = toughStageActive(state, player);
   const stageOver = stage ? roster.filter((u) => overStageCap(u.t)).length : 0;
-  // With slots on the chart shows the Battleline minimum; without them this line does.
-  const blRow = slots ? undefined : fo.rows.find((r) => r.role === "Battleline");
+  // With slots on the chart shows every role; without them, Character and Battleline still get a count line.
+  const alwaysRows = slots ? [] : fo.rows.filter((r) => ALWAYS_ROLES.includes(r.role));
   const hasEx = roster.some((u) => u.ex);
   const say = (text: string) => setToast({ pid, text });
   const closeDialog = () => setDialog(null);
@@ -156,14 +156,13 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
             {dsCount.x > dsCount.n && <span>! {dsCount.x - dsCount.n} over the datasheet limit</span>}
           </div>
         )}
-        {blRow && (
-          <div className={`rt-count${blRow.short > 0 ? " over" : ""}`}>
-            <span>
-              Battleline {blRow.filled} / {blRow.min} minimum
-            </span>
-            {blRow.short > 0 && <span>! Needs {blRow.short} more Battleline</span>}
+        {alwaysRows.map((r) => (
+          <div key={r.role} className={`rt-count${r.short > 0 || r.over > 0 ? " over" : ""}`}>
+            <span>{r.slotsIn ? `${r.role} ${r.filled} · min ${r.min}` : `${r.role} ${r.filled} / ${r.max} slot${r.max === 1 ? "" : "s"}${r.min ? ` · min ${r.min}` : ""}`}</span>
+            {r.short > 0 && <span>! Needs {r.short} more {r.role}</span>}
+            {r.over > 0 && <span>! {r.over} over the slot limit</span>}
           </div>
-        )}
+        ))}
         {stageOver > 0 && (
           <div className="rt-count over">
             <span>Toughness stages</span>
@@ -270,7 +269,7 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
 
       {sorted.length ? (
         groups.map(({ role, units, row }) => {
-          const over = slots && row ? row.over > 0 : false;
+          const over = row && roleRuleOn(state, row.role) ? row.over > 0 : false;
           return (
             <section key={role ?? "none"} aria-label={role ?? "Unassigned"}>
               <h3 className={`rgroup${over ? " over" : ""}`}>
@@ -283,7 +282,7 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
                   unit={u}
                   editable={editable}
                   memorial={state.round !== 0}
-                  overLimit={slots && fo.overLimitIds.includes(u.id)}
+                  overLimit={(slots || roleOf(u) === "Character") && fo.overLimitIds.includes(u.id)}
                   toughOver={setupToughnessBlock(state, u.t)}
                   toughNineExtra={nineExtraIds.includes(u.id)}
                   epic={isEpicName(u.datasheet)}

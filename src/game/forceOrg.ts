@@ -34,6 +34,14 @@ export const ROLES: readonly RoleDef[] = [
 
 export const ROLE_NAMES: readonly Role[] = ROLES.map((r) => r.role);
 
+/** Roles whose minimum and slots hold in every campaign, with or without Force Organisation slots. */
+export const ALWAYS_ROLES: readonly Role[] = ["Character", "Battleline"];
+
+/** True if this role's minimum and slot limit apply: always for Character and Battleline, else only with slots on. */
+export function roleRuleOn(state: Pick<CampaignState, "toggles">, role: Role): boolean {
+  return ALWAYS_ROLES.includes(role) || toggleOn(state, "forceOrg");
+}
+
 /** The role whose slots a unit of this role fills: Battleline fills Non-Monster / Vehicle, the rest their own. */
 export function slotRole(role: Role): Role {
   return ROLES.find((r) => r.role === role)?.slotsIn ?? role;
@@ -44,10 +52,10 @@ export function slotRoleOf(type: ProvinceType): Role | undefined {
   return ROLES.find((r) => r.from.includes(type))?.role;
 }
 
-/** What holding this type gives: its bonus text, plus its slot when Force Organisation is on. */
+/** What holding this type gives: its bonus text, plus its slot (Character slots always, the rest with slots on). */
 export function typeGains(type: ProvinceType, slots: boolean): string {
-  const role = slots ? slotRoleOf(type) : undefined;
-  return role ? `${VTYPES[type].bonus} +1 ${role} slot.` : VTYPES[type].bonus;
+  const role = slotRoleOf(type);
+  return role && (slots || ALWAYS_ROLES.includes(role)) ? `${VTYPES[type].bonus} +1 ${role} slot.` : VTYPES[type].bonus;
 }
 
 /** What holding this zone gives its holder, in one line. */

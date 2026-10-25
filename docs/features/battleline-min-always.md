@@ -1,11 +1,18 @@
-# Battleline minimum in every campaign
+# Character and Battleline rules in every campaign
 
 Added 2026-10-25.
 
-The "at least 2 Battleline" minimum now applies whether Force Organisation slots are on or off (so also under the
-Datasheet limit). The other minimum (1 Character) still comes with slots, though Setup's one-Warlord check covers it.
+Two role rules now hold whether Force Organisation slots are on or off (so also under the Datasheet limit):
 
-- Setup checklist: "! Needs N more Battleline" shows in both modes (`setupChecklist().foShort`, `src/game/setup.ts`).
-- My Warband: with slots off, a "Battleline x / 2 minimum" line sits with the other counts and turns red when
-  short. With slots on, the Force Org chart shows it as before.
-- It is a warning like the other minimums, never a block. Rules tab "Roles" paragraph updated.
+- **At least 2 Battleline.**
+- **At least 1 Character, and 1 Character slot, +1 per Shrine held (up to +3).** In Setup the slot is held at 1 (your
+  Warlord), as with slots on.
+
+The other roles' minimums and slots still come only with Force Organisation slots.
+
+- `ALWAYS_ROLES` and `roleRuleOn(state, role)` in `src/game/forceOrg.ts`. `typeGains` shows the Shrine's Character
+  slot in both modes (Rules table, map).
+- Setup checklist: "! Needs N more ..." for Character and Battleline in both modes (`setupChecklist().foShort`).
+- My Warband with slots off: "Character x / n slots · min 1" and "Battleline x · min 2" lines with the other counts,
+  red when short or over. Characters past the slot limit get the over-limit flag on their card and group header.
+- Warnings only, never a block, like the slot rules. Rules tab "Roles" paragraph updated.
