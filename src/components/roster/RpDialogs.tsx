@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { forceOrgFor, MAX_TRAINING, TRAINING, TRAINING_PTS, trainingEffect, PROMOTION_COST, PROMOTION_MIN_XP, rankOf, RECRUITS_COST, scarEffect, SURGEON_COST, scarLabel, scarName } from "../../game/index.ts";
-import type { Unit } from "../../game/index.ts";
+import type { Action, Unit } from "../../game/index.ts";
 import { useCampaign } from "../../store/useCampaign.ts";
 import { DieControl } from "./DieControl.tsx";
 import { Overlay, SheetFooter } from "./Overlay.tsx";
@@ -206,5 +206,35 @@ export function SeasonedRecruitsDialog({ playerId, roster, rp, onDone, onClose }
         onDone(`Seasoned Recruits: ${unit.name} joins at 3 XP (-${RECRUITS_COST} RP)`);
       }}
     />
+  );
+}
+
+/** A one-step RP spend (Reinforcements, Requisition the Deck, Extra Datasheet): what it costs and does, then confirm. */
+export interface QuickSpend {
+  title: string;
+  cost: number;
+  effect: string;
+  action: Action;
+  toast: string;
+}
+
+export function ConfirmSpendDialog({ spend, rp, onDone, onClose }: { spend: QuickSpend; rp: number; onDone(toast: string): void; onClose(): void }) {
+  const { dispatch } = useCampaign();
+  return (
+    <Overlay title={spend.title} onClose={onClose}>
+      <p>{spend.effect}</p>
+      <p className="dim">
+        Costs {spend.cost} RP. You have {rp} RP, leaving {rp - spend.cost}.
+      </p>
+      <SheetFooter
+        label={`Spend ${spend.cost} RP`}
+        disabled={rp < spend.cost}
+        onGo={() => {
+          dispatch(spend.action);
+          onDone(spend.toast);
+        }}
+        onClose={onClose}
+      />
+    </Overlay>
   );
 }

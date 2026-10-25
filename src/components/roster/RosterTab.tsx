@@ -6,13 +6,14 @@ import { FateHand } from "../FateHand.tsx";
 import { ForceOrgChart } from "./ForceOrgChart.tsx";
 import { HallOfHeroes } from "./HallOfHeroes.tsx";
 import { PostBattleHelper } from "./PostBattleHelper.tsx";
-import { FieldSurgeonDialog, PromotionDialog, SeasonedRecruitsDialog } from "./RpDialogs.tsx";
+import { ConfirmSpendDialog, FieldSurgeonDialog, PromotionDialog, SeasonedRecruitsDialog } from "./RpDialogs.tsx";
+import type { QuickSpend } from "./RpDialogs.tsx";
 import { RelicDialog } from "./RelicDialog.tsx";
 import { useIsEpicName } from "./useDatasheets.ts";
 import { UnitCard } from "./UnitCard.tsx";
 import { UnitFormSheet } from "./UnitFormSheet.tsx";
 
-type Dialog = { kind: "add" } | { kind: "edit"; unit: Unit } | { kind: "relic"; unit: Unit } | { kind: "surgeon" | "promo" | "recruits" } | null;
+type Dialog = { kind: "add" } | { kind: "edit"; unit: Unit } | { kind: "relic"; unit: Unit } | { kind: "surgeon" | "promo" | "recruits" } | { kind: "spend"; spend: QuickSpend } | null;
 
 export function RosterTab({ colors }: { colors: Record<string, string> }) {
   const { state, dispatch, viewer } = useCampaign();
@@ -195,10 +196,12 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
                 className="btn sm"
                 disabled={player.rp < 1}
                 title="Spend 1 RP for +200 pts to your supply limit"
-                onClick={() => {
-                  dispatch({ type: "buyReinforcements", playerId: pid });
-                  say("Reinforcements: +200 supply.");
-                }}
+                onClick={() =>
+                  setDialog({
+                    kind: "spend",
+                    spend: { title: "Reinforcements", cost: 1, effect: "+200 pts to your supply limit.", action: { type: "buyReinforcements", playerId: pid }, toast: "Reinforcements: +200 supply." },
+                  })
+                }
               >
                 Reinforcements · 1 RP
               </button>
@@ -215,10 +218,12 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
                 className="btn sm"
                 disabled={player.rp < 1 || player.hand.length >= HAND_LIMIT}
                 title={player.hand.length >= HAND_LIMIT ? "Hand full. Play or discard a card first." : "Spend 1 RP to draw one Fate Card"}
-                onClick={() => {
-                  dispatch({ type: "requisitionDeck", playerId: pid });
-                  say("Drew a Fate Card.");
-                }}
+                onClick={() =>
+                  setDialog({
+                    kind: "spend",
+                    spend: { title: "Requisition the Deck", cost: 1, effect: "Draw one Fate Card.", action: { type: "requisitionDeck", playerId: pid }, toast: "Drew a Fate Card." },
+                  })
+                }
               >
                 Requisition the Deck · 1 RP
               </button>
@@ -227,10 +232,18 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
                   className="btn sm"
                   disabled={player.rp < DATASHEET_COST}
                   title="Spend 1 RP for +1 to your datasheet limit, for the rest of the campaign"
-                  onClick={() => {
-                    dispatch({ type: "buyDatasheet", playerId: pid });
-                    say(`Datasheet limit is now ${dsCount.n + 1}.`);
-                  }}
+                  onClick={() =>
+                    setDialog({
+                      kind: "spend",
+                      spend: {
+                        title: "Extra Datasheet",
+                        cost: DATASHEET_COST,
+                        effect: `+1 to your datasheet limit (${dsCount.n} to ${dsCount.n + 1}), for the rest of the campaign.`,
+                        action: { type: "buyDatasheet", playerId: pid },
+                        toast: `Datasheet limit is now ${dsCount.n + 1}.`,
+                      },
+                    })
+                  }
                 >
                   Extra Datasheet · {DATASHEET_COST} RP
                 </button>
@@ -336,6 +349,7 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
       )}
       {editable && dialog?.kind === "surgeon" && <FieldSurgeonDialog playerId={pid} roster={roster} rp={player.rp} onDone={done} onClose={closeDialog} />}
       {editable && dialog?.kind === "promo" && <PromotionDialog playerId={pid} roster={roster} rp={player.rp} onDone={done} onClose={closeDialog} />}
+      {editable && dialog?.kind === "spend" && <ConfirmSpendDialog spend={dialog.spend} rp={player.rp} onDone={done} onClose={closeDialog} />}
       {editable && dialog?.kind === "recruits" && <SeasonedRecruitsDialog playerId={pid} roster={roster} rp={player.rp} onDone={done} onClose={closeDialog} />}
     </section>
   );
