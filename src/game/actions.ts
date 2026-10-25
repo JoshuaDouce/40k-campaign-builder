@@ -111,9 +111,12 @@ function run(s: CampaignState, a: Action, rng: Rng): boolean {
     case "switchPick":
       return switchPick(s, a.playerId, { act: a.act, zone: a.zone, def: a.def });
 
-    case "drawCard": {
+    case "requisitionDeck": {
       const p = getPlayer(s, a.playerId);
-      return !!p && !!drawCard(p, rng);
+      if (!p || p.rp < 1 || !drawCard(p, rng)) return false;
+      p.rp--;
+      log(s, B(p.name), " spends 1 RP to Requisition the Deck and draws a Fate Card.");
+      return true;
     }
 
     case "playCard":

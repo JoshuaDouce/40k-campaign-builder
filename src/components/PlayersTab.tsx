@@ -141,7 +141,6 @@ function PlayerCard({ player: p, state, color, fresh, setup }: CardProps) {
   const n = count(state, p);
   const visible = canSeeHand(p, viewer);
   const canEdit = can({ type: "updatePlayer", playerId: p.id });
-  const full = p.hand.length >= 5;
 
   // Any action on this card (or any state change) disarms the two-step Remove, as a prototype re-render did.
   const armed = armedAt === state;
@@ -156,14 +155,6 @@ function PlayerCard({ player: p, state, color, fresh, setup }: CardProps) {
     setArmedAt(null);
     dispatch(a);
     return true;
-  };
-
-  const draw = () => {
-    if (full) {
-      setMsg("Hand full. Play or discard a card first.");
-      return;
-    }
-    if (send({ type: "drawCard", playerId: p.id })) setMsg(p.hand.length + 1 === 5 ? "Hand is now full (5)." : "");
   };
 
   const spendCard = (kind: "playCard" | "discardCard", index: number) => {
@@ -231,9 +222,6 @@ function PlayerCard({ player: p, state, color, fresh, setup }: CardProps) {
           FATE HAND {p.hand.length}/5
         </span>
         <span className="row">
-          <button className="btn sm primary" disabled={full || !can({ type: "drawCard", playerId: p.id })} onClick={draw}>
-            Draw card
-          </button>
           {setup ? null : armed ? (
             <button
               className="btn sm danger"

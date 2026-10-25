@@ -409,7 +409,7 @@ export type Action =
   | { type: "confirmQuietPick"; playerId: string }
   | { type: "switchPick"; playerId: string; act: ActionId; zone?: string; def?: string }
   | { type: "undoBattle"; attacker: string }
-  | { type: "drawCard"; playerId: string }
+  | { type: "requisitionDeck"; playerId: string }
   | { type: "playCard"; playerId: string; index: number }
   | { type: "discardCard"; playerId: string; index: number }
   | { type: "buyReinforcements"; playerId: string }
