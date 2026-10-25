@@ -22,7 +22,7 @@ it. When War Round 1 begins, the limit goes away.
 | Infantry | 0 | 3 | +1 per Hive City held (Beasts and Swarms included) |
 | Mounted | 0 | 1 | +1 per Settlement held |
 | Vehicle / Monster | 0 | 1 | +1 per Forge held and +1 per Refinery held |
-| Other | 0 | 1 | +1 per Spaceport held (a Capital counts as a Spaceport) |
+| Other | 0 | 2 | +1 per Spaceport held |
 
 - Order in the picker and chart: Character, Battleline, Infantry, Mounted, Vehicle / Monster, Other.
 - The +3 cap from holdings is per role. Forges and Refineries share the Vehicle / Monster row (2 + 2 held = +3).

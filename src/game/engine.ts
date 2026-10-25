@@ -77,7 +77,7 @@ export function targets(s: CampaignState, p: Player, act: ActionId): Zone[] {
       .forEach((v) => set.add(v.id));
   }
   mine.forEach((v) => v.nb.forEach((n) => set.add(n)));
-  const ports = new Set(mine.filter((v) => v.type === "spaceport" || v.type === "capital").map((v) => v.pl));
+  const ports = new Set(mine.filter((v) => v.type === "spaceport").map((v) => v.pl));
   ports.forEach((pl) =>
     laneLinked(s, pl).forEach((l) => s.sys.provs.filter((v) => v.pl === l).forEach((v) => set.add(v.id))),
   );

@@ -22,7 +22,7 @@ lose it and you're asked to stand one down.
 | Infantry | 0 | 3 | +1 per Hive City held |
 | Vehicle | 0 | 1 | +1 per Forge held |
 | Monster | 0 | 1 | +1 per Refinery held |
-| Other | 0 | 1 | +1 per Spaceport held (a Capital counts as a Spaceport) |
+| Other | 0 | 2 | +1 per Spaceport held |
 
 - Each matching province held gives +1, capped at +3 per role from holdings. Every player's Capital
   means they start at Other 2.

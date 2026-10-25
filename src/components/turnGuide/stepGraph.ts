@@ -65,8 +65,8 @@ function tierOption(tier: Tier): StepOption {
         if (raid) return NO_FOOTHOLD;
         return sc.unclaimedOuter ? true : "No unclaimed outer-world province is left.";
       }
-      if (tier === "middle" && !(sc.spaceport || sc.middleHold)) return "You need a province on a middle world, or a Spaceport or Capital with a warp lane to one.";
-      if (tier === "inner" && !(sc.spaceport || sc.innerHold)) return "You need a province on an inner world, or a Spaceport or Capital with a warp lane to one.";
+      if (tier === "middle" && !(sc.spaceport || sc.middleHold)) return "You need a province on a middle world, or a Spaceport with a warp lane to one.";
+      if (tier === "inner" && !(sc.spaceport || sc.innerHold)) return "You need a province on an inner world, or a Spaceport with a warp lane to one.";
       if (tier === "holl") {
         if (!sc.hollowOpen) return "The Hollowgate hasn't opened yet. It opens once 60% of the Reach is claimed, or by War Round 8.";
         if (!sc.innerHold) return "Only a player holding a province on an inner world can attack the Hollowgate.";

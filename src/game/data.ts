@@ -62,7 +62,7 @@ export const PTYPES: Record<PlanetType, PlanetTypeDef> = {
   ice:{n:"Ice World",c:"#86a7b5",trait:"Blizzards: nothing can be targeted from more than 24\" away.",fav:"outpost"},
   ash:{n:"Ash World",c:"#7d3b2f",trait:"Lava vents: a unit that Advances rolls a D6. On a 1 it suffers 1 mortal wound.",fav:"refinery"}};
 export const VTYPES: Record<ProvinceType, ProvinceTypeDef> = {
-  capital:{n:"Capital",size:750,bonus:"Home of a warband. +1 RP at the start of each War Round. Counts as a Spaceport. If lost, the taker also steals 2 RP.",suf:["Landing"]},
+  capital:{n:"Capital",size:750,bonus:"Home of a warband. +1 RP at the start of each War Round. If lost, the taker also steals 2 RP.",suf:["Landing"]},
   spaceport:{n:"Spaceport",size:750,bonus:"From this planet you can attack any province on a planet linked by a warp lane.",suf:["Port","Docks","Landing Fields"]},
   hive:{n:"Hive City",size:1000,bonus:"+1 RP at the start of each War Round.",suf:["Spire","Hive","Stack"]},
   forge:{n:"Forge",size:750,bonus:"Your Muster action gives +150 more supply.",suf:["Works","Foundry","Forge"]},
@@ -124,7 +124,7 @@ export const TWISTS: readonly TwistDef[] = [
   {t:"Blood Price",e:"Each unit gets +1 extra XP for every enemy unit it destroys.",m:1},
   {t:"Last Light",e:"The battle ends after round 4.",m:1}];
 export const ACTIONS: readonly ActionDef[] = [
-  {id:"conquer",n:"Conquer",battle:true,d:"Attack a province next to one you hold, or on a world linked by warp lane to one where you hold a Spaceport or your Capital. Win to take it."},
+  {id:"conquer",n:"Conquer",battle:true,d:"Attack a province next to one you hold, or on a world linked by warp lane to one where you hold a Spaceport. Win to take it."},
   {id:"raid",n:"Raid",battle:true,d:"Strike an enemy province you could reach, at half size. Win to steal 1 RP and a random Fate Card. The province does not change hands."},
   {id:"recuperate",n:"Recuperate",battle:false,d:"Gain 1 RP and remove up to 2 Battle Scars from your roster."},
   {id:"muster",n:"Muster",battle:false,d:"+250 pts to your supply limit and draw 1 Fate Card."},

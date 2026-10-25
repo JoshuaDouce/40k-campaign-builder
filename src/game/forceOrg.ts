@@ -14,7 +14,7 @@ export interface RoleDef {
   base: number;
   /** Units needed for the whole campaign (a warning, never a block). */
   min: number;
-  /** Province types that each grant +1 slot. A Capital counts as a Spaceport. */
+  /** Province types that each grant +1 slot. */
   from: readonly ProvinceType[];
   /** What the role covers, shown under its name where the name alone is unclear. */
   covers?: string;
@@ -26,7 +26,7 @@ export const ROLES: readonly RoleDef[] = [
   { role: "Infantry", base: 3, min: 0, from: ["hive"] },
   { role: "Mounted", base: 1, min: 0, from: ["settlement"] },
   { role: "Vehicle / Monster", base: 1, min: 0, from: ["forge", "refinery"] },
-  { role: "Other", base: 1, min: 0, from: ["spaceport", "capital"], covers: "Dedicated Transports, Aircraft, Fortifications" },
+  { role: "Other", base: 2, min: 0, from: ["spaceport"], covers: "Dedicated Transports, Aircraft, Fortifications" },
 ];
 
 export const ROLE_NAMES: readonly Role[] = ROLES.map((r) => r.role);
