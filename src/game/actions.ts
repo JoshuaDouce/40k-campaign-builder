@@ -20,7 +20,7 @@ import {
   removeUnitFrom,
   updateUnitIn,
 } from "./roster.ts";
-import { isToggleKey, toggleOn, TOGGLE_NAMES } from "./toggles.ts";
+import { DATASHEET_COST, datasheetLimit, isToggleKey, toggleOn, TOGGLE_NAMES } from "./toggles.ts";
 import {
   confirmQuietPick,
   dropPlayerPicks,
@@ -133,6 +133,15 @@ function run(s: CampaignState, a: Action, rng: Rng): boolean {
       p.rp--;
       p.sup = (p.sup || 0) + 200;
       log(s, B(p.name), " spends 1 RP on Reinforcements (+200 supply).");
+      return true;
+    }
+
+    case "buyDatasheet": {
+      const p = getPlayer(s, a.playerId);
+      if (!p || p.rp < DATASHEET_COST || !toggleOn(s, "datasheetLimit")) return false;
+      p.rp -= DATASHEET_COST;
+      p.dsx = (p.dsx ?? 0) + 1;
+      log(s, B(p.name), ` spends ${DATASHEET_COST} RP on an extra datasheet (limit ${datasheetLimit(s, p.id)}).`);
       return true;
     }
 

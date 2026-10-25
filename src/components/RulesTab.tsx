@@ -79,7 +79,7 @@ export function RulesTab() {
       )}
       <p><b>Which role?</b> Picking a datasheet from the list fills in its role from the datasheet's keywords, in this order: Character, then Battleline, then Dedicated Transport or Fortification (Other), then Vehicle, Monster or Aircraft (Vehicle / Monster), and everything else is Non-Monster / Vehicle. Non-Monster / Vehicle covers foot troops of every kind, Beasts, Swarms, Jump Pack infantry, bikes, cavalry and jetbikes. Walkers, tanks, big monsters and Aircraft are Vehicle / Monster. Dedicated Transports and Fortifications are Other. Psykers take the role their datasheet gives them, usually Character. Allied units and Agents take whatever role their own datasheet gives them.</p>
       {toggled("datasheetLimit") && (
-        <p><b>Datasheet limit.</b> A roster may use at most 5 different datasheets in Setup, and 1 more at the start of each War Round: 6 in War Round 1, 7 in War Round 2, and so on. Several units of the same datasheet count once, and so does your Warlord's. A unit with no datasheet named isn't counted. At the limit, you can't add a unit of a new datasheet until the limit grows.</p>
+        <p><b>Datasheet limit.</b> A roster may use at most 5 different datasheets in Setup, and 1 more at the start of each War Round: 6 in War Round 1, 7 in War Round 2, and so on. Several units of the same datasheet count once, and so does your Warlord's. A unit with no datasheet named isn't counted. At the limit, you can't add a unit of a new datasheet until the limit grows. You can also spend 1 RP on an Extra Datasheet: +1 to your limit for the rest of the campaign, as many times as you like.</p>
       )}
       {toggled("toughnessStages") && (
         <p><b>Toughness stages.</b> In War Rounds 1 and 2, no unit may have Toughness 12 or higher. From War Round 3, or as soon as your supply limit reaches 1250 pts, the cap is gone. The Setup limits still apply first.</p>
@@ -213,6 +213,7 @@ export function RulesTab() {
         <thead><tr><th>Cost</th><th>Requisition</th><th>Effect</th></tr></thead>
         <tbody>
           <tr><td className="n">1 RP</td><td>Reinforcements</td><td>+200 pts to your supply limit. Besides Muster, Outposts and Ruins, this is the only way it grows.</td></tr>
+          {toggled("datasheetLimit") && <tr><td className="n">1 RP</td><td>Extra Datasheet</td><td>+1 to your datasheet limit, for the rest of the campaign.</td></tr>}
           <tr><td className="n">1 RP</td><td>Field Surgeon</td><td>Remove one Battle Scar.</td></tr>
           <tr><td className="n">1 RP</td><td>Requisition the Deck</td><td>Draw one Fate Card.</td></tr>
           <tr><td className="n">1 RP</td><td>Promotion</td><td>Give a Character Battle Training, or make a Veteran (8+ XP) unit's sergeant a Character.</td></tr>

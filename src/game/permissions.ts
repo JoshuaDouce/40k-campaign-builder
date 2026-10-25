@@ -49,6 +49,7 @@ export function canPerform(state: CampaignState, action: Action, ctx: Permission
     case "playCard":
     case "discardCard":
     case "buyReinforcements":
+    case "buyDatasheet":
     case "addUnit":
     case "updateUnit":
     case "removeUnit":

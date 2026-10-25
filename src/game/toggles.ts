@@ -53,9 +53,12 @@ export function foldDatasheet(text: string): string {
   return out.replace(/\s+/g, " ").trim();
 }
 
-/** Different datasheets a roster may use: 5 in Setup, +1 each War Round. */
-export function datasheetLimit(state: Pick<CampaignState, "round">): number {
-  return 5 + state.round;
+/** RP cost of one extra datasheet. */
+export const DATASHEET_COST = 1;
+
+/** Different datasheets a player's roster may use: 5 in Setup, +1 each War Round, +1 per datasheet bought with RP. */
+export function datasheetLimit(state: Pick<CampaignState, "round" | "players">, playerId: string): number {
+  return 5 + state.round + (state.players.find((p) => p.id === playerId)?.dsx ?? 0);
 }
 
 /** Distinct non-blank datasheets (folded) among `units`. */
@@ -78,7 +81,7 @@ export function datasheetLimitBlock(state: CampaignState, playerId: string, unit
   const roster = state.rosters?.[playerId] ?? [];
   const before = distinctDatasheets(roster);
   const after = distinctDatasheets([...roster.filter((x) => x.id !== unit.id), unit]);
-  return after > before && after > datasheetLimit(state);
+  return after > before && after > datasheetLimit(state, playerId);
 }
 
 /* ---------- Toughness stages ---------- */
