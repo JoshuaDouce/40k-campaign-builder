@@ -120,9 +120,6 @@ select,textarea,input[type=text],input[type=number]{font:inherit;background:var(
 .act .at{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase}
 .act .at.b{color:var(--blood)} .act .at.q{color:var(--verd)}
 .act .ad{font-size:14.5px;color:var(--dim)}
-.strip{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 4px}
-.strip .chip.done{opacity:.45;text-decoration:line-through}
-.strip .chip.cur{border-color:var(--brass);color:var(--ink);background:var(--panel2)}
 .turn{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:16px;margin-top:12px}
 .turn h4{font-family:var(--f-display);font-size:28px;font-weight:700;margin:0;line-height:1.05}
 .battle{border:1px solid var(--brass);border-radius:3px;padding:14px;margin-top:12px;background:var(--bg)}
@@ -614,3 +611,48 @@ a:focus-visible,.ac-lnk:focus-visible,.ac-back:focus-visible,.ac-fac:focus-visib
 .rt-trait p{margin:2px 0 0;font-size:14.5px;max-width:none}
 .su-rules-line{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;justify-content:space-between;border:1px solid var(--line);border-radius:3px;background:var(--bg);padding:6px 6px 6px 12px}
 .su-rules-line span{font-size:14.5px;min-width:0}
+
+/* Simultaneous Turns (War Room): plan, reveal, play in parallel. Built from the :root tokens. */
+.act.sel{border-color:var(--brass);background:var(--panel)}
+.st-wrap .btn,.st-wrap .btn.sm,.st-wrap select{min-height:44px}
+.st-wrap{min-width:0}
+.st-roster{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:6px}
+.st-pl{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;background:var(--panel2);border:1px solid var(--line);border-radius:3px;padding:6px 10px;min-height:44px}
+.st-pl .nm{flex:1 1 120px;min-width:0;display:flex;align-items:center;gap:8px;overflow-wrap:anywhere}
+.st-you{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+.st-stat{font-family:var(--f-mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim)}
+.st-stat.ok{color:var(--verd)}
+.st-tg{list-style:none;margin:8px 0;padding:0;display:grid;gap:6px}
+.st-tg button{width:100%;text-align:left;background:var(--panel2);border:1px solid var(--line);border-radius:3px;padding:8px 12px;color:var(--ink);font:inherit;min-height:44px;display:flex;flex-direction:column;cursor:pointer;overflow-wrap:anywhere}
+.st-tg button:hover:not(:disabled){border-color:var(--brass)}
+.st-tg button.sel{border-color:var(--brass);background:var(--panel)}
+.st-tg button:disabled{opacity:.5;cursor:not-allowed;border-style:dashed}
+.st-tg .pv{font-family:var(--f-display);font-size:20px;line-height:1.1}
+.st-tg .mt{font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim)}
+.st-tg .use{font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--blood);margin-top:2px}
+.st-mine{border-left:3px solid var(--brass);background:var(--bg);padding:8px 12px;margin-top:12px;font-family:var(--f-display);font-size:22px;line-height:1.15;overflow-wrap:anywhere}
+.st-b{display:inline-block;font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--dim);color:var(--dim);border-radius:20px;padding:1px 9px;overflow-wrap:anywhere}
+.st-b.ready{border-color:var(--brass);color:var(--brass)}
+.st-b.battle{border-color:var(--blood);color:var(--blood)}
+.st-b.wait{border-style:dashed}
+.st-b.again{border-color:var(--blood);color:var(--ink);background:var(--blood)}
+.st-b.done{border-color:var(--verd);color:var(--verd)}
+.st-order{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:6px}
+.st-o{display:grid;grid-template-columns:28px 1fr;gap:8px;background:var(--panel);border:1px solid var(--line);border-left-width:3px;border-radius:3px;padding:8px 10px;min-width:0}
+.st-o>div{min-width:0}
+.st-o .n{font-family:var(--f-mono);font-size:13px;color:var(--brass);padding-top:2px}
+.st-o .who{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;overflow-wrap:anywhere}
+.st-o .act-l{font-family:var(--f-display);font-size:20px;line-height:1.1;overflow-wrap:anywhere}
+.st-sub{font-size:14.5px;color:var(--dim);overflow-wrap:anywhere}
+.st-o .bd,.st-def .bd,.st-move .bd{margin-top:4px;display:flex;flex-wrap:wrap;gap:4px 6px;align-items:center}
+.st-move .bd{margin-top:8px}
+.st-o.done .act-l{text-decoration:line-through;opacity:.7}
+.st-o.me{background:var(--panel2)}
+.st-tag{display:inline-block;font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--blood);border:1px solid var(--blood);border-radius:20px;padding:1px 8px;overflow-wrap:anywhere}
+.st-def,.st-fall{border-left:3px solid var(--blood);padding:8px 12px;margin-top:10px;overflow-wrap:anywhere}
+.st-def{background:var(--panel)}
+.st-defs{list-style:none;margin:0;padding:0}
+.st-def>b{color:var(--blood);font-weight:700}
+.st-fall{background:var(--bg)}
+.st-fall b{color:var(--blood)}
+.st-done{font-family:var(--f-display);font-size:26px;color:var(--verd);margin:12px 0 0}

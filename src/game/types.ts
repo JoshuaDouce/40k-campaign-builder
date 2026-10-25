@@ -254,16 +254,50 @@ export interface FallenCharacter {
   ex?: true;
 }
 
-export interface Pending {
-  act: ActionId;
-  actor: string;
-  zone?: string;
-  def?: string;
-  twists?: number[];
-  rolled?: boolean;
-  /** Set when the battle is against an unheld province's garrison. Missing on old saves = normal battle. */
-  garrison?: boolean;
+/** The battle behind a pick once its twists are rolled ("In battle"). Its figures are fixed at the roll. */
+export interface LiveBattle {
+  /** The defender, or the garrison player. */
+  def: string;
+  /** True for a fight against an unclaimed province's garrison. */
+  garrison: boolean;
+  twists: number[];
+  /** Figures worked out when the twists were rolled. A re-roll works them out again. */
+  pts: number;
+  /** Attacker's points: equals `pts` unless this is a garrison battle (+20%). */
+  attackerPts: number;
+  notes: string[];
+  cards: number;
+  lightForces: boolean;
 }
+
+/** One player's pick for the current War Round. Planning: act, target and ready. Resolution: the rest. */
+export interface RoundPick {
+  /** Null only for a slot that was already finished when a pre-simultaneous save was converted. */
+  act: ActionId | null;
+  /** Target province (or "holl") for Conquer, Raid and Fortify. */
+  zone?: string;
+  /** Garrison player chosen in Planning for an unclaimed province (Conquer). */
+  def?: string;
+  /** Marked Ready in Planning. */
+  ready: boolean;
+  /** Set once the twists are rolled: the pick is In battle until the result is recorded. */
+  battle?: LiveBattle;
+  /** Result recorded, or quiet action confirmed. */
+  done?: boolean;
+  /** Why the pick fell through when it was cancelled outright (a player in the battle was removed). */
+  fell?: string;
+}
+
+/** The phase of the War Round in progress. Null between rounds. */
+export type RoundPhase = "planning" | "resolution";
+
+/** How a pick stands, derived live from the shared state. */
+export type PickStatus =
+  | { kind: "ready" }
+  | { kind: "battle" }
+  | { kind: "waiting"; on: string }
+  | { kind: "fell"; reason: string }
+  | { kind: "done" };
 
 /** One recorded battle result, from the attacker's side. Kept small: it is saved with the campaign. */
 export interface BattleRecord {
@@ -290,7 +324,7 @@ export interface BattleRecord {
 /** The parts of the campaign a battle result can change. Restored by Undo. */
 export type UndoSnapshot = Pick<
   CampaignState,
-  "round" | "turnIdx" | "order" | "pend" | "log" | "won" | "fort" | "terr" | "players" | "hollOpened"
+  "round" | "phase" | "order" | "picks" | "log" | "won" | "fort" | "terr" | "players" | "hollOpened"
 >;
 
 /** The open Undo window for the latest battle result. Present only while Undo is still possible. */
@@ -308,10 +342,12 @@ export interface UndoInfo {
 
 export interface CampaignState {
   round: number;
-  /** Index into `order` of the player whose turn it is, or null between War Rounds. */
-  turnIdx: number | null;
+  /** Null between War Rounds. */
+  phase: RoundPhase | null;
+  /** Round-start order (fewest provinces first). Fixed for the round; it decides who goes first in a clash. */
   order: string[];
-  pend: Pending | null;
+  /** This round's picks by player id. A slot (a player in `order`) with no pick is still Choosing. */
+  picks: Record<string, RoundPick>;
   /** Newest first, capped at 60. */
   log: LogEntry[];
   won: string | null;
@@ -342,29 +378,25 @@ export interface CampaignState {
 
 export type ToggleKey = "forceOrg" | "datasheetLimit" | "toughnessStages" | "knights";
 
-export interface BattleInfo {
+/** A rolled battle with its zone and both players looked up (`d` stands in for `def`). */
+export type BattleInfo = Omit<LiveBattle, "def"> & {
   v: Zone;
   a: Player;
   d: Player;
-  pts: number;
-  /** Attacker's points: equals `pts` unless this is a garrison battle (+20%). */
-  attackerPts: number;
-  garrison: boolean;
-  notes: string[];
-  cards: number;
-  lightForces: boolean;
   trait: { n: string; trait: string };
-}
+};
 
 export type Action =
   | { type: "beginRound" }
-  | { type: "chooseAction"; act: ActionId }
-  | { type: "cancelAction" }
-  | { type: "rollBattle"; zone: string; def: string }
-  | { type: "rerollTwists" }
-  | { type: "resolveBattle"; result: "a" | "d" | "x"; decisive?: boolean }
-  | { type: "undoBattle" }
-  | { type: "confirmQuiet"; fortZone?: string }
+  | { type: "readyPick"; playerId: string; act: ActionId; zone?: string; def?: string }
+  | { type: "unreadyPick"; playerId: string }
+  | { type: "revealPicks" }
+  | { type: "rollPick"; playerId: string; def?: string }
+  | { type: "rerollPick"; playerId: string }
+  | { type: "resolvePick"; playerId: string; result: "a" | "d" | "x"; decisive?: boolean }
+  | { type: "confirmQuietPick"; playerId: string }
+  | { type: "switchPick"; playerId: string; act: ActionId; zone?: string; def?: string }
+  | { type: "undoBattle"; attacker: string }
   | { type: "drawCard"; playerId: string }
   | { type: "playCard"; playerId: string; index: number }
   | { type: "discardCard"; playerId: string; index: number }

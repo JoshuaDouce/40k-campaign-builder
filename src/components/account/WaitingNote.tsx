@@ -1,4 +1,4 @@
-/** Shown to everyone while a member has not picked a faction yet. They are not in the turn order. */
+/** Shown to everyone while a member has not picked a faction yet. They are not in the round. */
 export function WaitingNote({ emails }: { emails: string[] }) {
   return (
     <>

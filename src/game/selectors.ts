@@ -8,16 +8,21 @@ export const r5 = (n: number): number => Math.round(n / 5) * 5;
 export function getPlayer(s: CampaignState, id: string | null | undefined): Player | undefined {
   return id ? s.players.find((p) => p.id === id) : undefined;
 }
-/** The player whose turn it is, or undefined between rounds. */
-export function currentActor(s: CampaignState): Player | undefined {
-  return s.turnIdx === null ? undefined : getPlayer(s, s.order[s.turnIdx]);
-}
 export function getPlanet(s: CampaignState, id: string): Planet | undefined {
   return s.sys.planets.find((p) => p.id === id);
 }
 /** A province, or the Hollowgate for "holl". */
 export function getZone(s: CampaignState, id: string): Zone | undefined {
   return id === "holl" ? HOLL : s.sys.provs.find((v) => v.id === id);
+}
+/** A zone's name, or `fallback` when there is no zone id or it no longer exists. */
+export function zoneName(s: CampaignState, id: string | undefined, fallback: string): string {
+  return (id ? getZone(s, id)?.name : undefined) ?? fallback;
+}
+/** The world a zone (or zone id) sits on. Undefined for the Hollowgate, which is not on a world. */
+export function planetOf(s: CampaignState, z: Zone | string | undefined): Planet | undefined {
+  const v = typeof z === "string" ? getZone(s, z) : z;
+  return !v || v.type === "rift" ? undefined : getPlanet(s, v.pl);
 }
 export function getProvince(s: CampaignState, id: string): Province | undefined {
   return s.sys.provs.find((v) => v.id === id);

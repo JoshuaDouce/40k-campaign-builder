@@ -1,5 +1,5 @@
 // Shape check for a campaign loaded from the backend. Tolerates fields added since a save was made.
-import { applyStartRp, type CampaignState } from "../game/index.ts";
+import { applyStartRp, migrateLegacy, type CampaignState, type LegacyState } from "../game/index.ts";
 
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
 
@@ -11,8 +11,9 @@ export function normaliseState(v: unknown): CampaignState | null {
     Array.isArray(v.order) &&
     Array.isArray(v.log) &&
     typeof v.round === "number" &&
-    (v.turnIdx === null || typeof v.turnIdx === "number") &&
-    (v.pend === null || isObject(v.pend)) &&
+    (v.turnIdx === undefined || v.turnIdx === null || typeof v.turnIdx === "number") &&
+    (v.phase === undefined || v.phase === null || v.phase === "planning" || v.phase === "resolution") &&
+    (v.picks === undefined || isObject(v.picks)) &&
     isObject(v.terr) &&
     isObject(v.fort) &&
     isObject(v.cap) &&
@@ -22,7 +23,8 @@ export function normaliseState(v: unknown): CampaignState | null {
     Array.isArray(sys.lanes) &&
     typeof sys.size === "number";
   if (!ok) return null;
-  const s = v as unknown as CampaignState;
+  // Converts a save made before simultaneous turns, if it is one (see migrateLegacy).
+  const s = migrateLegacy(v as unknown as LegacyState);
   return applyStartRp({
     ...s,
     hollOpened: s.hollOpened === true,

@@ -1,7 +1,7 @@
 // The single entry point for every state change.
 import { drawCard } from "./cards.ts";
-import { ACTIONS, FACTIONS } from "./data.ts";
-import { beginRound, doQuiet, endTurn, fresh, lateArrivalBonus, regen, resolve, rollBattle, rollTwists, START_RP, takeSnapshot, targets, undoBattle } from "./engine.ts";
+import { FACTIONS } from "./data.ts";
+import { beginRound, fresh, lateArrivalBonus, regen, START_RP } from "./engine.ts";
 import { B, log } from "./log.ts";
 import { addWorld } from "./map.ts";
 import type { Rng } from "./rng.ts";
@@ -21,7 +21,21 @@ import {
   updateUnitIn,
 } from "./roster.ts";
 import { isToggleKey, toggleOn, TOGGLE_NAMES } from "./toggles.ts";
-import { currentActor, getPlayer, getZone, hollOpen, provsOf } from "./selectors.ts";
+import {
+  confirmQuietPick,
+  dropPlayerPicks,
+  forgetRoundCache,
+  readyPick,
+  rerollPick,
+  resolvePick,
+  revealPicks,
+  rollPick,
+  switchPick,
+  takeSnapshot,
+  undoBattle,
+  unreadyPick,
+} from "./round.ts";
+import { getPlayer, getZone, hollOpen } from "./selectors.ts";
 import type { Action, ActionType, CampaignState, Player } from "./types.ts";
 
 /**
@@ -55,50 +69,43 @@ function validIndex(p: Player, i: number): boolean {
 function run(s: CampaignState, a: Action, rng: Rng): boolean {
   switch (a.type) {
     case "beginRound":
-      if (s.turnIdx !== null || s.players.length < 2) return false;
+      if (s.phase !== null || s.players.length < 2) return false;
       beginRound(s, rng);
       return true;
 
-    case "chooseAction": {
-      const actor = currentActor(s);
-      const def = ACTIONS.find((x) => x.id === a.act);
-      if (!actor || s.pend || !def) return false;
-      if (def.battle) {
-        if (s.players.length < 2 || !targets(s, actor, def.id).length) return false;
-      } else if (def.id === "fortify" && !provsOf(s, actor).length) return false;
-      s.pend = { act: def.id, actor: actor.id };
+    case "readyPick":
+      return readyPick(s, a.playerId, { act: a.act, zone: a.zone, def: a.def });
+
+    case "unreadyPick":
+      return unreadyPick(s, a.playerId);
+
+    case "revealPicks":
+      return revealPicks(s);
+
+    case "rollPick":
+      return rollPick(s, a.playerId, a.def, rng);
+
+    case "rerollPick":
+      return rerollPick(s, a.playerId, rng);
+
+    case "resolvePick": {
+      if (a.result !== "a" && a.result !== "d" && a.result !== "x") return false;
+      if (a.decisive !== undefined && typeof a.decisive !== "boolean") return false;
+      const before = takeSnapshot(s);
+      const b = s.picks[a.playerId]?.battle;
+      if (!b || !resolvePick(s, a.playerId, a.result, rng, a.decisive)) return false;
+      s.undo = { before, attacker: a.playerId, defender: b.def, reportFiled: false, later: [] };
       return true;
     }
 
-    case "cancelAction":
-      if (!s.pend || s.pend.rolled) return false;
-      s.pend = null;
-      return true;
-
-    case "rollBattle":
-      return rollBattle(s, { zone: a.zone, def: a.def }, rng);
-
-    case "rerollTwists":
-      if (!s.pend?.rolled) return false;
-      rollTwists(s, rng);
-      return true;
-
-    case "resolveBattle":
-      if (a.result !== "a" && a.result !== "d" && a.result !== "x") return false;
-      if (a.decisive !== undefined && typeof a.decisive !== "boolean") return false;
-      {
-        const before = takeSnapshot(s);
-        const pd = s.pend;
-        if (!pd || !resolve(s, a.result, rng, a.decisive)) return false;
-        s.undo = { before, attacker: pd.actor, defender: pd.def, reportFiled: false, later: [] };
-        return true;
-      }
-
     case "undoBattle":
-      return undoBattle(s);
+      return undoBattle(s, a.attacker);
 
-    case "confirmQuiet":
-      return doQuiet(s, a.fortZone, rng);
+    case "confirmQuietPick":
+      return confirmQuietPick(s, a.playerId, rng);
+
+    case "switchPick":
+      return switchPick(s, a.playerId, { act: a.act, zone: a.zone, def: a.def });
 
     case "drawCard": {
       const p = getPlayer(s, a.playerId);
@@ -192,8 +199,8 @@ function run(s: CampaignState, a: Action, rng: Rng): boolean {
     }
 
     case "removePlayer": {
-      if (!getPlayer(s, a.playerId)) return false;
-      const wasActor = currentActor(s)?.id === a.playerId;
+      const gone = getPlayer(s, a.playerId);
+      if (!gone) return false;
       s.players = s.players.filter((x) => x.id !== a.playerId);
       Object.keys(s.terr).forEach((k) => {
         if (s.terr[k] === a.playerId) delete s.terr[k];
@@ -202,8 +209,7 @@ function run(s: CampaignState, a: Action, rng: Rng): boolean {
       removePlayerRoster(s, a.playerId);
       if (s.ready) delete s.ready[a.playerId];
       if (s.won === a.playerId) s.won = null;
-      if (s.pend && (s.pend.actor === a.playerId || s.pend.def === a.playerId)) s.pend = null;
-      if (wasActor) endTurn(s);
+      dropPlayerPicks(s, a.playerId, gone.name);
       return true;
     }
 
@@ -255,7 +261,7 @@ export function apply(state: CampaignState, action: Action, ctx: ApplyContext): 
     ok = false;
   }
   if (!ok) return state;
-  if (s.undo && action.type !== "resolveBattle") {
+  if (s.undo && action.type !== "resolvePick") {
     if (!ROSTER_ONLY.has(action.type)) delete s.undo;
     else {
       // Keep the window open; remember any log lines the roster action added so Undo can keep them.
@@ -265,5 +271,7 @@ export function apply(state: CampaignState, action: Action, ctx: ApplyContext): 
     }
   }
   if (hollOpen(s)) s.hollOpened = true;
+  // Selectors may have cached lookups on `s` while it was still being changed.
+  forgetRoundCache(s);
   return s;
 }

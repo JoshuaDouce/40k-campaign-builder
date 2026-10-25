@@ -5,10 +5,10 @@ import type { TabId } from "../store/useDevicePrefs.ts";
 const STEPS: ReadonlyArray<readonly [string, string]> = [
   ["The setting", "Three years ago the Hollowgate rift tore open at the heart of the Varkesh Reach. The Imperium's grip collapsed. The system is a scatter of worlds, each split into provinces, and every faction has its own reason for being here. The more players, the more worlds."],
   ["Build a 750 pt roster", "Name your warband and start with one Character, your Warlord. No Epic Heroes or named characters, ever. Your leaders are nobodies who might become somebody. Start with 0 Requisition Points (RP) and a Capital province on one of the outer worlds. Earn RP from your Capital and from battles."],
-  ["The War Round", "The campaign is played in War Rounds. At the start of each, everyone draws a Fate Card. Then each player takes one turn, smallest empire first."],
-  ["Take a campaign action", "On your turn pick one: Conquer, Raid, Recuperate, Muster, Fortify or Scout. Conquer and Raid start a battle. The others build you up without fighting."],
+  ["The War Round", "The campaign is played in War Rounds. At the start of each, everyone draws a Fate Card. Then everyone plans in secret and plays at the same time; only players on the same province wait."],
+  ["Take a campaign action", "Pick one: Conquer, Raid, Recuperate, Muster, Fortify or Scout. Conquer and Raid start a battle. The others build you up without fighting."],
   ["Generate the battle", "The province sets the size: an outpost is small, a hive city is big. Worlds closer to the rift multiply it. Then roll a Mission Twist like \"no Toughness 10+\" or \"−1 to hit at range\". Otherwise it's a normal game of 40k."],
-  ["Outcome and rewards", "Units gain XP and risk scars. Both sides earn RP and grow their supply limit. The winner takes the province. Then the next player takes their turn."],
+  ["Outcome and rewards", "Units gain XP and risk scars. Both sides earn RP and grow their supply limit. The winner takes the province. The round ends when every pick is done."],
   ["Grow your empire", "Spread province by province across your world, seize a Spaceport, then jump along warp lanes to the next world. Inner worlds mean bigger games and two twists at once."],
   ["The Hollowgate", "Once 60% of the Reach is claimed (or by War Round 8), the rift opens: a 2000 pt fight reached from the inner worlds. Whoever holds it at the end of a War Round wins the Reach."],
 ];

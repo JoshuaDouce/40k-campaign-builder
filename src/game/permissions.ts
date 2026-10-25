@@ -1,11 +1,16 @@
 // Who may send which action. Honour-system for the MVP: this is enforced in the UI only.
-import { currentActor, getPlayer } from "./selectors.ts";
+import { getPlayer } from "./selectors.ts";
 import type { Action, CampaignState } from "./types.ts";
 
 export interface PermissionContext {
   /** Signed-in user id, or null when not a member. */
   userId: string | null;
   isOwner: boolean;
+}
+
+/** True if this viewer may act for `playerId`: the owner always; anyone else only for their own player. */
+export function canActFor(s: CampaignState, playerId: string, ctx: PermissionContext): boolean {
+  return ctx.isOwner || controls(s, playerId, ctx.userId);
 }
 
 /** True if `playerId` exists, has a userId, and it is `userId`. Players without a userId are owner-only. */
@@ -21,23 +26,22 @@ export function canPerform(state: CampaignState, action: Action, ctx: Permission
     case "beginRound":
       return userId !== null;
 
-    case "chooseAction":
-    case "cancelAction":
-    case "rollBattle":
-    case "rerollTwists":
-    case "confirmQuiet": {
-      const actor = currentActor(state);
-      return actor !== undefined && controls(state, actor.id, userId);
-    }
+    case "readyPick":
+    case "unreadyPick":
+    case "rollPick":
+    case "rerollPick":
+    case "confirmQuietPick":
+    case "switchPick":
+      return controls(state, action.playerId, userId);
 
-    case "resolveBattle": {
-      const pd = state.pend;
-      return !!pd && (controls(state, pd.actor, userId) || (pd.def !== undefined && controls(state, pd.def, userId)));
+    case "resolvePick": {
+      const b = state.picks[action.playerId]?.battle;
+      return controls(state, action.playerId, userId) || (!!b && controls(state, b.def, userId));
     }
 
     case "undoBattle": {
       const u = state.undo;
-      return !!u && !u.reportFiled && (controls(state, u.attacker, userId) || (u.defender !== undefined && controls(state, u.defender, userId)));
+      return !!u && !u.reportFiled && u.attacker === action.attacker && (controls(state, u.attacker, userId) || (u.defender !== undefined && controls(state, u.defender, userId)));
     }
 
     case "drawCard":
@@ -62,6 +66,7 @@ export function canPerform(state: CampaignState, action: Action, ctx: Permission
     case "addPlayer":
       return userId !== null && action.userId === userId && !state.players.some((p) => p.userId === userId);
 
+    case "revealPicks":
     case "adjustStat":
     case "setProvinceOwner":
     case "removePlayer":
