@@ -4,7 +4,7 @@ import { useOptionalCampaign } from "../store/useCampaign.ts";
 
 const TOGGLE_DESC: Record<ToggleKey, string> = {
   forceOrg: "Role slots, minimums and over-limit warnings.",
-  datasheetLimit: "5 datasheets in Setup, +1 each War Round.",
+  datasheetLimit: "5 datasheets, +1 for each Extra Datasheet bought with RP.",
   toughnessStages: "No unit above T11 in War Rounds 1–2, until supply reaches 1250.",
   knights: "Armigers and War Dogs count as Battleline; one may be the Setup Warlord.",
 };
@@ -79,7 +79,7 @@ export function RulesTab() {
       )}
       <p><b>Which role?</b> Picking a datasheet from the list fills in its role from the datasheet's keywords, in this order: Character, then Battleline, then Dedicated Transport or Fortification (Other), then Vehicle, Monster or Aircraft (Vehicle / Monster), and everything else is Non-Monster / Vehicle. Non-Monster / Vehicle covers foot troops of every kind, Beasts, Swarms, Jump Pack infantry, bikes, cavalry and jetbikes. Walkers, tanks, big monsters and Aircraft are Vehicle / Monster. Dedicated Transports and Fortifications are Other. Psykers take the role their datasheet gives them, usually Character. Allied units and Agents take whatever role their own datasheet gives them.</p>
       {toggled("datasheetLimit") && (
-        <p><b>Datasheet limit.</b> A roster may use at most 5 different datasheets in Setup, and 1 more at the start of each War Round: 6 in War Round 1, 7 in War Round 2, and so on. Several units of the same datasheet count once, and so does your Warlord's. A unit with no datasheet named isn't counted. At the limit, you can't add a unit of a new datasheet until the limit grows. You can also spend 1 RP on an Extra Datasheet: +1 to your limit for the rest of the campaign, as many times as you like.</p>
+        <p><b>Datasheet limit.</b> A roster may use at most 5 different datasheets. Several units of the same datasheet count once, and so does your Warlord's. A unit with no datasheet named isn't counted. The limit does not grow on its own: spend 1 RP on an Extra Datasheet for +1 to your limit for the rest of the campaign, as many times as you like. At the limit, you can't add a unit of a new datasheet until you buy one.</p>
       )}
       {toggled("toughnessStages") && (
         <p><b>Toughness stages.</b> In War Rounds 1 and 2, no unit may have Toughness 12 or higher. From War Round 3, or as soon as your supply limit reaches 1250 pts, the cap is gone. The Setup limits still apply first.</p>
@@ -100,7 +100,7 @@ export function RulesTab() {
       </table></div>
 
       <h3>The Reach</h3>
-      <p>The system is charted for your group: one outer world for each player, plus middle and inner worlds nearer the Hollowgate (at least 4 worlds), each with 5 to 7 provinces. Every player starts with a Capital on an outer world. Inner worlds sit nearest the Hollowgate.</p>
+      <p>The system is charted for your group: one outer world for each player, plus middle and inner worlds nearer the Hollowgate (at least 4 worlds), each with 5 to 7 provinces. Every player starts with a Capital on an outer world, bordered by a 500, a 750 and a 1000 pt battle. Inner worlds sit nearest the Hollowgate.</p>
 
       <p><b>Late arrivals.</b> A player who joins after War Round 1 has begun gets a new outer world and Capital, 1 extra Fate Card, and a supply limit set to the average of the other players' limits (rounded to the nearest 50) minus 150, but never below 750. They join the turn order next round.</p>
 

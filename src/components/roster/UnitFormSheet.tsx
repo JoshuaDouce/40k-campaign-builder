@@ -210,7 +210,7 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, r
   const dsBlock = datasheetLimitBlock(state, playerId, { id: existing?.id ?? "", datasheet: d.datasheet });
   const dsN = datasheetLimit(state, playerId);
   const dsUsed = distinctDatasheets(roster.filter((u) => u.id !== existing?.id));
-  const dsMessage = dsBlock ? "! Your roster already uses " + Math.min(dsUsed, dsN) + " of " + dsN + " datasheets, and " + d.datasheet.trim() + " would be a new one. Pick a datasheet you already field, or raise the limit: it rises by 1 each War Round, or spend 1 RP on an Extra Datasheet." : undefined;
+  const dsMessage = dsBlock ? "! Your roster already uses " + Math.min(dsUsed, dsN) + " of " + dsN + " datasheets, and " + d.datasheet.trim() + " would be a new one. Pick a datasheet you already field, or spend 1 RP on an Extra Datasheet to raise the limit." : undefined;
   const describedBy = [charBlock ? "f_charblock" : "", toughStop ? "f_toughblock" : "", epicBlock ? "f_epicblock" : "", dsBlock && !epicBlock ? "f_dsblock" : ""].filter(Boolean).join(" ") || undefined;
 
   let problem = "";
