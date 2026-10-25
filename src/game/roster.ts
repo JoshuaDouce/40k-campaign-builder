@@ -229,7 +229,7 @@ export function exampleUnits(rng: Rng, existing: readonly Unit[] = EMPTY): Unit[
   });
   mk("Gatekeepers", "Bladeguard Veteran Squad", 150, 7, ["Objective Hunters"], [], { role: "Infantry / Mounted", t: 5 });
   mk("Breach Team Seven", "Eradicator Squad", 100, 4, ["Hard to Kill"], ["Crippled", makeScar("Worn Gear", "melta rifles")], { role: "Infantry / Mounted", t: 6 });
-  mk("The Anvil of Kharst", "Impulsor", 70, 26, ["Steady Aim", "Grizzled", "Hard to Kill", "Objective Hunters"], [], { role: "Vehicle / Monster", t: 9 });
+  mk("The Anvil of Kharst", "Impulsor", 70, 26, ["Steady Aim", "Grizzled", "Hard to Kill", "Objective Hunters"], [], { role: "Other", t: 9 });
   return out;
 }
 
