@@ -44,9 +44,6 @@ p{margin:0 0 12px;max-width:65ch}
 select{font:inherit;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:2px;padding:7px 9px;max-width:100%;min-height:44px}
 .field{display:grid;gap:3px;min-width:0;flex:1 1 180px}
 .field label{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
-.strip{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 4px}
-.strip .chip.done{opacity:.45;text-decoration:line-through}
-.strip .chip.cur{border-color:var(--brass);color:var(--ink);background:var(--panel2)}
 .turn{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:16px;margin-top:12px}
 .turn h4{font-family:var(--f-display);font-size:28px;font-weight:700;margin:0;line-height:1.05}
 .acts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px;margin:12px 0}
@@ -66,37 +63,47 @@ select{font:inherit;background:var(--panel2);color:var(--ink);border:1px solid v
 .hint{font-family:var(--f-mono);font-size:12px;color:var(--dim);margin-top:8px;line-height:1.4}
 
 /* ===== Simultaneous Turns additions (new, "st-" prefix, built from the same tokens) ===== */
-/* Player status list: one row per player, status on the right */
+/* Planning: one row per player, status on the right */
 .st-roster{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:6px}
 .st-pl{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;background:var(--panel2);border:1px solid var(--line);border-radius:3px;padding:6px 10px;min-height:44px}
 .st-pl .nm{flex:1 1 120px;min-width:0;display:flex;align-items:center;gap:8px;overflow-wrap:anywhere}
-.st-pl .you{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+.you{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
 .st-stat{font-family:var(--f-mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim)}
 .st-stat.ok{color:var(--verd)}
 /* Target list: selectable rows, same look as .act */
 .st-tg{list-style:none;margin:8px 0;padding:0;display:grid;gap:6px}
 .st-tg button{width:100%;text-align:left;background:var(--panel2);border:1px solid var(--line);border-radius:3px;padding:8px 12px;color:var(--ink);font:inherit;min-height:44px;display:flex;flex-direction:column}
 .st-tg button.sel{border-color:var(--brass);background:var(--panel)}
+.st-tg button:disabled{opacity:.5;cursor:not-allowed;border-style:dashed}
 .st-tg .pv{font-family:var(--f-display);font-size:20px;line-height:1.1}
 .st-tg .mt{font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim)}
+.st-tg .use{font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--blood);margin-top:2px}
 /* Own pick line */
 .st-mine{border-left:3px solid var(--brass);background:var(--bg);padding:8px 12px;margin-top:12px;font-family:var(--f-display);font-size:22px;line-height:1.15}
-/* Reveal list */
+/* Status badge: text label always shown, colour only reinforces */
+.st-b{display:inline-block;font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--dim);color:var(--dim);border-radius:20px;padding:1px 9px;overflow-wrap:anywhere}
+.st-b.ready{border-color:var(--brass);color:var(--brass)}
+.st-b.battle{border-color:var(--blood);color:var(--blood)}
+.st-b.wait{border-color:var(--dim);color:var(--dim);border-style:dashed}
+.st-b.again{border-color:var(--blood);color:var(--ink);background:var(--blood)}
+.st-b.done{border-color:var(--verd);color:var(--verd)}
+/* All picks list */
 .st-order{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:6px}
 .st-o{display:grid;grid-template-columns:28px 1fr;gap:8px;background:var(--panel);border:1px solid var(--line);border-left-width:3px;border-radius:3px;padding:8px 10px;min-width:0}
 .st-o .n{font-family:var(--f-mono);font-size:13px;color:var(--brass);padding-top:2px}
-.st-o .who{display:flex;align-items:center;gap:8px;overflow-wrap:anywhere}
+.st-o .who{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;overflow-wrap:anywhere}
 .st-o .act-l{font-family:var(--f-display);font-size:20px;line-height:1.1}
 .st-o .sub{font-size:14.5px;color:var(--dim);overflow-wrap:anywhere}
-.st-o.done{opacity:.45}
-.st-o.done .act-l{text-decoration:line-through}
-.st-o.cur{border-color:var(--brass);background:var(--panel2)}
-.st-tag{display:inline-block;font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--blood);border:1px solid var(--blood);border-radius:20px;padding:1px 8px;margin-top:3px}
-.st-up{font-family:var(--f-display);font-size:24px;color:var(--brass);margin:0 0 4px}
+.st-o .bd{margin-top:4px;display:flex;flex-wrap:wrap;gap:4px 6px}
+.st-o.done .act-l{text-decoration:line-through;opacity:.7}
+.st-o.me{background:var(--panel2)}
+.st-tag{display:inline-block;font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--blood);border:1px solid var(--blood);border-radius:20px;padding:1px 8px;overflow-wrap:anywhere}
 .st-def{border-left:3px solid var(--blood);background:var(--panel);padding:8px 12px;margin-top:10px}
 .st-def b{color:var(--blood);font-weight:700}
+.st-def .bd{margin-top:4px}
 .st-fall{border-left:3px solid var(--blood);background:var(--bg);padding:8px 12px;margin-top:10px}
 .st-fall b{color:var(--blood)}
+.st-done{font-family:var(--f-display);font-size:26px;color:var(--verd);margin:12px 0 0}
 
 /* mock-only: switcher and labels (not part of the product) */
 .mock{margin:20px 0 0}
@@ -112,7 +119,7 @@ select{font:inherit;background:var(--panel2);color:var(--ink);border:1px solid v
 <header class="hero">
   <div class="eyebrow">Design mock · War Room</div>
   <h1>Simultaneous <span>Turns</span></h1>
-  <p class="lede">Runs the campaign round by round: plan in secret, reveal, then resolve weakest first. Battle results update the map and players automatically. Record XP and scars on your own rosters.</p>
+  <p class="lede">Runs the campaign round by round: plan in secret, reveal, then play your picks side by side. Battle results update the map and players automatically. Record XP and scars on your own rosters.</p>
   <div class="mocktabs" role="tablist" id="tabs"></div>
 </header>
 <section class="mock" id="view"></section>
@@ -120,24 +127,27 @@ select{font:inherit;background:var(--panel2);color:var(--ink);border:1px solid v
 
 <script>
 const $=s=>document.querySelector(s);
-const COL={kaelen:"#d0a952",orks:"#6f9a86",void:"#b8392e",ash:"#8a7fb8"};
+const COL={kaelen:"#d0a952",orks:"#6f9a86",void:"#b8392e",ash:"#8a7fb8",thorn:"#c9784a"};
 const dot=k=>`<span class="dot" style="background:${COL[k]}"></span>`;
 
 /* ---------- shared pieces ---------- */
 const stage=(t)=>`<div class="row mono" style="font-size:13px;color:var(--brass)">${t}</div>`;
 const ACTS=[["b","Conquer","Attack a province to take it."],["b","Raid","Hit a rival for RP or a card."],["q","Fortify","Quiet action."],["q","Scout","Quiet action."],["q","Muster","Quiet action."],["q","Recuperate","Quiet action."]];
 const acts=(sel)=>`<div class="acts-grid">${ACTS.map(([t,n,d])=>`<button class="act${n===sel?" sel":""}"><span class="at ${t}">${t==="b"?"Battle":"No battle"}</span><span class="an">${n}</span><span class="ad">${d}</span></button>`).join("")}</div>`;
-const head=(round,who,sub)=>`<div class="eyebrow">War Round ${round} · Planning</div><h4>${who}</h4><p class="dim mono" style="font-size:12px;margin-top:4px">${sub}</p>`;
-
-/* roster: [key, name, locked, extra html, isYou] */
-const roster=(rows)=>`<ul class="st-roster">${rows.map(([k,n,l,x,you])=>`<li class="st-pl"><span class="nm">${dot(k)}${n}${you?' <span class="you">(you)</span>':""}</span><span class="st-stat${l?" ok":""}">${l?"Locked in":"Choosing…"}</span>${x||""}</li>`).join("")}</ul>`;
+const head=(eyebrow,who,sub)=>`<div class="eyebrow">${eyebrow}</div><h4>${who}</h4><p class="dim mono" style="font-size:12px;margin-top:4px">${sub}</p>`;
 const log=`<h3 style="margin-top:18px">Campaign log</h3><ul class="log"><li><span class="r">R4</span><b>Ash Marauders</b> collected RP and drew a Fate Card.</li><li><span class="r">R3</span><b>Void Choir</b> took <b>Choir Spire</b> on Ninth Vault.</li></ul>`;
 
-/* ---------- 1. Planning: choosing ---------- */
+/* ---------- Planning ---------- */
+/* roster rows: [key, name, ready, extra html, isYou] */
+const roster=(rows)=>`<ul class="st-roster">${rows.map(([k,n,r,x,you])=>`<li class="st-pl"><span class="nm">${dot(k)}${n}${you?' <span class="you">(you)</span>':""}</span><span class="st-stat${r?" ok":""}">${r?"Ready":"Choosing…"}</span>${x||""}</li>`).join("")}</ul>`;
+const VOID_SUB="VOID CHOIR · NECRONS · 6 RP · SUPPLY 1200 · 3 PROVINCES · HAND 2/5";
+const PLAN_HINT=`<p class="dim" style="margin:10px 0 0">Choose your action in secret. Nobody sees it until the owner reveals.</p>`;
+
+/* 1. own picker */
 function s1(){
   return stage("War Round 4 · Plan")+
-  `<div class="turn">${head(4,"Plan your move","VOID CHOIR · NECRONS · 6 RP · SUPPLY 1200 · 3 PROVINCES · HAND 2/5")}
-   <p class="dim" style="margin:10px 0 0">Choose your action in secret. Nobody sees it until the owner reveals.</p>
+  `<div class="turn">${head("War Round 4 · Planning","Plan your move",VOID_SUB)}
+   ${PLAN_HINT}
    ${acts("Conquer")}
    <div class="eyebrow" style="margin-top:4px">Conquer · choose a province</div>
    <ul class="st-tg">
@@ -145,126 +155,186 @@ function s1(){
      <li><button class="sel"><span class="pv">Quarry Ridge</span><span class="mt">Ash Moon · Mining Hub · 1000 pts · Unclaimed</span></button></li>
    </ul>
    <div class="row" style="align-items:flex-end">
-     <div class="field"><label for="g1">Garrison player</label><select id="g1"><option>Kaelen</option><option>Orks Warboss</option><option>Ash Marauders</option></select></div>
+     <div class="field"><label for="g1">Garrison player</label><select id="g1"><option>Kaelen</option><option>Orks Warboss</option><option>Ash Marauders</option><option>Thorn Legion</option></select></div>
    </div>
    <p class="dim" style="font-size:14px;margin:8px 0 0">Unclaimed province: another player fields the garrison. They gain no RP, Fate Cards or stats from this fight, so pick whoever is free to play. You fight with +20% points.</p>
-   <div class="row" style="margin-top:12px"><button class="btn primary">Lock in</button></div>
-   ${roster([["kaelen","Kaelen",true],["orks","Orks Warboss",false],["void","Void Choir",false,"",true],["ash","Ash Marauders",true]])}
-   <p class="hint">Waiting for 3 more to lock in.</p>
+   <div class="row" style="margin-top:12px"><button class="btn primary">Ready</button></div>
+   ${roster([["kaelen","Kaelen",true],["orks","Orks Warboss",false],["thorn","Thorn Legion",false],["void","Void Choir",false,"",true],["ash","Ash Marauders",true]])}
+   <p class="hint">Waiting for 3 more to be Ready.</p>
   </div>`+log;
 }
 
-/* ---------- 2. Planning: locked in ---------- */
+/* 2. after Ready */
 function s2(){
   return stage("War Round 4 · Plan")+
-  `<div class="turn">${head(4,"Plan your move","VOID CHOIR · NECRONS · 6 RP · SUPPLY 1200 · 3 PROVINCES · HAND 2/5")}
+  `<div class="turn">${head("War Round 4 · Planning","Plan your move",VOID_SUB)}
    <div class="st-mine">You: Conquer Quarry Ridge on Ash Moon</div>
-   <div class="row" style="margin-top:10px"><button class="btn">Unlock to change</button></div>
-   ${roster([["kaelen","Kaelen",true],["orks","Orks Warboss",false],["void","Void Choir",true,"",true],["ash","Ash Marauders",true]])}
-   <p class="hint">Waiting for 1 more to lock in.</p>
+   <div class="row" style="margin-top:10px"><button class="btn">Unready to change</button></div>
+   ${roster([["kaelen","Kaelen",true],["orks","Orks Warboss",false],["thorn","Thorn Legion",false],["void","Void Choir",true,"",true],["ash","Ash Marauders",true]])}
+   <p class="hint">Waiting for 2 more to be Ready.</p>
   </div>`+log;
 }
-/* spec example says "2 more": use a 5-player table for that exact count */
-function s2b(){
-  return `<div class="turn">${head(4,"Plan your move","VOID CHOIR · NECRONS · 6 RP · SUPPLY 1200 · 3 PROVINCES · HAND 2/5")}
-   <div class="st-mine">You: Conquer Quarry Ridge on Ash Moon</div>
-   <div class="row" style="margin-top:10px"><button class="btn">Unlock to change</button></div>
-   ${roster([["kaelen","Kaelen",true],["orks","Orks Warboss",false],["void","Void Choir",true,"",true],["ash","Ash Marauders",false]])}
-   <p class="hint">Waiting for 2 more to lock in.</p>
-  </div>`;
-}
 
-/* ---------- 3. Planning: owner ---------- */
-const pick=`<button class="btn sm">Pick for them</button>`;
-const unl=`<button class="btn sm">Unlock to change</button>`;
+/* 3. owner */
+const pickFor=`<button class="btn sm">Pick for them</button>`;
+const unready=`<button class="btn sm">Unready to change</button>`;
 function s3(){
   return stage("War Round 4 · Plan")+
-  `<div class="turn">${head(4,"Plan your move","KAELEN · ADEPTUS ASTARTES · OWNER")}
-   <p class="dim" style="margin:10px 0 0">Choose your action in secret. Nobody sees it until the owner reveals.</p>
+  `<div class="turn">${head("War Round 4 · Planning","Plan your move","KAELEN · ADEPTUS ASTARTES · OWNER")}
+   ${PLAN_HINT}
    <div class="st-mine">You: Fortify Hive Alpha on Varkesh Prime</div>
-   ${roster([["kaelen","Kaelen",true,unl,true],["orks","Orks Warboss",false,pick],["void","Void Choir",false,pick],["ash","Ash Marauders",true,unl]])}
+   ${roster([["kaelen","Kaelen",true,unready,true],["orks","Orks Warboss",false,pickFor],["thorn","Thorn Legion",true,unready],["void","Void Choir",false,pickFor],["ash","Ash Marauders",true,unready]])}
    <div class="row" style="margin-top:12px"><button class="btn primary" disabled>Reveal all picks</button></div>
-   <p class="hint">Everyone must lock in first.</p>
-   <p class="hint">Waiting for 2 more to lock in.</p>
+   <p class="hint">Everyone must be Ready first.</p>
+   <p class="hint">Waiting for 2 more to be Ready.</p>
   </div>`;
 }
 function s3b(){
-  return `<div class="turn">${head(4,"Plan your move","KAELEN · ADEPTUS ASTARTES · OWNER")}
+  return `<div class="turn">${head("War Round 4 · Planning","Plan your move","KAELEN · ADEPTUS ASTARTES · OWNER")}
    <div class="st-mine">You: Fortify Hive Alpha on Varkesh Prime</div>
-   ${roster([["kaelen","Kaelen",true,unl,true],["orks","Orks Warboss",true,unl],["void","Void Choir",true,unl],["ash","Ash Marauders",true,unl]])}
+   ${roster([["kaelen","Kaelen",true,unready,true],["orks","Orks Warboss",true,unready],["thorn","Thorn Legion",true,unready],["void","Void Choir",true,unready],["ash","Ash Marauders",true,unready]])}
    <div class="row" style="margin-top:12px"><button class="btn primary">Reveal all picks</button></div>
   </div>`;
 }
 
-/* ---------- reveal list ---------- */
-/* [key, name, action, sub, tag, state] */
-const ORDER=[
- ["ash","Ash Marauders","Scout","","","done"],
- ["orks","Orks Warboss","Conquer Quarry Ridge","Ash Moon · against Void Choir (holds it)","Kaelen","cur"],
- ["kaelen","Kaelen","Conquer Quarry Ridge","Ash Moon · against Void Choir (holds it)","Orks Warboss",""],
- ["void","Void Choir","Fortify Choir Spire","Ninth Vault","",""]
-];
-function order(rows){
-  return `<h3 style="margin-top:16px">The orders, weakest first</h3><ol class="st-order">${rows.map(([k,n,a,sub,tag,st],i)=>
-   `<li class="st-o ${st}" style="border-left-color:${COL[k]}"><span class="n">${i+1}</span><div>
-     <div class="who">${dot(k)}<b>${n}</b></div><div class="act-l">${a}</div>${sub?`<div class="sub">${sub}</div>`:""}
-     ${tag?`<span class="st-tag">Also targeted by ${tag}</span>`:""}</div></li>`).join("")}</ol>`;
+/* ---------- Resolution ---------- */
+/* pick: {k,name,act,prov,world,vs,st,wait,clash}; st: ready|battle|wait|again|done */
+const LABEL={ready:"Ready to play",battle:"In battle",wait:"Waiting on",again:"Choose again",done:"Done"};
+const badge=(st,wait)=>`<span class="st-b ${st}">${LABEL[st]}${st==="wait"?" "+wait:""}</span>`;
+const P={
+ ash:  {k:"ash",name:"Ash Marauders",act:"Scout"},
+ orksQ:{k:"orks",name:"Orks Warboss",act:"Conquer",prov:"Quarry Ridge",world:"Ash Moon",vs:"Ash Marauders"},
+ thornQ:{k:"thorn",name:"Thorn Legion",act:"Conquer",prov:"Quarry Ridge",world:"Ash Moon",vs:"Ash Marauders"},
+ kaelenE:{k:"kaelen",name:"Kaelen",act:"Conquer",prov:"Ember Gate",world:"Ninth Vault",vs:"Void Choir"},
+ voidG:{k:"void",name:"Void Choir",act:"Conquer",prov:"Gutter Reach",world:"Dross",vs:"Ash Marauders"}
+};
+const CLASH="Clash at Quarry Ridge: Orks Warboss first";
+const pk=(p,st,wait,clash)=>Object.assign({},p,{st,wait,clash});
+function line(p){return p.prov?`${p.act} ${p.prov}`:p.act}
+function sub(p){return p.prov?`${p.world} · against ${p.vs} (holds it)`:""}
+function list(rows,me){
+  return `<h3 style="margin-top:16px">The orders, weakest first</h3><ol class="st-order">${rows.map((p,i)=>
+   `<li class="st-o ${p.st==="done"?"done":""} ${p.k===me?"me":""}" style="border-left-color:${COL[p.k]}"><span class="n">${i+1}</span><div>
+     <div class="who">${dot(p.k)}<b>${p.name}</b>${p.k===me?' <span class="you">(you)</span>':""}</div>
+     <div class="act-l">${line(p)}</div>${sub(p)?`<div class="sub">${sub(p)}</div>`:""}
+     <div class="bd">${badge(p.st,p.wait)}${p.clash?`<span class="st-tag">${p.clash}</span>`:""}</div></div></li>`).join("")}</ol>`;
 }
+const defender=(att,prov,st)=>`<div class="st-def"><b>${att}</b> attacks you at <b>${prov}</b><div class="bd">${badge(st)}</div></div>`;
 
-/* ---------- 4. Resolution: waiting player (Void Choir, defender) ---------- */
+/* the shared table used by states 4, 5, 6, 7 (before anyone finishes the quiet/clash picks) */
+const TABLE=(over)=>[
+  pk(P.ash,"done"),
+  pk(P.orksQ,"ready",null,CLASH),
+  pk(P.thornQ,"wait","Orks Warboss",CLASH),
+  pk(P.kaelenE,"battle"),
+  pk(P.voidG,"ready")
+].map((r,i)=>over&&over[i]?Object.assign({},r,over[i]):r);
+
+const VOID_RES="VOID CHOIR · NECRONS · 6 RP · SUPPLY 1200 · 3 PROVINCES · HAND 2/5";
+const THORN_RES="THORN LEGION · SPACE WOLVES · 4 RP · SUPPLY 900 · 2 PROVINCES · HAND 1/5";
+
+/* 4. my pick Ready to play */
 function s4(){
-  return stage("War Round 4 · Resolve")+
-  `<div class="turn"><div class="eyebrow">War Round 4 · Turn 2 of 4</div>
-   <p class="st-up">Orks Warboss is up</p>
-   <p class="dim mono" style="font-size:12px;margin:0">ORKS · 5 RP · SUPPLY 900 · 2 PROVINCES · HAND 3/5</p>
-   <div class="st-def"><b>Orks Warboss</b> attacks you at <b>Quarry Ridge</b></div>
-   ${order(ORDER)}
+  return stage("War Round 4 · Play")+
+  `<div class="turn">${head("War Round 4 · Play","Void Choir",VOID_RES)}
+   <div class="st-mine">You: Conquer Gutter Reach on Dross</div>
+   <div class="bd" style="margin-top:8px">${badge("ready")}</div>
+   <div class="battle"><div class="eyebrow">Dross · Hive City · Gutter Reach</div><div class="size">1350 pts</div>
+    <p class="mono dim" style="font-size:12px">VOID CHOIR (ATTACKER) VS ASH MARAUDERS (DEFENDER) · FATE CARDS: UP TO 2 EACH</p>
+    <div class="row" style="margin-top:8px"><button class="btn primary">Roll twists</button></div></div>
+   ${defender("Kaelen","Ember Gate","battle")}
+   ${list(TABLE(),"void")}
   </div>`+log;
 }
-function s4b(){
-  /* a waiting player not involved: just the status */
-  return `<div class="turn"><div class="eyebrow">War Round 4 · Turn 2 of 4</div><p class="st-up">Orks Warboss is up</p>
-   <p class="dim mono" style="font-size:12px;margin:0">ORKS · 5 RP · SUPPLY 900 · 2 PROVINCES · HAND 3/5</p>
-   ${order(ORDER.map(r=>r.slice()))}</div>`;
-}
 
-/* ---------- 5. Resolution: active player (Kaelen) ---------- */
-const ORDER5=[
- ["ash","Ash Marauders","Scout","","","done"],
- ["orks","Orks Warboss","Conquer Quarry Ridge","Ash Moon · against Void Choir (holds it)","","done"],
- ["kaelen","Kaelen","Conquer Gutter Reach","Dross · against Ash Marauders (holds it)","","cur"],
- ["void","Void Choir","Fortify Choir Spire","Ninth Vault","",""]
-];
+/* 5. waiting in a clash */
 function s5(){
-  return stage("War Round 4 · Resolve")+
-  `<div class="turn"><div class="eyebrow">War Round 4 · Turn 3 of 4</div><h4>Kaelen</h4>
-   <p class="dim mono" style="font-size:12px;margin-top:4px">ADEPTUS ASTARTES · 5 RP · SUPPLY 1000 · 2 PROVINCES · HAND 3/5</p>
-   <div class="st-mine">Conquer Gutter Reach on Dross</div>
-   <p class="dim" style="font-size:14.5px;margin:6px 0 0">Against Ash Marauders (holds it). This was your pick, revealed.</p>
-   <div class="battle"><div class="eyebrow">Dross · Hive City · Gutter Reach</div><div class="size">1350 pts</div>
-    <p class="mono dim" style="font-size:12px">KAELEN (ATTACKER) VS ASH MARAUDERS (DEFENDER) · FATE CARDS: UP TO 2 EACH</p>
-    <div class="row" style="margin-top:8px"><button class="btn primary">Generate battle</button></div></div>
-   ${order(ORDER5)}
+  return stage("War Round 4 · Play")+
+  `<div class="turn">${head("War Round 4 · Play","Thorn Legion",THORN_RES)}
+   <div class="st-mine">You: Conquer Quarry Ridge on Ash Moon</div>
+   <div class="bd" style="margin-top:8px">${badge("wait","Orks Warboss")}<span class="st-tag">${CLASH}</span></div>
+   <div class="row" style="margin-top:12px"><button class="btn">Switch to something else</button></div>
+   <p class="hint">You can switch at any time. No penalty, no cost.</p>
+   ${list(TABLE(),"thorn")}
   </div>`;
 }
-function s5b(){
-  return stage("War Round 4 · Resolve")+
-  `<div class="turn"><div class="eyebrow">War Round 4 · Turn 3 of 4</div><h4>Kaelen</h4>
-   <p class="dim mono" style="font-size:12px;margin-top:4px">ADEPTUS ASTARTES · 5 RP · SUPPLY 1000 · 3 PROVINCES · HAND 3/5</p>
-   <div class="st-fall"><b>Kaelen's pick fell through:</b> you now hold Quarry Ridge. Choose again.</div>
-   <p style="margin:10px 0 0">Choose a campaign action.</p>
+
+/* 6. switch picker */
+function s6(){
+  const tg=(pv,mt,state)=>`<li><button${state==="use"?" disabled":""}><span class="pv">${pv}</span><span class="mt">${mt}</span>${state==="use"?'<span class="use">In use by another pick</span>':""}</button></li>`;
+  return stage("War Round 4 · Play")+
+  `<div class="turn">${head("War Round 4 · Play","Switch to something else",THORN_RES)}
+   <p class="dim" style="margin:10px 0 0">Your old pick is dropped. A free province can be played at once.</p>
+   ${acts("Conquer")}
+   <div class="eyebrow" style="margin-top:4px">Conquer · choose a province</div>
+   <ul class="st-tg">
+     ${tg("Rift Market","Dross · Trade Hub · 1000 pts · Ash Marauders","free")}
+     ${tg("Salt Crown","Ninth Vault · Forge World · 1150 pts · Void Choir","free")}
+     ${tg("Gutter Reach","Dross · Hive City · 1350 pts · Ash Marauders","use")}
+     ${tg("Quarry Ridge","Ash Moon · Mining Hub · 1000 pts · Ash Marauders","use")}
+     ${tg("Ember Gate","Ninth Vault · Shrine · 900 pts · Void Choir","use")}
+   </ul>
+   <p class="dim" style="font-size:14px;margin:8px 0 0">Scout, Muster and Recuperate are always available and need no target.</p>
+   <div class="row" style="margin-top:12px"><button class="btn primary" disabled>Switch</button><button class="btn">Keep my pick</button></div>
+   ${list(TABLE(),"thorn")}
+  </div>`;
+}
+
+/* 7. my battle In battle + defending */
+function s7(){
+  return stage("War Round 4 · Play")+
+  `<div class="turn">${head("War Round 4 · Play","Void Choir",VOID_RES)}
+   <div class="st-mine">You: Conquer Gutter Reach on Dross</div>
+   <div class="bd" style="margin-top:8px">${badge("battle")}</div>
+   <div class="battle"><div class="eyebrow">Dross · Hive City · Gutter Reach</div><div class="size">1350 pts</div>
+    <p class="mono dim" style="font-size:12px">VOID CHOIR (ATTACKER) VS ASH MARAUDERS (DEFENDER) · SUPPLY CAP 900</p>
+    <div class="twist"><b>Twist 1 (sample)</b><div class="dim" style="font-size:14.5px">Mission twist text appears here, rolled for this battle only.</div></div>
+    <div class="twist"><b>Twist 2 (sample)</b><div class="dim" style="font-size:14.5px">Mission twist text appears here, rolled for this battle only.</div></div>
+    <p class="hint">Points and notes are fixed now. Re-roll works them out again.</p>
+    <div class="row" style="margin-top:8px"><button class="btn">Re-roll twists</button><button class="btn primary">Record result</button></div></div>
+   ${defender("Kaelen","Ember Gate","battle")}
+   ${defender("Thorn Legion","Choir Spire","ready")}
+   <p class="hint">You are defending two battles. That is allowed; the table decides how to play them in turn.</p>
+   ${list([pk(P.ash,"done"),pk(P.orksQ,"ready",null,CLASH),pk({k:"thorn",name:"Thorn Legion",act:"Raid",prov:"Choir Spire",world:"Ninth Vault",vs:"Void Choir"},"ready"),pk(P.kaelenE,"battle"),pk(P.voidG,"battle")],"void")}
+  </div>`;
+}
+
+/* 8. fall-through */
+function s8(){
+  const rows=[pk(P.ash,"done"),pk(P.orksQ,"battle",null,CLASH),pk(P.thornQ,"wait","Orks Warboss",CLASH),
+    pk({k:"kaelen",name:"Kaelen",act:"Conquer",prov:"Choir Spire",world:"Ninth Vault",vs:"Void Choir"},"done"),
+    pk({k:"void",name:"Void Choir",act:"Fortify",prov:"Choir Spire",world:"Ninth Vault",vs:null},"again")];
+  rows[4].sub="Ninth Vault";
+  return stage("War Round 4 · Play")+
+  `<div class="turn">${head("War Round 4 · Play","Void Choir",VOID_RES)}
+   <div class="st-fall"><b>Void Choir's pick fell through:</b> Kaelen took Choir Spire, so you no longer hold it. Choose again.</div>
+   <div class="bd" style="margin-top:8px">${badge("again")}</div>
    ${acts("")}
-   ${order([["ash","Ash Marauders","Scout","","","done"],["orks","Orks Warboss","Conquer Quarry Ridge","Ash Moon · against Void Choir (holds it)","","done"],["kaelen","Kaelen","Conquer Quarry Ridge","Ash Moon · pick fell through","","cur"],["void","Void Choir","Fortify Choir Spire","Ninth Vault","",""]])}
+   <p class="hint">Free provinces and quiet actions are offered. Provinces tied up by another pick are greyed.</p>
+   ${list(rows,"void").replace(/Ninth Vault · against null \(holds it\)/,"Ninth Vault")}
+  </div>`;
+}
+
+/* 9. my move done */
+function s9(){
+  return stage("War Round 4 · Play")+
+  `<div class="turn">${head("War Round 4 · Play","Void Choir",VOID_RES)}
+   <p class="st-done">Your move is done.</p>
+   ${list([pk(P.ash,"done"),pk(P.orksQ,"battle",null,CLASH),pk(P.thornQ,"wait","Orks Warboss",CLASH),pk(P.kaelenE,"done"),pk(P.voidG,"done")],"void")}
   </div>`;
 }
 
 /* ---------- switcher ---------- */
 const STATES=[
- ["1 Planning: choosing","My phone, nothing locked yet. Conquer picked on an unclaimed province, so the garrison player picker shows. The status list shows only Locked in or Choosing…, never a pick.",()=>s1()],
- ["2 Planning: locked in","My phone after Lock in: own one-line pick, Unlock to change, waiting count. The action picker is replaced by the summary.",()=>s2()+`<div class="mocklabel"><span>2b</span><b>Same, with two still to go</b></div>`+s2b()],
- ["3 Planning: owner","Owner's phone. Not-locked rows offer Pick for them; locked rows offer Unlock to change. Reveal disabled until everyone is in.",()=>s3()+`<div class="mocklabel"><span>3b</span><b>Everyone locked in</b></div><p class="mocknote">Disabled note and waiting count go; Reveal is live.</p>`+s3b()],
- ["4 Resolution: waiting","Void Choir is not on the clock and is being attacked. Done rows are struck through, the current row is highlighted, the shared province carries the tag on both rows.",()=>s4()+`<div class="mocklabel"><span>4b</span><b>Waiting, not involved</b></div><p class="mocknote">Same panel without the defender line.</p>`+s4b()],
- ["5 Resolution: active","Kaelen is on the clock. The revealed pick sits at the top of the battle panel; Generate battle is the same step as today.",()=>s5()+`<div class="mocklabel"><span>5b</span><b>Pick fell through</b></div><p class="mocknote">Message, then today's action picker. The revealed pick is not offered back and there is no Change action.</p>`+s5b()]
+ ["1 Planning: choosing","My phone, nothing Ready yet. Conquer is picked on an unclaimed province, so the garrison player picker shows. Other players show only Ready or Choosing…, never a pick.",()=>s1()],
+ ["2 Planning: Ready","After Ready: own one-line pick, Unready to change, and the waiting count. The picker is replaced by the summary.",()=>s2()],
+ ["3 Planning: owner","Owner's phone. Not-Ready rows offer Pick for them; Ready rows offer Unready to change. Reveal is disabled until everyone present is Ready.",()=>s3()+`<div class="mocklabel"><span>3b</span><b>Everyone Ready</b></div><p class="mocknote">Disabled note and waiting count go; Reveal is live.</p>`+s3b()],
+ ["4 Play: Ready to play","My pick (Void Choir, Gutter Reach) is not shared, so it is Ready to play: Roll twists. Below, the full list runs in parallel: Done (Scout), Ready to play and Waiting (the clash), and In battle. The defender line is there because Kaelen attacks me too.",()=>s4()],
+ ["5 Play: waiting in a clash","Thorn Legion is second in a clash. Status shows Waiting on Orks Warboss. There is no Roll twists, only Switch to something else.",()=>s5()],
+ ["6 Play: switch picker","Free provinces are selectable. Provinces tied up by other picks are greyed with In use by another pick. Quiet actions are always available.",()=>s6()],
+ ["7 Play: In battle","My battle is In battle with its own twists. Two defender lines, one for each battle where I defend. Defending two at once is not a clash.",()=>s7()],
+ ["8 Play: fell through","Another table's result made my Fortify illegal. Message, Choose again status, and the action picker. The list shows it to everyone.",()=>s8()],
+ ["9 Play: my move done","Nothing left for me. The list stays so I can follow others' progress.",()=>s9()]
 ];
 const tabs=$("#tabs"), view=$("#view");
 function show(i){
@@ -273,7 +343,7 @@ function show(i){
   history.replaceState(null,"","#s"+(i+1));
 }
 STATES.forEach((s,i)=>{const b=document.createElement("button");b.className="btn sm";b.textContent=s[0].split(" ")[0];b.title=s[0];b.setAttribute("role","tab");b.onclick=()=>show(i);tabs.appendChild(b);});
-show(Math.max(0,Math.min(4,(parseInt(location.hash.slice(2))||1)-1)));
+show(Math.max(0,Math.min(STATES.length-1,(parseInt(location.hash.slice(2))||1)-1)));
 </script>
 </body>
 </html>
