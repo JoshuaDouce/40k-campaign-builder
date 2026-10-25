@@ -105,7 +105,7 @@ export function ScenarioPanel({ sc, onChange }: Props) {
             {check("provinces", "I hold at least one province")}
             {sc.provinces ? (
               <>
-                {check("spaceport", "I hold my Capital or a Spaceport")}
+                {check("spaceport", "I hold a Spaceport")}
                 {check("middleHold", "I hold a province on a middle world")}
                 {check("innerHold", "I hold a province on an inner world")}
                 {check("enemyInReach", "An enemy holds a province I could reach")}
