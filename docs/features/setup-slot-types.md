@@ -4,6 +4,9 @@
 > add Mounted (base 1, +Settlement), Dedicated Transports go in Other, one slot per unit, and a Setup-only hard rule of at
 > most one Toughness 9 unit (owner bound too, no override). Builds on [force-organisation.md](force-organisation.md) and
 > [setup-toughness-cap.md](setup-toughness-cap.md).
+>
+> **Updated 2026-10-25:** Infantry and Mounted are merged into Infantry / Mounted (base 3), Aircraft move to
+> Vehicle / Monster, and roles come from datasheet keywords. See [role-keywords.md](role-keywords.md). The table below is current.
 
 The role list matches how units are actually built, and the heaviest armour is limited to one unit on day one.
 
@@ -19,9 +22,8 @@ it. When War Round 1 begins, the limit goes away.
 |---|---|---|---|
 | Character | 1 | 1 | +1 per Shrine held |
 | Battleline | 2 | 4 | +1 per Fortress held |
-| Infantry | 0 | 3 | +1 per Hive City held (Beasts and Swarms included) |
-| Mounted | 0 | 1 | +1 per Settlement held |
-| Vehicle / Monster | 0 | 1 | +1 per Forge held and +1 per Refinery held |
+| Infantry / Mounted | 0 | 3 | +1 per Hive City held and +1 per Settlement held (Beasts and Swarms included) |
+| Vehicle / Monster | 0 | 1 | +1 per Forge held and +1 per Refinery held (Aircraft included) |
 | Other | 0 | 2 | +1 per Spaceport held |
 
 - Order in the picker and chart: Character, Battleline, Infantry, Mounted, Vehicle / Monster, Other.

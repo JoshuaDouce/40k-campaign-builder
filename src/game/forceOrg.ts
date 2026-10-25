@@ -23,10 +23,9 @@ export interface RoleDef {
 export const ROLES: readonly RoleDef[] = [
   { role: "Character", base: 1, min: 1, from: ["shrine"] },
   { role: "Battleline", base: 4, min: 2, from: ["fortress"] },
-  { role: "Infantry", base: 3, min: 0, from: ["hive"] },
-  { role: "Mounted", base: 1, min: 0, from: ["settlement"] },
-  { role: "Vehicle / Monster", base: 1, min: 0, from: ["forge", "refinery"] },
-  { role: "Other", base: 2, min: 0, from: ["spaceport"], covers: "Dedicated Transports, Aircraft, Fortifications" },
+  { role: "Infantry / Mounted", base: 3, min: 0, from: ["hive", "settlement"], covers: "Infantry, Mounted, Beasts, Swarms" },
+  { role: "Vehicle / Monster", base: 1, min: 0, from: ["forge", "refinery"], covers: "Walkers, tanks, Monsters, Aircraft" },
+  { role: "Other", base: 2, min: 0, from: ["spaceport"], covers: "Dedicated Transports, Fortifications" },
 ];
 
 export const ROLE_NAMES: readonly Role[] = ROLES.map((r) => r.role);
@@ -51,9 +50,10 @@ export function isRole(x: unknown): x is Role {
   return typeof x === "string" && ROLE_NAMES.includes(x as Role);
 }
 
-/** A stored role as a current Role. Legacy "Vehicle" and "Monster" become "Vehicle / Monster"; anything else unknown is undefined. */
+/** A stored role as a current Role. Legacy "Vehicle" and "Monster" become "Vehicle / Monster", legacy "Infantry" and "Mounted" become "Infantry / Mounted"; anything else unknown is undefined. */
 export function normaliseRole(x: unknown): Role | undefined {
   if (x === "Vehicle" || x === "Monster") return "Vehicle / Monster";
+  if (x === "Infantry" || x === "Mounted") return "Infantry / Mounted";
   return isRole(x) ? x : undefined;
 }
 

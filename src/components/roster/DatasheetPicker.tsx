@@ -1,7 +1,7 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent, ReactNode } from "react";
 import { SETUP_MAX_TOUGHNESS, STAGE_MAX_TOUGHNESS } from "../../game/index.ts";
-import type { FactionName } from "../../game/index.ts";
+import type { FactionName, Role } from "../../game/index.ts";
 import { fold, useDatasheets } from "./useDatasheets.ts";
 import type { Datasheet } from "./useDatasheets.ts";
 
@@ -20,6 +20,8 @@ interface Props {
   onPoints(points: string): void;
   /** Called with the datasheet's Toughness, or "" when it has none. */
   onToughness(t: string): void;
+  /** Called after a pick with the datasheet's keyword role (when the data has one) and its name. */
+  onRole(role: Role, datasheet: string): void;
   /** True in Setup, when T10 or higher is over the limit. */
   setup?: boolean;
   /** The typed name is an Epic Hero in this faction: shows the block message. */
@@ -47,7 +49,7 @@ function highlight(name: string, at: [number, number]): ReactNode {
 }
 
 /** Datasheet field for the unit form: a searchable pick-list when MFM data exists, else today's plain text input. */
-export function DatasheetPicker({ id, faction, value, points, onText, onPoints, onToughness, setup, epicBlock, stage, limitBlock }: Props) {
+export function DatasheetPicker({ id, faction, value, points, onText, onPoints, onToughness, onRole, setup, epicBlock, stage, limitBlock }: Props) {
   const data = useDatasheets(faction);
   const listId = useId();
   const field = useRef<HTMLDivElement>(null);
@@ -90,6 +92,7 @@ export function DatasheetPicker({ id, faction, value, points, onText, onPoints, 
     onText(unit.name);
     if (unit.sizes.length > 0) onPoints(String(unit.sizes[0][1]));
     onToughness(unit.t != null ? String(unit.t) : "");
+    if (unit.role) onRole(unit.role, unit.name);
   };
 
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {

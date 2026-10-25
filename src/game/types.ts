@@ -45,7 +45,7 @@ export type ProvinceType =
   | "settlement"
   | "outpost"
   | "ruins";
-export type Role = "Character" | "Battleline" | "Infantry" | "Mounted" | "Vehicle / Monster" | "Other";
+export type Role = "Character" | "Battleline" | "Infantry / Mounted" | "Vehicle / Monster" | "Other";
 export type ActionId = "conquer" | "raid" | "recuperate" | "muster" | "fortify" | "scout";
 export type StatKey = "rp" | "battles" | "wins";
 

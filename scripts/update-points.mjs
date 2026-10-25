@@ -1,5 +1,6 @@
 // Refreshes src/data/mfm/*.json from the BSData Munitorum Field Manual repo (points) and the BSData
-// wh40k-11e datasheet catalogues (Toughness, written as "t": the highest T among a unit's models).
+// wh40k-11e datasheet catalogues (Toughness, written as "t": the highest T among a unit's models; and the
+// Force Organisation role from the unit's keywords, written as "r": c/b/i/v/o).
 // Usage: npm run update-points
 import { mkdir, writeFile } from "node:fs/promises";
 import { parse } from "yaml";
@@ -77,6 +78,8 @@ async function loadToughness() {
   const byName = new Map();
   // normalised unit name -> catalogue factionKey -> is an Epic Hero
   const epicByName = new Map();
+  // normalised unit name -> catalogue factionKey -> role code
+  const roleByName = new Map();
   for (const [file, c] of cats) {
     const fk = factionKey(file);
     for (const e of c.sharedSelectionEntries ?? []) {
@@ -86,6 +89,11 @@ async function loadToughness() {
       if (!epicByName.has(n)) epicByName.set(n, new Map());
       const em = epicByName.get(n);
       em.set(fk, (em.get(fk) ?? false) || epic);
+      const r = roleCode(e);
+      if (r) {
+        if (!roleByName.has(n)) roleByName.set(n, new Map());
+        roleByName.get(n).set(fk, r);
+      }
       const t = maxT(e);
       if (t == null) continue;
       if (!byName.has(n)) byName.set(n, new Map());
@@ -93,7 +101,31 @@ async function loadToughness() {
       m.set(fk, Math.max(m.get(fk) ?? 0, t));
     }
   }
-  return { byName, epicByName };
+  return { byName, epicByName, roleByName };
+}
+
+/**
+ * Role code from a unit's keywords: c Character, b Battleline, o Other (Dedicated Transport, Fortification),
+ * v Vehicle / Monster (Aircraft included), i Infantry / Mounted (Infantry, Mounted, Beast, Swarm). First match wins.
+ */
+function roleCode(e) {
+  const k = new Set((e.categoryLinks ?? []).map((l) => l.name));
+  if (k.has("Character")) return "c";
+  if (k.has("Battleline")) return "b";
+  if (k.has("Dedicated Transport") || k.has("Fortification")) return "o";
+  if (k.has("Vehicle") || k.has("Monster") || k.has("Aircraft")) return "v";
+  if (k.has("Infantry") || k.has("Mounted") || k.has("Beast") || k.has("Swarm")) return "i";
+  return undefined;
+}
+
+/** A unit's role code in a faction's list, or undefined if unknown or conflicting. */
+function roleFor(roleByName, name, ownKeys) {
+  const m = roleByName.get(norm(name));
+  if (!m) return undefined;
+  const all = new Set(m.values());
+  if (all.size === 1) return [...all][0];
+  const own = new Set([...m].filter(([k]) => ownKeys.includes(k)).map(([, v]) => v));
+  return own.size === 1 ? [...own][0] : undefined;
 }
 
 /** T for a unit name in a faction's list, or undefined if unknown or conflicting. */
@@ -130,8 +162,9 @@ if (unmapped.length) throw new Error(`Slugs in meta.yaml not mapped in MFM_SLUGS
 const missing = [...known].filter((s) => !slugs.includes(s));
 if (missing.length) throw new Error(`Slugs in MFM_SLUGS missing from meta.yaml: ${missing.join(", ")}`);
 
-const { byName: toughness, epicByName } = await loadToughness();
+const { byName: toughness, epicByName, roleByName } = await loadToughness();
 let epicTotal = 0;
+let roleTotal = 0;
 await mkdir(OUT, { recursive: true });
 const docs = await Promise.all(slugs.map(fetchYaml));
 for (const [i, slug] of slugs.entries()) {
@@ -153,6 +186,8 @@ for (const [i, slug] of slugs.entries()) {
     else if (!u.legends) noT.push(unit.n);
     if (u.legends) unit.l = 1;
     if (epicFor(epicByName, u.name, ownKeys)) unit.e = 1;
+    const r = roleFor(roleByName, u.name, ownKeys);
+    if (r) unit.r = r;
     units.push(unit);
   }
   units.sort((a, b) => cmp(a.n, b.n));
@@ -162,8 +197,9 @@ for (const [i, slug] of slugs.entries()) {
   total += units.length;
   const epics = units.filter((x) => x.e === 1).length;
   epicTotal += epics;
+  roleTotal += units.filter((x) => x.r).length;
   console.log(`${slug}: ${units.length} units, ${noTAll} without T (${noT.length} non-Legends), ${epics} Epic Heroes`);
   if (noT.length) console.log(`  non-Legends without T: ${noT.join("; ")}`);
 }
 await writeFile(new URL("meta.json", OUT), json({ version: String(meta.version), source: REPO, licence: "MIT", toughnessSource: T_REPO }));
-console.log(`MFM version ${meta.version}; Toughness matched for ${matched} of ${total} units (source ${T_REPO}); ${epicTotal} Epic Heroes flagged`);
+console.log(`MFM version ${meta.version}; Toughness matched for ${matched} of ${total} units (source ${T_REPO}); ${epicTotal} Epic Heroes flagged; role from keywords for ${roleTotal} of ${total}`);
