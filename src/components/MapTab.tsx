@@ -4,6 +4,7 @@ import {
   count,
   getPlanet,
   getProvince,
+  holderGains,
   hollOpen,
   laneLinked,
   ORBITS,
@@ -143,7 +144,7 @@ function ProvinceInfo({ provId, planet }: { provId: string; planet: Planet }) {
         {state.fort[v.id] ? " · FORTIFIED" : ""}
       </p>
       <p>
-        <b>Bonus:</b> {T.bonus}
+        <b>Holding it:</b> {holderGains(state, v)}
       </p>
       <p className="dim" style={{ fontSize: 14 }}>
         Borders: {v.nb.map((n) => getProvince(state, n)?.name ?? n).join(", ")}

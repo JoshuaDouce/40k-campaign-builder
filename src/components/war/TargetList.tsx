@@ -1,4 +1,4 @@
-import { ownerOf, planetOf, sizeOf, VTYPES } from "../../game/index.ts";
+import { holderGains, ownerOf, planetOf, sizeOf, VTYPES } from "../../game/index.ts";
 import type { CampaignState, Zone } from "../../game/index.ts";
 
 interface Props {
@@ -30,6 +30,7 @@ export function TargetList({ state, zones, selected, onSelect, tiedUp, label }: 
             <button type="button" className={sel ? "sel" : undefined} aria-pressed={sel} disabled={used} onClick={() => onSelect(v.id)}>
               <span className="pv">{v.name}</span>
               <span className="mt">{meta(state, v)}</span>
+              <span className="gn">{holderGains(state, v)}</span>
               {used ? <span className="use">In use by another pick</span> : null}
             </button>
           </li>

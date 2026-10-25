@@ -71,6 +71,8 @@ export interface ProvinceTypeDef {
   n: string;
   size: number;
   bonus: string;
+  /** Added to the holder's supply limit while they hold it. */
+  supply?: number;
   suf: readonly string[];
 }
 export interface TwistDef {

@@ -86,7 +86,7 @@ export function datasheetLimitBlock(state: CampaignState, playerId: string, unit
 /** True while the War Round 1-2 cap applies to this player: toggle on, round 1 or 2, supply under 1250. */
 export function toughStageActive(state: CampaignState, player: Player | undefined): boolean {
   if (!player || !toggleOn(state, "toughnessStages")) return false;
-  return state.round >= 1 && state.round <= STAGE_LAST_ROUND && supplyOf(player) < STAGE_SUPPLY;
+  return state.round >= 1 && state.round <= STAGE_LAST_ROUND && supplyOf(state, player) < STAGE_SUPPLY;
 }
 
 /** True when the stage cap is active for the player and `t` is a number over the cap. Blank never counts. */

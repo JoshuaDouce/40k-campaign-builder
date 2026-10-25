@@ -308,12 +308,12 @@ function figures(s: CampaignState, a: Player, d: Player, v: Zone, act: ActionId,
     notes.push("Raid: half size.");
   }
   pts = Math.max(500, r50(pts));
-  const cap = garrison ? supplyOf(a) : Math.min(supplyOf(a), supplyOf(d));
+  const cap = garrison ? supplyOf(s, a) : Math.min(supplyOf(s, a), supplyOf(s, d));
   if (cap < pts) {
     notes.push(
       garrison
         ? `Capped at the attacker's supply limit (${a.name}).`
-        : `Capped at the lower supply limit (${supplyOf(a) <= supplyOf(d) ? a.name : d.name}).`,
+        : `Capped at the lower supply limit (${supplyOf(s, a) <= supplyOf(s, d) ? a.name : d.name}).`,
     );
     pts = Math.floor(cap / 50) * 50;
   }

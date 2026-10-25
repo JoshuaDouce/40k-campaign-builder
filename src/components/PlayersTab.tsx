@@ -207,7 +207,7 @@ function PlayerCard({ player: p, state, color, fresh, setup }: CardProps) {
         })}
         <div className="stat">
           <div className="l">Supply</div>
-          <div className="v">{supplyOf(p)}</div>
+          <div className="v">{supplyOf(state, p)}</div>
           <div className="pm">
             <button
               className="btn sm"

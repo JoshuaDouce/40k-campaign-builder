@@ -42,7 +42,7 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
   const nineExtraIds = state.round === 0 ? roster.filter(countsAsSetupNine).slice(1).map((u) => u.id) : [];
   const sorted = [...roster].sort((a, b) => Number(b.isWarlord) - Number(a.isWarlord));
   const total = totalEffective(roster);
-  const supply = supplyOf(player);
+  const supply = supplyOf(state, player);
   const over = total > supply;
   const slots = toggleOn(state, "forceOrg");
   const dsCount = toggleOn(state, "datasheetLimit") ? { x: distinctDatasheets(roster), n: datasheetLimit(state) } : null;

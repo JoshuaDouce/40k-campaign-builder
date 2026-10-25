@@ -2,7 +2,8 @@
 // Pure. Nothing here blocks an action; the UI shows warnings only.
 import { VTYPES } from "./data.ts";
 import { provsOf, getPlayer } from "./selectors.ts";
-import type { CampaignState, ProvinceType, Role, Unit } from "./types.ts";
+import { toggleOn } from "./toggles.ts";
+import type { CampaignState, ProvinceType, Role, Unit, Zone } from "./types.ts";
 
 /** Most extra slots a role can earn from holdings. */
 export const HOLDING_CAP = 3;
@@ -29,6 +30,22 @@ export const ROLES: readonly RoleDef[] = [
 ];
 
 export const ROLE_NAMES: readonly Role[] = ROLES.map((r) => r.role);
+
+/** The role a holding of this type adds a slot to, if any. */
+export function slotRoleOf(type: ProvinceType): Role | undefined {
+  return ROLES.find((r) => r.from.includes(type))?.role;
+}
+
+/** What holding this type gives: its bonus text, plus its slot when Force Organisation is on. */
+export function typeGains(type: ProvinceType, slots: boolean): string {
+  const role = slots ? slotRoleOf(type) : undefined;
+  return role ? `${VTYPES[type].bonus} +1 ${role} slot.` : VTYPES[type].bonus;
+}
+
+/** What holding this zone gives its holder, in one line. */
+export function holderGains(state: CampaignState, v: Zone): string {
+  return v.type === "rift" ? "Hold it when the War Round ends to win the Reach." : typeGains(v.type, toggleOn(state, "forceOrg"));
+}
 
 export function isRole(x: unknown): x is Role {
   return typeof x === "string" && ROLE_NAMES.includes(x as Role);
