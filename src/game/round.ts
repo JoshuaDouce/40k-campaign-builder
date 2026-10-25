@@ -527,8 +527,8 @@ export function resolvePick(s: CampaignState, playerId: string, res: "a" | "d" |
   if (pk.act === "conquer" && win === a) rec.took = true;
   s.history = [...(s.history ?? []), rec];
   if (info.garrison)
-    log(s, B(a.name), ": record XP, roll for the fallen, +150 supply. ", B(d.name), " fielded the garrison and gains nothing.");
-  else log(s, "Both players: record XP, roll for the fallen, +150 supply.");
+    log(s, B(a.name), ": record XP and roll for the fallen. ", B(d.name), " fielded the garrison and gains nothing.");
+  else log(s, "Both players: record XP and roll for the fallen.");
   pk.done = true;
   checkRoundEnd(s);
   return true;

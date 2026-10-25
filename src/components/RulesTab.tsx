@@ -164,7 +164,6 @@ export function RulesTab() {
         <li><div><b>Award XP</b>+1 to every unit that fought and was not destroyed. +1 per enemy unit it destroyed. +2 to one unit you <i>Marked for Glory</i> before the game.</div></li>
         <li><div><b>Roll for the fallen</b>Every unit destroyed rolls a D6 (Hard to Kill adds 1). On a 1 it gains a Battle Scar; Characters on a 1–2. Roll a D3 on the Battle Scars table. The Warlord never rolls: see Battle Scars.</div></li>
         <li><div><b>Requisition</b>+1 RP to both players, +1 more to the winner. Bank up to 10. (Garrison battles: the attacker only.)</div></li>
-        <li><div><b>Supply</b>Both players' supply limits grow by 150 pts. (Garrison battles: the attacker only.)</div></li>
         <li><div><b>Spoils</b>The winner draws 1 Fate Card. A Conquer winner takes the province. A Raid winner steals 1 RP and a random Fate Card.</div></li>
         <li><div><b>Underdog's grit</b>Any player now holding the fewest provinces in the campaign draws 1 Fate Card.</div></li>
       </ol>
@@ -214,7 +213,7 @@ export function RulesTab() {
       <div className="tbl"><table>
         <thead><tr><th>Cost</th><th>Requisition</th><th>Effect</th></tr></thead>
         <tbody>
-          <tr><td className="n">1 RP</td><td>Reinforcements</td><td>+200 pts to your supply limit.</td></tr>
+          <tr><td className="n">1 RP</td><td>Reinforcements</td><td>+200 pts to your supply limit. Besides Muster, Outposts and Ruins, this is the only way it grows.</td></tr>
           <tr><td className="n">1 RP</td><td>Field Surgeon</td><td>Remove one Battle Scar.</td></tr>
           <tr><td className="n">1 RP</td><td>Requisition the Deck</td><td>Draw one Fate Card.</td></tr>
           <tr><td className="n">1 RP</td><td>Promotion</td><td>Give a Character Battle Training, or make a Veteran (8+ XP) unit's sergeant a Character.</td></tr>
