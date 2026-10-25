@@ -1,0 +1,106 @@
+import { useState } from "react";
+import { battleInfo, LIGHT_FORCES_MAX_PTS, LIGHT_FORCES_TWIST, planetOf, TWISTS, VTYPES } from "../../game/index.ts";
+import type { Action, CampaignState } from "../../game/index.ts";
+
+interface Props {
+  state: CampaignState;
+  dispatch(a: Action): void;
+  can(a: Action): boolean;
+  /** The attacker whose battle this is. Each battle keeps its own decisive choice. */
+  playerId: string;
+}
+
+/** One rolled battle: its twists, fixed figures, and the buttons to record the result or re-roll. */
+export function BattleCard({ state, dispatch, can, playerId }: Props) {
+  const B = battleInfo(state, playerId);
+  const [decisive, setDecisive] = useState(false);
+  if (!B) return null;
+  const planet = planetOf(state, B.v);
+  const selId = `decisiveSel-${playerId}`;
+  const results: Array<{ result: "a" | "d" | "x"; label: string; primary: boolean }> = [
+    { result: "a", label: `${B.a.name} won`, primary: true },
+    { result: "d", label: `${B.d.name} won${B.garrison ? " (garrison)" : ""}`, primary: true },
+    { result: "x", label: "Draw", primary: false },
+  ];
+  const reroll: Action = { type: "rerollPick", playerId };
+  return (
+    <div className="battle">
+      <div className="eyebrow">
+        {planet && B.v.type !== "rift" ? `${planet.name} · ${VTYPES[B.v.type].n}` : "The Hollowgate"} · {B.v.name}
+        {B.garrison ? " · Garrison battle" : ""}
+      </div>
+      <div className="size">{B.pts} pts</div>
+      {B.garrison && (
+        <p className="mono dim" style={{ fontSize: 12 }}>
+          GARRISON {B.pts} PTS · {B.a.name.toUpperCase()} {B.attackerPts} PTS (+20%)
+        </p>
+      )}
+      <p className="mono dim" style={{ fontSize: 12 }}>
+        {B.a.name.toUpperCase()} (ATTACKER) VS {B.d.name.toUpperCase()} ({B.garrison ? "GARRISON" : "DEFENDER"}) · FATE CARDS: UP TO {B.cards} EACH
+      </p>
+      {B.twists.map((i) => (
+        <div className="twist" key={i}>
+          <span className="mono" style={{ fontSize: 11, color: "var(--blood)" }}>
+            TWIST · D12 {i + 1}
+          </span>
+          <br />
+          <b>{TWISTS[i].t}</b>
+          <br />
+          {TWISTS[i].e}
+        </div>
+      ))}
+      {B.lightForces && (
+        <div className="twist" style={{ borderColor: "var(--verd)" }}>
+          <span className="mono" style={{ fontSize: 11, color: "var(--verd)" }}>
+            LIGHT FORCES · {LIGHT_FORCES_MAX_PTS} PTS OR FEWER
+          </span>
+          <br />
+          {TWISTS[LIGHT_FORCES_TWIST].e}
+        </div>
+      )}
+      <div className="twist" style={{ borderColor: "var(--verd)" }}>
+        <span className="mono" style={{ fontSize: 11, color: "var(--verd)" }}>
+          WORLD · {B.trait.n.toUpperCase()}
+        </span>
+        <br />
+        {B.trait.trait}
+      </div>
+      {B.notes.map((n) => (
+        <p key={n} style={{ fontSize: 14.5, margin: "4px 0" }}>
+          {n}
+        </p>
+      ))}
+      <p className="hint">Points and notes are fixed now. Re-roll works them out again.</p>
+      <p className="mono" style={{ fontSize: 12, color: "var(--brass)", marginTop: 12 }}>
+        PLAY THE BATTLE WITH NORMAL FORCE RULES, THEN RECORD THE RESULT
+      </p>
+      {B.garrison && (
+        <>
+          <div className="field">
+            <label htmlFor={selId}>Decisive win? (attacker lost under 25% of their army)</label>
+            <select id={selId} value={decisive ? "yes" : "no"} onChange={(e) => setDecisive(e.target.value === "yes")}>
+              <option value="no">No</option>
+              <option value="yes">Yes</option>
+            </select>
+          </div>
+          <p className="dim" style={{ fontSize: 14 }}>
+            Only counts if {B.a.name} wins. Yes gives {B.a.name} +1 extra RP.
+          </p>
+        </>
+      )}
+      <div className="row">
+        {results.map((r) => {
+          const a: Action = { type: "resolvePick", playerId, result: r.result, decisive };
+          return (
+            <button key={r.result} type="button" className={r.primary ? "btn primary" : "btn"} disabled={!can(a)} onClick={() => dispatch(a)}>
+              {r.label}
+            </button>
+          );
+        })}
+        <button type="button" className="btn sm" disabled={!can(reroll)} onClick={() => dispatch(reroll)}>
+          Re-roll twists
+        </button>
+      </div>
+    </div>
+  );
+}

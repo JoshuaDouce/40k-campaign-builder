@@ -64,10 +64,9 @@ export function RulesTab() {
       <ol className="steps">
         <li><div><b>Muster</b>Every player draws 1 Fate Card (hand limit 5).</div></li>
         <li><div><b>Income</b>+1 RP for your Capital and each Hive City you hold. Refineries draw extra cards.</div></li>
-        <li><div><b>Turn order</b>Fewest provinces goes first. Break ties with a roll-off.</div></li>
-        <li><div><b>Each player's turn</b>Choose one campaign action. If it starts a battle, generate it, play it, and apply the outcome before the next player goes.</div></li>
-        <li><div><b>End of round</b>If someone holds the Hollowgate, they win the Reach. Otherwise start the next War Round.</div></li>
       </ol>
+      <p>Each War Round has four steps. Plan: every player secretly chooses an action and target at the same time, then marks Ready. Reveal: once everyone is Ready, the owner reveals all picks at once. Play: everyone plays their own pick at the same time. If two players picked the same province, the weaker goes first and the other waits, or switches to something else. Round end: when every pick is done. If a pick is no longer possible when its turn comes, that player chooses again.</p>
+      <p>If someone holds the Hollowgate when the round ends, they win the Reach. Otherwise start the next War Round. The weakest is whoever holds the fewest provinces; break ties with a roll-off.</p>
       <p className="dim">Can't get every game played in one evening? Fine. A War Round can stretch over a couple of weeks. Non-battle turns take a minute and can be done over the group chat.</p>
 
       <h3>Characters</h3>

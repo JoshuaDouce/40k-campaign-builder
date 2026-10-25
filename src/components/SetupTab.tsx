@@ -11,8 +11,8 @@ import { PlayerNameInput } from "./PlayerNameInput.tsx";
 const BRIEF: ReadonlyArray<readonly [string, string]> = [
   ["The setting.", "The Hollowgate rift tore open three years ago and the Reach is a scatter of worlds, each split into provinces. More players, more worlds."],
   ["Your start.", "A 750 pt roster led by one Warlord, 0 Requisition Points (earn them from your Capital and from battles), and a Capital province on an outer world. No Epic Heroes."],
-  ["The War Round.", "Everyone draws a Fate Card, then each player takes one turn, smallest empire first."],
-  ["Your turn.", "Pick one action: Conquer, Raid, Recuperate, Muster, Fortify or Scout. Conquer and Raid start a battle."],
+  ["The War Round.", "Everyone draws a Fate Card, then everyone plans in secret and plays at the same time; only players on the same province wait."],
+  ["Your move.", "Pick one action: Conquer, Raid, Recuperate, Muster, Fortify or Scout. Conquer and Raid start a battle."],
   ["Winning.", "Once 60% of the Reach is claimed (or by War Round 8) the Hollowgate opens. Hold it at the end of a War Round to win."],
 ];
 

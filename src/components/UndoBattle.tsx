@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { canPerform, getPlayer, getZone } from "../game/index.ts";
+import { canPerform, getPlayer, zoneName } from "../game/index.ts";
 import type { Action, CampaignState } from "../game/index.ts";
 import type { CampaignViewer } from "../store/useCampaign.ts";
 
@@ -13,7 +13,7 @@ export function UndoBattle({ state, dispatch, viewer }: { state: CampaignState; 
   }, [confirming]);
   const u = state.undo;
   if (!u) return null;
-  const undo: Action = { type: "undoBattle" };
+  const undo: Action = { type: "undoBattle", attacker: u.attacker };
   // Who may see it does not depend on whether a report has been filed.
   if (!canPerform({ ...state, undo: { ...u, reportFiled: false } }, undo, viewer)) return null;
   if (u.reportFiled) {
@@ -29,10 +29,10 @@ export function UndoBattle({ state, dispatch, viewer }: { state: CampaignState; 
       </div>
     );
   }
-  const pd = u.before.pend;
+  const pk = u.before.picks[u.attacker];
   const attacker = getPlayer(state, u.attacker)?.name ?? "The attacker";
-  const defender = pd?.garrison ? "the garrison" : (getPlayer(state, u.defender)?.name ?? "the defender");
-  const province = pd?.zone ? (getZone(state, pd.zone)?.name ?? "the province") : "the province";
+  const defender = pk?.battle?.garrison ? "the garrison" : (getPlayer(state, u.defender)?.name ?? "the defender");
+  const province = zoneName(state, pk?.zone, "the province");
   return (
     <div className="bh-confirm" role="group" aria-label="Undo this result?">
       <h4 className="bh-ttl">Undo this result?</h4>
