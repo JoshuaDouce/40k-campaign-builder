@@ -30,6 +30,8 @@ interface Props {
   stage?: boolean;
   /** Datasheet limit message to show under the field (this datasheet would be a new one over the limit). */
   limitBlock?: string;
+  /** Once the campaign has started a unit can't shrink: model counts below these points are disabled. */
+  minPoints?: number;
 }
 
 interface Hit {
@@ -49,7 +51,7 @@ function highlight(name: string, at: [number, number]): ReactNode {
 }
 
 /** Datasheet field for the unit form: a searchable pick-list when MFM data exists, else today's plain text input. */
-export function DatasheetPicker({ id, faction, value, points, onText, onPoints, onToughness, onRole, setup, epicBlock, stage, limitBlock }: Props) {
+export function DatasheetPicker({ id, faction, value, points, onText, onPoints, onToughness, onRole, setup, epicBlock, stage, limitBlock, minPoints = 0 }: Props) {
   const data = useDatasheets(faction);
   const listId = useId();
   const field = useRef<HTMLDivElement>(null);
@@ -90,7 +92,8 @@ export function DatasheetPicker({ id, faction, value, points, onText, onPoints, 
     setPicked(unit);
     setOpen(false);
     onText(unit.name);
-    if (unit.sizes.length > 0) onPoints(String(unit.sizes[0][1]));
+    const size = unit.sizes.find(([, pts]) => pts >= minPoints) ?? unit.sizes[0];
+    if (size) onPoints(String(size[1]));
     onToughness(unit.t != null ? String(unit.t) : "");
     if (unit.role) onRole(unit.role, unit.name);
   };
@@ -210,7 +213,7 @@ export function DatasheetPicker({ id, faction, value, points, onText, onPoints, 
           </div>
           <div className="mf-sizes" role="group" aria-label="Model count">
             {sizes.map(([models, pts]) => (
-              <button key={models} type="button" aria-pressed={now === pts} onClick={() => onPoints(String(pts))}>
+              <button key={models} type="button" aria-pressed={now === pts} disabled={pts < minPoints} title={pts < minPoints ? "A unit can grow but not shrink once the campaign has started" : undefined} onClick={() => onPoints(String(pts))}>
                 {models} {models === 1 ? "model" : "models"} · <b>{pts} pts</b>
               </button>
             ))}

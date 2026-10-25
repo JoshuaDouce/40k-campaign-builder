@@ -20,6 +20,7 @@ import {
   setupToughnessBlock,
   setupToughnessNineBlock,
   datasheetLimit,
+  minPointsFor,
   datasheetLimitBlock,
   distinctDatasheets,
   isKnightsExempt,
@@ -214,7 +215,9 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, r
   const describedBy = [charBlock ? "f_charblock" : "", toughStop ? "f_toughblock" : "", epicBlock ? "f_epicblock" : "", dsBlock && !epicBlock ? "f_dsblock" : ""].filter(Boolean).join(" ") || undefined;
 
   let problem = "";
+  const minPts = minPointsFor(state, existing);
   if (!Number.isFinite(points) || points < 0) problem = "Base points must be 0 or more.";
+  else if (points < minPts) problem = `The campaign has started: a unit can grow but not shrink. Base points must be ${minPts} or more.`;
   else if (!Number.isInteger(xp) || xp < 0) problem = "XP must be a whole number, 0 or more.";
   else if (toughBad) problem = "Toughness must be a whole number, 1 or more.";
   else if (!wholeOrEmpty(d.battles)) problem = "Battles must be a whole number, 0 or more.";
@@ -289,10 +292,11 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, r
           epicBlock={epicBlock}
           stage={stageActive}
           limitBlock={dsMessage}
+          minPoints={minPts}
         />
         <div className="field" style={{ flex: "1 1 120px" }}>
           <label htmlFor="f_base">Base points</label>
-          <input type="number" id="f_base" inputMode="numeric" min={0} step={5} value={d.points} onChange={(e) => set({ points: e.target.value })} />
+          <input type="number" id="f_base" inputMode="numeric" min={minPts} step={5} value={d.points} onChange={(e) => set({ points: e.target.value })} />
         </div>
         <div className="field" style={{ flex: "1 1 120px" }}>
           <label htmlFor="f_xp">XP</label>

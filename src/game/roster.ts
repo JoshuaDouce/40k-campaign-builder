@@ -393,6 +393,16 @@ export function addUnitTo(s: CampaignState, playerId: string, unit: Unit): boole
   return true;
 }
 
+/** Once War Round 1 begins a unit stays on the roster (only a third scar takes it) and can't shrink. Examples are exempt. */
+export function unitLocked(s: Pick<CampaignState, "round">, u: Pick<Unit, "ex">): boolean {
+  return s.round !== 0 && !u.ex;
+}
+
+/** Lowest base points an edit may save: the current points once the unit is locked (size only goes up), else 0. */
+export function minPointsFor(s: Pick<CampaignState, "round">, u: Pick<Unit, "ex" | "points"> | undefined): number {
+  return u && unitLocked(s, u) ? u.points : 0;
+}
+
 export function updateUnitIn(s: CampaignState, playerId: string, unit: Unit): boolean {
   const p = getPlayer(s, playerId);
   const roster = rosterFor(s, playerId);
@@ -400,6 +410,7 @@ export function updateUnitIn(s: CampaignState, playerId: string, unit: Unit): bo
   const u = cleanUnit(unit);
   if (!p || i === -1 || !u) return false;
   const old = roster[i];
+  if (u.points < minPointsFor(s, old)) return false;
   if (!gateNonCharacterWarlord(s, playerId, u, old)) return false;
   // A legacy Setup roster with 2+ Characters can still edit them; only a save that adds a Character is stopped.
   if (!old.isCharacter && breaksSetupRule(s, playerId, u)) return false;
@@ -447,7 +458,7 @@ export function removeUnitFrom(s: CampaignState, playerId: string, unitId: strin
   if (!p) return false;
   const roster = rosterFor(s, playerId);
   const u = roster.find((x) => x.id === unitId);
-  if (!u) return false;
+  if (!u || unitLocked(s, u)) return false;
   // No battles are fought in Setup, so nothing is memorialised.
   if (u.isCharacter && s.round !== 0) remember(s, p.name, playerId, u, (typeof cause === "string" ? cause.trim().slice(0, CAUSE_MAX) : "") || DEFAULT_CAUSE);
   s.rosters![playerId] = roster.filter((x) => x.id !== unitId);

@@ -37,13 +37,15 @@ interface Props {
   /** The unit is a Warlord but not a Character, and the Knights exemption does not cover it. */
   warlordNotChar?: boolean;
   onEdit(): void;
+  /** False once the campaign has started (example units excepted): no Remove button. */
+  removable: boolean;
   /** Characters pass the cause entered on the "Why did they fall?" sheet. */
   onRemove(cause?: string): void;
   onRollRelic(): void;
   onRemoveRelic(relic: string): void;
 }
 
-export function UnitCard({ unit, editable, memorial, overLimit, toughOver, toughNineExtra, epic, toughStage, warlordNotChar, onEdit, onRemove, onRollRelic, onRemoveRelic }: Props) {
+export function UnitCard({ unit, editable, memorial, overLimit, toughOver, toughNineExtra, epic, toughStage, warlordNotChar, removable, onEdit, onRemove, onRollRelic, onRemoveRelic }: Props) {
   const [armed, setArmed] = useState(false);
   const [asking, setAsking] = useState(false);
   useEffect(() => {
@@ -262,16 +264,18 @@ export function UnitCard({ unit, editable, memorial, overLimit, toughOver, tough
           <button className="btn sm" onClick={onEdit}>
             Edit
           </button>
-          <button
-            className="btn sm danger"
-            onClick={() => {
-              if (remembered) setAsking(true);
-              else if (armed) onRemove();
-              else setArmed(true);
-            }}
-          >
-            {armed && !remembered ? "Confirm remove" : "Remove"}
-          </button>
+          {removable && (
+            <button
+              className="btn sm danger"
+              onClick={() => {
+                if (remembered) setAsking(true);
+                else if (armed) onRemove();
+                else setArmed(true);
+              }}
+            >
+              {armed && !remembered ? "Confirm remove" : "Remove"}
+            </button>
+          )}
         </div>
       )}
       {asking && (
