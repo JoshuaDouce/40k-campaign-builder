@@ -1,4 +1,4 @@
-import { ACTIONS, CHAR_HONOURS, CHAR_SCARS, HONOURS, LIGHT_FORCES_MAX_PTS, LIGHT_FORCES_TWIST, ORBITS, PTYPES, RELICS, SCARS, toggleOn, TOGGLE_KEYS, TOGGLE_NAMES, TWISTS, typeGains, VTYPES } from "../game/index.ts";
+import { ACTIONS, CHAR_HONOURS, CHAR_SCARS, HONOURS, LIGHT_FORCES_MAX_PTS, LIGHT_FORCES_TWIST, ORBITS, PTYPES, RELICS, SCARS, TRAINING, toggleOn, TOGGLE_KEYS, TOGGLE_NAMES, TWISTS, typeGains, VTYPES } from "../game/index.ts";
 import type { ProvinceType, ToggleKey } from "../game/index.ts";
 import { useOptionalCampaign } from "../store/useCampaign.ts";
 
@@ -206,6 +206,10 @@ export function RulesTab() {
       <p>A Character can earn a relic when its player claims a Shrine province, or plays a Fate Card. A Character holds at most three relics, never the same one twice (re-roll or pick another). Each relic adds 10 pts to the Character's cost, after Battle Honours are counted.</p>
       <RollTable die="D6" label="Relic" rows={RELICS} />
 
+      <h3>Battle Training (roll D12 or pick)</h3>
+      <p>Spend 1 RP on a Promotion to give a Character Battle Training. It is not a detachment Enhancement; those are still chosen and paid for in points when you muster. A Character can hold up to three, never the same one twice (re-roll or pick another), and each adds 10 pts to its cost.</p>
+      <RollTable die="D12" label="Training" rows={TRAINING} />
+
       <h3>Spending Requisition</h3>
       <div className="tbl"><table>
         <thead><tr><th>Cost</th><th>Requisition</th><th>Effect</th></tr></thead>
@@ -213,7 +217,7 @@ export function RulesTab() {
           <tr><td className="n">1 RP</td><td>Reinforcements</td><td>+200 pts to your supply limit.</td></tr>
           <tr><td className="n">1 RP</td><td>Field Surgeon</td><td>Remove one Battle Scar.</td></tr>
           <tr><td className="n">1 RP</td><td>Requisition the Deck</td><td>Draw one Fate Card.</td></tr>
-          <tr><td className="n">1 RP</td><td>Promotion</td><td>Give a Character an enhancement, or make a Veteran (8+ XP) unit's sergeant a Character.</td></tr>
+          <tr><td className="n">1 RP</td><td>Promotion</td><td>Give a Character Battle Training, or make a Veteran (8+ XP) unit's sergeant a Character.</td></tr>
           <tr><td className="n">2 RP</td><td>Seasoned Recruits</td><td>Add a new unit that starts at 3 XP (Blooded), with its first Battle Honour.</td></tr>
         </tbody>
       </table></div>

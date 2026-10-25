@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { forceOrgFor, PROMOTION_COST, PROMOTION_MIN_XP, rankOf, RECRUITS_COST, scarEffect, SURGEON_COST, scarLabel, scarName } from "../../game/index.ts";
+import { forceOrgFor, MAX_TRAINING, TRAINING, TRAINING_PTS, trainingEffect, PROMOTION_COST, PROMOTION_MIN_XP, rankOf, RECRUITS_COST, scarEffect, SURGEON_COST, scarLabel, scarName } from "../../game/index.ts";
 import type { Unit } from "../../game/index.ts";
 import { useCampaign } from "../../store/useCampaign.ts";
+import { DieControl } from "./DieControl.tsx";
 import { Overlay, SheetFooter } from "./Overlay.tsx";
 import { UnitFormSheet } from "./UnitFormSheet.tsx";
 
@@ -90,30 +91,42 @@ export function PromotionDialog({ playerId, roster, rp, onDone, onClose }: Props
   const setup = state.round === 0;
   const [mode, setMode] = useState<PromoMode>("char");
   const [uid, setUid] = useState<string | null>(null);
-  const [enh, setEnh] = useState("");
-  const list = mode === "char" ? roster.filter((u) => u.isCharacter) : setup ? [] : roster.filter((u) => !u.isCharacter && u.xp >= PROMOTION_MIN_XP);
+  const [roll, setRoll] = useState<number | undefined>();
+  const [pick, setPick] = useState("");
+  const trained = (u: Unit) => (u.training ?? []).length;
+  const list = mode === "char" ? roster.filter((u) => u.isCharacter && trained(u) < MAX_TRAINING) : setup ? [] : roster.filter((u) => !u.isCharacter && u.xp >= PROMOTION_MIN_XP);
   const unit = list.find((u) => u.id === uid);
-  const ready = !!unit && rp >= PROMOTION_COST && (mode === "vet" || enh.trim() !== "");
+  // Battle Training: roll a D12 or pick; a name the Character already holds can't be taken again.
+  const held = unit?.training ?? [];
+  const rolledName = roll ? TRAINING[roll - 1]?.n : undefined;
+  const dupRoll = !!rolledName && held.includes(rolledName) && !pick;
+  const candidate = pick || rolledName;
+  const training = candidate && !held.includes(candidate) ? candidate : undefined;
+  const ready = !!unit && rp >= PROMOTION_COST && (mode === "vet" || !!training);
 
   const go = () => {
     if (!unit || !ready) return;
-    dispatch({ type: "promotion", playerId, unitId: unit.id, enhancement: mode === "char" ? enh.trim() : undefined });
-    onDone(mode === "char" ? `Promotion: ${unit.name} gains an enhancement (-${PROMOTION_COST} RP)` : `Promotion: ${unit.name} is now a Character (-${PROMOTION_COST} RP)`);
+    dispatch({ type: "promotion", playerId, unitId: unit.id, training: mode === "char" ? training : undefined });
+    onDone(mode === "char" ? `Promotion: ${unit.name} completes ${training} (-${PROMOTION_COST} RP)` : `Promotion: ${unit.name} is now a Character (-${PROMOTION_COST} RP)`);
   };
   const pickMode = (m: PromoMode) => {
     setMode(m);
-    setUid(null);
-    setEnh("");
+    pickUnit(null);
+  };
+  const pickUnit = (id: string | null) => {
+    setUid(id);
+    setRoll(undefined);
+    setPick("");
   };
 
   return (
     <Overlay title="Promotion" onClose={onClose}>
       <p className="dim">
-        {PROMOTION_COST} RP. Give a Character an enhancement, or make a Veteran unit's sergeant a Character. You have {rp} RP.
+        {PROMOTION_COST} RP. Give a Character Battle Training (+{TRAINING_PTS} pts each, up to {MAX_TRAINING}), or make a Veteran unit's sergeant a Character. You have {rp} RP.
       </p>
       <div className="seg" role="group" aria-label="Promotion type">
         <button type="button" className="chip" aria-pressed={mode === "char"} onClick={() => pickMode("char")}>
-          Character enhancement
+          Battle Training
         </button>
         <button type="button" className="chip" aria-pressed={mode === "vet"} onClick={() => pickMode("vet")}>
           Veteran becomes Character
@@ -122,25 +135,49 @@ export function PromotionDialog({ playerId, roster, rp, onDone, onClose }: Props
       <div className="picklist" style={{ marginTop: 12 }}>
         {list.length ? (
           list.map((c) => (
-            <button key={c.id} type="button" className="opt" aria-pressed={c.id === uid} onClick={() => setUid(c.id)}>
+            <button key={c.id} type="button" className="opt" aria-pressed={c.id === uid} onClick={() => pickUnit(c.id)}>
               <div>
                 <b>{c.name}</b>
                 <small>
                   {c.datasheet} · {rankOf(c.xp)}
-                  {c.enhancement ? " · has an enhancement already" : ""}
+                  {trained(c) ? ` · ${trained(c)} of ${MAX_TRAINING} Battle Training` : ""}
                 </small>
               </div>
             </button>
           ))
         ) : (
-          <p className="dim">{mode === "char" ? "No Characters on the roster." : setup ? "Setup allows one Character: your Warlord. Veterans can be promoted from War Round 1." : "No Veteran units that aren't already Characters."}</p>
+          <p className="dim">{mode === "char" ? `No Characters on the roster with room for Battle Training (${MAX_TRAINING} at most).` : setup ? "Setup allows one Character: your Warlord. Veterans can be promoted from War Round 1." : "No Veteran units that aren't already Characters."}</p>
         )}
       </div>
       {mode === "char" && uid && (
-        <div className="field">
-          <label htmlFor="p_enh">Enhancement</label>
-          <input type="text" id="p_enh" value={enh} placeholder="Enhancement name and effect" onChange={(e) => setEnh(e.target.value)} />
-        </div>
+        <>
+          <div className="row" style={{ marginTop: 8 }}>
+            <DieControl
+              faces={12}
+              value={roll}
+              label="Battle Training D12"
+              onChange={(v) => {
+                setRoll(v);
+                setPick("");
+              }}
+            />
+            <select aria-label="Pick Battle Training" value={pick} onChange={(e) => setPick(e.target.value)}>
+              <option value="">Pick from list</option>
+              {TRAINING.map((t) => (
+                <option key={t.n} value={t.n} disabled={held.includes(t.n)}>
+                  {t.n}
+                  {held.includes(t.n) ? " (held)" : ""}
+                </option>
+              ))}
+            </select>
+          </div>
+          {dupRoll && <div className="out bad">Rolled {roll}: {rolledName}, already held. Re-roll, or pick another from the list.</div>}
+          {training && (
+            <div className="out">
+              {pick ? "Picked" : `Rolled ${roll}`}: <b>{training}</b>. {trainingEffect(training)}
+            </div>
+          )}
+        </>
       )}
       {mode === "vet" && uid && (
         <p className="mono" style={{ fontSize: 12, color: "var(--brass)" }}>

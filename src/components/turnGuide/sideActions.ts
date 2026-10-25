@@ -16,7 +16,7 @@ export const SIDE_ACTIONS: SideAction[] = [
     effects: { rp: -1, cards: 1 },
     available: (env) => (env.sc.hand + env.tally.cards >= HAND_LIMIT ? "Your hand is full (limit 5)." : needRp(env, 1)),
   },
-  { id: "promotion", group: "rp", label: "Promotion", hint: "1 RP: give a Character an enhancement, or make a Veteran unit's sergeant a Character.", effects: { rp: -1 }, available: (env) => needRp(env, 1) },
+  { id: "promotion", group: "rp", label: "Promotion", hint: "1 RP: give a Character Battle Training (+10 pts, up to 3), or make a Veteran unit's sergeant a Character.", effects: { rp: -1 }, available: (env) => needRp(env, 1) },
   { id: "recruits", group: "rp", label: "Seasoned Recruits", hint: "2 RP: add a new unit that starts at 3 XP (Blooded).", effects: { rp: -2 }, available: (env) => needRp(env, 2) },
   {
     id: "playcard",

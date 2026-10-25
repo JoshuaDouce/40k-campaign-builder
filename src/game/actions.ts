@@ -150,7 +150,7 @@ function run(s: CampaignState, a: Action, rng: Rng): boolean {
     case "fieldSurgeon":
       return fieldSurgeonOn(s, a.playerId, a.unitId, a.scar);
     case "promotion":
-      return promoteUnit(s, a.playerId, a.unitId, a.enhancement);
+      return promoteUnit(s, a.playerId, a.unitId, a.training);
     case "seasonedRecruits":
       return recruitUnit(s, a.playerId, a.unit);
 

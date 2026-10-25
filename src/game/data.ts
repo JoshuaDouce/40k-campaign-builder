@@ -170,6 +170,21 @@ export const CHAR_SCARS: readonly { n: string; e: string }[] = [
   { n: "Lost an Eye", e: "−1 BS on its ranged weapons." },
   { n: "Withered Arm", e: "−1 Strength on its melee weapons." },
 ];
+/** Battle Training, bought with Promotion, in D12 order (index 0 = a roll of 1). Characters only. */
+export const TRAINING: readonly { n: string; e: string }[] = [
+  { n: "Blade Drills", e: "Re-roll hit rolls of 1 for this model's melee attacks." },
+  { n: "Firing-Range Drills", e: "Re-roll hit rolls of 1 for this model's ranged attacks." },
+  { n: "Forced Marches", e: "+1\" to this model's Move." },
+  { n: "Iron Discipline", e: "This model's unit re-rolls failed Battle-shock tests." },
+  { n: "Assault Training", e: "+1 to charge rolls for this model's unit." },
+  { n: "Breaching Drills", e: "Improve the AP of one of this model's melee weapons by 1." },
+  { n: "Field Medicine", e: "Once per battle, at the start of your Command phase, this model regains 1 lost wound." },
+  { n: "Pathfinder Training", e: "Once per battle, after both sides have deployed, this model's unit can make a Normal move of up to 3\"." },
+  { n: "Staff College", e: "Once per battle, use a Stratagem on this model's unit for 1 CP less." },
+  { n: "Overwatch Drills", e: "Once per battle, this model's unit can use Fire Overwatch for 0 CP." },
+  { n: "Endurance Conditioning", e: "+1 Wounds." },
+  { n: "Objective Drills", e: "+2 OC for this model." },
+];
 /** Relics, in D6 order (index 0 = a roll of 1). */
 export const RELICS: readonly { n: string; e: string }[] = [
   { n: "Orrin's Ward", e: "The bearer gains a 5+ invulnerable save, or improves an existing one by 1 (best 4+)." },
