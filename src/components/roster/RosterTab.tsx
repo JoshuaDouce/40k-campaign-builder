@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { canPerform, count, DATASHEET_COST, HAND_LIMIT, ROLE_NAMES, roleOf, countsAsSetupNine, datasheetLimit, distinctDatasheets, forceOrgFor, overStageCap, PROMOTION_COST, RECRUITS_COST, rosterOf, setupToughnessBlock, SURGEON_COST, supplyOf, toggleOn, totalEffective, toughStageActive, warlordNotCharacter } from "../../game/index.ts";
+import { canPerform, count, DATASHEET_COST, HAND_LIMIT, ROLE_NAMES, roleOf, countsAsSetupNine, datasheetLimit, distinctDatasheets, forceOrgFor, overStageCap, PROMOTION_COST, RECRUITS_COST, rosterOf, setupToughnessBlock, SURGEON_COST, supplyOf, toggleOn, totalEffective, toughStageActive, unitLocked, warlordNotCharacter } from "../../game/index.ts";
 import type { Unit } from "../../game/index.ts";
 import { useCampaign } from "../../store/useCampaign.ts";
 import { FateHand } from "../FateHand.tsx";
@@ -279,6 +279,7 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
                   epic={isEpicName(u.datasheet)}
                   toughStage={stage && overStageCap(u.t)}
                   warlordNotChar={warlordNotCharacter(state, player, u)}
+                  removable={!unitLocked(state, u)}
                   onEdit={() => setDialog({ kind: "edit", unit: u })}
                   onRollRelic={() => setDialog({ kind: "relic", unit: u })}
                   onRemoveRelic={(relic) => {

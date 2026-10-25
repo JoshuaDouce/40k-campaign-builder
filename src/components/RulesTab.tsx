@@ -87,6 +87,7 @@ export function RulesTab() {
       {toggled("knights") && (
         <p><b>Knights.</b> For Imperial Knights and Chaos Knights players: Armigers and War Dogs count as Battleline, so the one Toughness 9 limit doesn't apply to them. In Setup, your Warlord may be an Armiger or War Dog instead of a Character. It carries the Warlord trait, but no title, backstory, enhancement or relics. From War Round 1 the normal rules apply, and you may make a Character your Warlord.</p>
       )}
+      <p><b>No going back.</b> Once War Round 1 begins, a unit on your roster stays there: you can't remove it, and its size can only go up, never down (its base points can't be lowered). The only way out is a third Battle Scar. Until then, in Setup, add, remove and resize freely.</p>
       <p><b>Slots hold models, not fixed units.</b> Your roster is the supply of models you can draw on for a battle. A slot can hold a bigger unit than you field in one go: ten Intercessors in one Battleline {slots ? "slot" : "unit"} can take the field as two squads of five. When you pick your army for a game, build it from the models on your roster using the normal 40k muster rules (unit sizes, points and how many of each datasheet you may take).</p>
 
       <h3>Campaign actions</h3>
