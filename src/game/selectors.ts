@@ -56,8 +56,12 @@ export function claimedFrac(s: CampaignState): number {
 export function hollOpen(s: CampaignState): boolean {
   return s.hollOpened || claimedFrac(s) >= 0.6 || s.round >= 8;
 }
-export function supplyOf(p: Player): number {
-  return 750 + 150 * p.battles + (p.sup || 0);
+/** Supply from held provinces (Outposts and Ruins). Live: lose the province, lose the supply. */
+export function holdingSupply(s: CampaignState, p: Player): number {
+  return provsOf(s, p).reduce((n, v) => n + (VTYPES[v.type].supply ?? 0), 0);
+}
+export function supplyOf(s: CampaignState, p: Player): number {
+  return 750 + 150 * p.battles + (p.sup || 0) + holdingSupply(s, p);
 }
 /** Planet ids linked to planet `a` by a warp lane. */
 export function laneLinked(s: CampaignState, a: string): string[] {

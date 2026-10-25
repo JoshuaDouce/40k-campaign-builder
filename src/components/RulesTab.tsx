@@ -1,5 +1,5 @@
-import { ACTIONS, CHAR_HONOURS, CHAR_SCARS, HONOURS, LIGHT_FORCES_MAX_PTS, LIGHT_FORCES_TWIST, ORBITS, PTYPES, RELICS, SCARS, toggleOn, TOGGLE_KEYS, TOGGLE_NAMES, TWISTS, VTYPES } from "../game/index.ts";
-import type { ToggleKey } from "../game/index.ts";
+import { ACTIONS, CHAR_HONOURS, CHAR_SCARS, HONOURS, LIGHT_FORCES_MAX_PTS, LIGHT_FORCES_TWIST, ORBITS, PTYPES, RELICS, SCARS, toggleOn, TOGGLE_KEYS, TOGGLE_NAMES, TWISTS, typeGains, VTYPES } from "../game/index.ts";
+import type { ProvinceType, ToggleKey } from "../game/index.ts";
 import { useOptionalCampaign } from "../store/useCampaign.ts";
 
 const TOGGLE_DESC: Record<ToggleKey, string> = {
@@ -133,7 +133,7 @@ export function RulesTab() {
         <thead><tr><th>Type</th><th>Base pts</th><th>Holder's bonus</th></tr></thead>
         <tbody>
           {Object.entries(VTYPES).map(([k, t]) => (
-            <tr key={k}><td><b>{t.n}</b></td><td className="n">{t.size}</td><td>{t.bonus}</td></tr>
+            <tr key={k}><td><b>{t.n}</b></td><td className="n">{t.size}</td><td>{typeGains(k as ProvinceType, slots)}</td></tr>
           ))}
         </tbody>
       </table></div>

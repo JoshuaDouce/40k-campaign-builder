@@ -69,7 +69,7 @@ export function setupChecklist(state: CampaignState, playerId: string, isEpicNam
   const nines = state.round === 0 ? roster.filter(countsAsSetupNine) : [];
   const epics = (isEpicName ? roster.filter((u) => isEpicName(u.datasheet)) : []);
   const rosterTotal = totalEffective(roster);
-  const supply = player ? supplyOf(player) : 0;
+  const supply = player ? supplyOf(state, player) : 0;
   const softWarlord = roster.find((u) => u.isWarlord && !u.isCharacter);
   const notChar = softWarlord && warlordNotCharacter(state, player, softWarlord);
   const prov = state.cap[playerId] ? getProvince(state, state.cap[playerId]) : undefined;

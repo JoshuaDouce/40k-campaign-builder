@@ -69,9 +69,9 @@ export const VTYPES: Record<ProvinceType, ProvinceTypeDef> = {
   fortress:{n:"Fortress",size:1000,bonus:"Always counts as Fortified when its holder defends it.",suf:["Bastion","Keep","Citadel"]},
   shrine:{n:"Shrine",size:500,bonus:"+1 XP to your Marked for Glory unit in any battle fought here.",suf:["Ossuary","Reliquary","Chapel"]},
   refinery:{n:"Refinery",size:750,bonus:"Draw 1 extra Fate Card at the start of each War Round.",suf:["Sump","Refinery","Wells"]},
-  settlement:{n:"Settlement",size:600,bonus:"No bonus. Quiet, cheap ground to grow an empire.",suf:["Hold","Stead","Township"]},
-  outpost:{n:"Outpost",size:500,bonus:"No bonus. A small, sharp fight.",suf:["Watch","Post","Station"]},
-  ruins:{n:"Ruins",size:1000,bonus:"No bonus. Wide open killing ground.",suf:["Wastes","Barrens","Ruins"]}};
+  settlement:{n:"Settlement",size:600,bonus:"Quiet, cheap ground to grow an empire.",suf:["Hold","Stead","Township"]},
+  outpost:{n:"Outpost",size:500,bonus:"+100 pts to your supply limit while you hold it. A small, sharp fight.",supply:100,suf:["Watch","Post","Station"]},
+  ruins:{n:"Ruins",size:1000,bonus:"+150 pts to your supply limit while you hold it. Wide open killing ground.",supply:150,suf:["Wastes","Barrens","Ruins"]}};
 export const HOLL: Hollowgate = {id:"holl",name:"The Hollowgate",type:"rift",pl:null};
 export const PLANET_NAMES: readonly string[] = ["Varkesh Prime","Kell","Ostrava","Thessaly","Grael","Vesk","Orrin's Tomb","Cinderfall","Lantern","Choirhold","Sorrow","Aster"];
 

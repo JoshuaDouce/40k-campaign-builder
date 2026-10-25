@@ -121,9 +121,9 @@ export const LIGHT_FORCES_MAX_PTS = 750;
  */
 export function lateArrivalBonus(s: CampaignState, p: Player, rng: Rng): void {
   const others = s.players.filter((x) => x.id !== p.id);
-  const avg = others.length ? r50(others.reduce((n, x) => n + supplyOf(x), 0) / others.length) - 150 : 0;
-  const target = avg > supplyOf(p) ? avg : 0;
-  if (target) p.sup = (p.sup || 0) + target - supplyOf(p);
+  const avg = others.length ? r50(others.reduce((n, x) => n + supplyOf(s, x), 0) / others.length) - 150 : 0;
+  const target = avg > supplyOf(s, p) ? avg : 0;
+  if (target) p.sup = (p.sup || 0) + target - supplyOf(s, p);
   drawCard(p, rng);
   log(
     s,
