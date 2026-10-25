@@ -116,7 +116,7 @@ function BetweenRounds({ state, dispatch, can }: Pick<BodyProps, "state" | "disp
           {homeless.map((p) => p.name).join(", ")} hold no provinces. They can Conquer any unclaimed province on an outer world.
         </p>
       ) : null}
-      <p>Everyone draws a Fate Card and collects RP from Capitals and Hive Cities. Then everyone plans in secret and plays at the same time; only players on the same province wait.</p>
+      <p>Everyone collects RP from Capitals and Hive Cities, and a Fate Card for each Refinery. Then everyone plans in secret and plays at the same time; only players on the same province wait.</p>
       <button className="btn primary" disabled={!can({ type: "beginRound" })} onClick={() => dispatch({ type: "beginRound" })}>
         Begin War Round {state.round + 1}
       </button>

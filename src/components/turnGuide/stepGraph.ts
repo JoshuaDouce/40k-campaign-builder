@@ -99,8 +99,8 @@ const twistOptions = (): StepOption[] =>
   }));
 
 function resultEffects(ctx: Ctx, outcome: "win" | "lose" | "draw"): Effects {
-  // You are the attacker: you always gain Requisition, even in a garrison battle.
-  let rp = 1;
+  // You are the attacker: Requisition goes to the winner only.
+  let rp = 0;
   let cards = 0;
   let provinces = 0;
   if (outcome === "win") {
@@ -217,8 +217,8 @@ function aftermathText({ ctx }: Env): string {
   );
   l.push(
     garrison
-      ? "Requisition: you gain +1 RP. The garrison player gets nothing."
-      : `Requisition: both players gain +1 RP${r === "win" ? ", and as the winner you gain +1 RP more." : "."}`,
+      ? `Requisition: ${r === "win" ? "as the winner you gain +1 RP" : "nothing for a loss or a draw"}. The garrison player gets nothing.`
+      : `Requisition: ${r === "win" ? "as the winner you gain +1 RP" : "only the winner gains RP, so nothing this time"}.`,
   );
   if (r === "win") l.push("Spoils: the winner draws 1 Fate Card.");
   l.push("Bank up to 10 RP; hand limit 5.");
@@ -230,7 +230,7 @@ function endText({ ctx }: Env): string {
   if (ctx.tier === "holl" && ctx.action === "conquer" && ctx.result === "win")
     l.push("You hold the Hollowgate. If it is still yours when the War Round ends, you win the Reach.");
   l.push("Next: the next player in turn order takes their turn (fewest provinces goes first).");
-  l.push("After the last player the War Round ends. If someone holds the Hollowgate they win the Reach. Otherwise a new War Round begins: everyone draws a Fate Card and collects RP from Capitals and Hive Cities.");
+  l.push("After the last player the War Round ends. If someone holds the Hollowgate they win the Reach. Otherwise a new War Round begins: everyone collects RP from Capitals and Hive Cities, and a Fate Card for each Refinery.");
   return l.join("\n");
 }
 
@@ -463,9 +463,7 @@ const STEP_LIST: Step[] = [
     text: "How did the battle end? If you're only exploring, let a die stand in for the table.",
     roll: { die: 6, outcome: (v) => (v <= 3 ? "win" : v <= 5 ? "lose" : "draw"), legend: "Practice roll: 1–3 win, 4–5 lose, 6 draw." },
     options: [resultOption("win", "I won", "You win"), resultOption("lose", "I lost", "You lose"), resultOption("draw", "It was a draw", "A draw")],
-    notes: [
-      { cat: "nodown", text: "Losing still pays: both players gain +1 RP after every battle, so attacking costs nothing in the campaign beyond the units you lose." },
-    ],
+    notes: [],
   },
   {
     id: "decisive",
