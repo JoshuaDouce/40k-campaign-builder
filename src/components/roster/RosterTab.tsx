@@ -56,6 +56,8 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
   const dsCount = toggleOn(state, "datasheetLimit") ? { x: distinctDatasheets(roster), n: datasheetLimit(state, pid) } : null;
   const stage = toughStageActive(state, player);
   const stageOver = stage ? roster.filter((u) => overStageCap(u.t)).length : 0;
+  // With slots on the chart shows the Battleline minimum; without them this line does.
+  const blRow = slots ? undefined : fo.rows.find((r) => r.role === "Battleline");
   const hasEx = roster.some((u) => u.ex);
   const say = (text: string) => setToast({ pid, text });
   const closeDialog = () => setDialog(null);
@@ -152,6 +154,14 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
               Datasheets {dsCount.x} / {dsCount.n}
             </span>
             {dsCount.x > dsCount.n && <span>! {dsCount.x - dsCount.n} over the datasheet limit</span>}
+          </div>
+        )}
+        {blRow && (
+          <div className={`rt-count${blRow.short > 0 ? " over" : ""}`}>
+            <span>
+              Battleline {blRow.filled} / {blRow.min} minimum
+            </span>
+            {blRow.short > 0 && <span>! Needs {blRow.short} more Battleline</span>}
           </div>
         )}
         {stageOver > 0 && (

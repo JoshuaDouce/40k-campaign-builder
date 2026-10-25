@@ -57,7 +57,7 @@ export interface SetupChecklist {
   rosterOk: boolean;
   /** "Province, Planet" */
   capital?: string;
-  /** Roles still short of their minimum. */
+  /** Roles still short of their minimum (only Battleline when slots are off). */
   foShort: { role: Role; n: number }[];
 }
 
@@ -87,10 +87,10 @@ export function setupChecklist(state: CampaignState, playerId: string, isEpicNam
     supply,
     rosterOk: roster.length > 0 && rosterTotal <= supply,
     capital: prov && planet ? `${prov.name}, ${planet.name}` : undefined,
-    foShort: !toggleOn(state, "forceOrg")
-      ? []
-      : forceOrgFor(state, playerId)
-          .rows.map((r) => ({ role: r.role, n: Math.max(0, r.min - r.filled) }))
-          .filter((r) => r.n > 0),
+    // The Battleline minimum holds in every campaign; the other minimums come with Force Organisation slots.
+    foShort: forceOrgFor(state, playerId)
+      .rows.filter((r) => r.role === "Battleline" || toggleOn(state, "forceOrg"))
+      .map((r) => ({ role: r.role, n: Math.max(0, r.min - r.filled) }))
+      .filter((r) => r.n > 0),
   };
 }
