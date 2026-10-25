@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
-import { canPerform, count, getPlanet, getProvince, supplyOf } from "../game/index.ts";
-import type { Action, CampaignState, Card, FactionName, Player, StatKey } from "../game/index.ts";
-import { canSeeHand, useCampaign } from "../store/useCampaign.ts";
+import { canPerform, count, getPlanet, getProvince, HAND_LIMIT, supplyOf } from "../game/index.ts";
+import type { Action, CampaignState, FactionName, Player, StatKey } from "../game/index.ts";
+import { useCampaign } from "../store/useCampaign.ts";
 import type { TabId } from "../store/useDevicePrefs.ts";
 import { BattleHistory } from "./BattleHistory.tsx";
-import { FateCard } from "./FateCard.tsx";
 import { DeleteCampaign } from "./account/DeleteCampaign.tsx";
 import { MembersPanel } from "./account/MembersPanel.tsx";
 import { WaitingNote } from "./account/WaitingNote.tsx";
@@ -16,37 +15,6 @@ const STAT_LABELS: ReadonlyArray<readonly [StatKey, string]> = [
   ["battles", "Battles"],
   ["wins", "Wins"],
 ];
-
-const cardKey = (c: Card): string => `${c.fac ?? ""}|${c.t}|${c.e}`;
-const snapshot = (players: Player[]): Record<string, string[]> =>
-  Object.fromEntries(players.map((p) => [p.id, p.hand.map(cardKey)]));
-
-/** Hand positions in `players` that were not in `before`, for the deal animation. */
-function diffHands(before: Record<string, string[]>, players: Player[]): Record<string, Set<number>> {
-  const fresh: Record<string, Set<number>> = {};
-  players.forEach((p) => {
-    const counts = new Map<string, number>();
-    (before[p.id] ?? []).forEach((k) => counts.set(k, (counts.get(k) ?? 0) + 1));
-    const added = new Set<number>();
-    p.hand.forEach((c, i) => {
-      const k = cardKey(c);
-      const left = counts.get(k) ?? 0;
-      if (left > 0) counts.set(k, left - 1);
-      else added.add(i);
-    });
-    fresh[p.id] = added;
-  });
-  return fresh;
-}
-
-/** Hand positions that arrived since the previous state, derived by comparing hands (nothing stored in the campaign). */
-function useNewCards(players: Player[]): Record<string, Set<number>> {
-  const [track, setTrack] = useState<{ players: Player[]; fresh: Record<string, Set<number>> }>({ players, fresh: {} });
-  if (track.players === players) return track.fresh;
-  const next = { players, fresh: diffHands(snapshot(track.players), players) };
-  setTrack(next);
-  return next.fresh;
-}
 
 interface TabProps {
   colors: Record<string, string>;
@@ -60,7 +28,6 @@ interface TabProps {
 export function PlayersTab({ colors, onNavigate, onPlay, onDeleted }: TabProps) {
   const { state, dispatch, viewer, members } = useCampaign();
   const [resetOpen, setResetOpen] = useState(false);
-  const newCards = useNewCards(state.players);
   const setup = state.round === 0;
   const waiting = members.filter((m) => !state.players.some((p) => p.email === m));
   const ownerNotPlaying = viewer.isOwner && !state.players.some((p) => p.userId === viewer.userId);
@@ -70,7 +37,7 @@ export function PlayersTab({ colors, onNavigate, onPlay, onDeleted }: TabProps) 
       <h2>Players</h2>
       {viewer.isOwner ? <MembersPanel /> : null}
       <WaitingNote emails={waiting} />
-      <p className="dim">{setup ? "Rename players here." : "Rename or remove players here."}</p>
+      <p className="dim">{setup ? "Rename players here." : "Rename or remove players here."} Play your Fate Cards and spend RP on My Warband.</p>
       {setup ? <div className="su-pointer">Setting up? Use the Setup tab to chart the Reach and begin.</div> : null}
       {ownerNotPlaying ? (
         <div className="row">
@@ -85,7 +52,7 @@ export function PlayersTab({ colors, onNavigate, onPlay, onDeleted }: TabProps) 
       <div>
         {state.players.length ? (
           state.players.map((p) => (
-            <PlayerCard key={p.id} player={p} state={state} color={colors[p.id]} fresh={newCards[p.id]} setup={setup} />
+            <PlayerCard key={p.id} player={p} state={state} color={colors[p.id]} setup={setup} />
           ))
         ) : (
           <p className="dim" style={{ marginTop: 16 }}>
@@ -127,19 +94,16 @@ interface CardProps {
   player: Player;
   state: CampaignState;
   color: string | undefined;
-  fresh: Set<number> | undefined;
   setup: boolean;
 }
 
-function PlayerCard({ player: p, state, color, fresh, setup }: CardProps) {
+function PlayerCard({ player: p, state, color, setup }: CardProps) {
   const { dispatch, viewer } = useCampaign();
-  const [msg, setMsg] = useState("");
   const [armedAt, setArmedAt] = useState<CampaignState | null>(null);
   const can = (a: Action) => canPerform(state, a, viewer);
   const cap = state.cap[p.id] ? getProvince(state, state.cap[p.id]) : undefined;
   const capPlanet = cap ? getPlanet(state, cap.pl) : undefined;
   const n = count(state, p);
-  const visible = canSeeHand(p, viewer);
   const canEdit = can({ type: "updatePlayer", playerId: p.id });
 
   // Any action on this card (or any state change) disarms the two-step Remove, as a prototype re-render did.
@@ -149,19 +113,6 @@ function PlayerCard({ player: p, state, color, fresh, setup }: CardProps) {
     const t = setTimeout(() => setArmedAt(null), 4000);
     return () => clearTimeout(t);
   }, [armedAt]);
-
-  const send = (a: Action): boolean => {
-    if (!can(a)) return false;
-    setArmedAt(null);
-    dispatch(a);
-    return true;
-  };
-
-  const spendCard = (kind: "playCard" | "discardCard", index: number) => {
-    const card = p.hand[index];
-    if (!card) return;
-    if (send({ type: kind, playerId: p.id, index })) setMsg(`${kind === "playCard" ? "Played: " : "Discarded: "}${card.t}`);
-  };
 
   return (
     <div className="player">
@@ -199,16 +150,6 @@ function PlayerCard({ player: p, state, color, fresh, setup }: CardProps) {
         <div className="stat">
           <div className="l">Supply</div>
           <div className="v">{supplyOf(state, p)}</div>
-          <div className="pm">
-            <button
-              className="btn sm"
-              disabled={p.rp < 1 || !can({ type: "buyReinforcements", playerId: p.id })}
-              title="Spend 1 RP for +200 supply"
-              onClick={() => dispatch({ type: "buyReinforcements", playerId: p.id })}
-            >
-              +200 · 1 RP
-            </button>
-          </div>
         </div>
       </div>
       <div className="mono dim" style={{ fontSize: 12 }}>
@@ -219,7 +160,7 @@ function PlayerCard({ player: p, state, color, fresh, setup }: CardProps) {
       <BattleHistory state={state} player={p} />
       <div className="row" style={{ marginTop: 10, justifyContent: "space-between" }}>
         <span className="mono" style={{ fontSize: 12 }}>
-          FATE HAND {p.hand.length}/5
+          FATE HAND {p.hand.length}/{HAND_LIMIT}
         </span>
         <span className="row">
           {setup ? null : armed ? (
@@ -239,27 +180,10 @@ function PlayerCard({ player: p, state, color, fresh, setup }: CardProps) {
         </span>
       </div>
       <div className="handbar">
-        {[0, 1, 2, 3, 4].map((i) => (
+        {Array.from({ length: HAND_LIMIT }, (_, i) => (
           <i key={i} className={i < p.hand.length ? "on" : ""}></i>
         ))}
       </div>
-      <div className="msg">{msg}</div>
-      {visible ? (
-        <div className="cards">
-          {p.hand.map((c, i) => (
-            <FateCard key={i} card={c} isNew={fresh?.has(i)}>
-              <div className="acts">
-                <button className="btn sm primary" disabled={!can({ type: "playCard", playerId: p.id, index: i })} onClick={() => spendCard("playCard", i)}>
-                  Play
-                </button>
-                <button className="btn sm" disabled={!can({ type: "discardCard", playerId: p.id, index: i })} onClick={() => spendCard("discardCard", i)}>
-                  Discard
-                </button>
-              </div>
-            </FateCard>
-          ))}
-        </div>
-      ) : null}
     </div>
   );
 }
