@@ -227,22 +227,56 @@ export function genPlanetProvinces(pl: Planet, R: Rng, nextPrefix: () => string)
   });
 }
 
+/** Battle sizes a Capital borders, and the province types that give each (Capitals sit on outer worlds, ×1). */
+const CAPITAL_BORDER: ReadonlyArray<readonly [number, readonly ProvinceType[]]> = [
+  [500, ["outpost", "shrine"]],
+  [750, ["forge", "refinery"]],
+  [1000, ["hive", "fortress", "ruins"]],
+];
+const BORDER_SIZES = CAPITAL_BORDER.map(([pts]) => pts);
+
+/**
+ * Retype the Capital's neighbours so it borders at least one 500, one 750 and one 1000 pt battle. The spaceport is
+ * never changed, and a neighbour is only retyped when its size isn't one of those or another neighbour also has it.
+ */
+function borderCapital(provs: Province[], v: Province, R: Rng): void {
+  const nbs = v.nb.map((id) => provs.find((q) => q.id === id)).filter((q): q is Province => !!q);
+  const size = (q: Province) => VTYPES[q.type].size;
+  const spare = (q: Province) =>
+    q.type !== "spaceport" && (!BORDER_SIZES.includes(size(q)) || nbs.filter((o) => size(o) === size(q)).length > 1);
+  for (const [pts, types] of CAPITAL_BORDER) {
+    if (nbs.some((q) => size(q) === pts)) continue;
+    // Off-size ground (a Settlement) goes first, then a doubled size.
+    const q = nbs.find((o) => spare(o) && !BORDER_SIZES.includes(size(o))) ?? nbs.find(spare);
+    if (!q) return;
+    const onWorld = provs.filter((o) => o.pl === v.pl).map((o) => o.type);
+    const fresh = types.filter((t) => !onWorld.includes(t));
+    const pool = fresh.length ? fresh : types;
+    q.type = pool[rollInt(R, pool.length)];
+    const suf = VTYPES[q.type].suf;
+    q.name = q.name.split(" ")[0] + " " + suf[rollInt(R, suf.length)];
+  }
+}
+
 /**
  * Pick a province on `homeId` to be a Capital, as the prototype does: not a spaceport, not already a
- * capital, as far as possible from capitals already on that world. Converts it in place.
+ * capital, as far as possible from capitals already on that world (then one with at least 3 neighbours, so it can
+ * border a 500, 750 and 1000 pt battle). Converts it in place and retypes its neighbours to match.
  */
-function placeCapital(provs: Province[], homeId: string, cap: Record<string, string>): Province | null {
+function placeCapital(provs: Province[], homeId: string, cap: Record<string, string>, R: Rng): Province | null {
   const taken = Object.values(cap);
   const cand = provs.filter((v) => v.pl === homeId && !taken.includes(v.id) && v.type !== "spaceport");
   const others = taken
     .map((id) => provs.find((v) => v.id === id))
     .filter((v): v is Province => !!v && v.pl === homeId);
   const spread = (a: Province) => Math.min(9, ...others.map((o) => Math.hypot(o.x - a.x, o.y - a.y)));
-  cand.sort((a, b) => spread(b) - spread(a));
+  const roomy = (a: Province) => Number(a.nb.length >= 3);
+  cand.sort((a, b) => spread(b) - spread(a) || roomy(b) - roomy(a));
   const v = cand[0] ?? provs.find((q) => !taken.includes(q.id));
   if (!v) return null;
   v.type = "capital";
   v.name = v.name.split(" ")[0] + " Landing";
+  borderCapital(provs, v, R);
   return v;
 }
 
@@ -304,7 +338,7 @@ export function genSystem(players: ReadonlyArray<{ id: string }>, seed: number):
     cap: Record<string, string> = {};
   players.forEach((pl, i) => {
     const world = homes[i % homes.length];
-    const v = placeCapital(sys.provs, world.id, cap);
+    const v = placeCapital(sys.provs, world.id, cap, R);
     if (v) {
       cap[pl.id] = v.id;
       terr[v.id] = pl.id;
@@ -373,7 +407,7 @@ export function addWorld(s: CampaignState, playerId: string, rng: Rng): void {
   const provs = genPlanetProvinces(world, rng, () => prefixes[pfx++ % prefixes.length]);
   sys.provs.push(...provs);
 
-  const v = player ? placeCapital(sys.provs, world.id, s.cap) : null;
+  const v = player ? placeCapital(sys.provs, world.id, s.cap, rng) : null;
   if (player && v) {
     s.cap[player.id] = v.id;
     s.terr[v.id] = player.id;
