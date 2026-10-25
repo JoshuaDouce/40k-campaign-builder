@@ -37,7 +37,7 @@ export function GarrisonSelect({ state, playerId, id, value, onChange, inRow }: 
         field
       )}
       <p className="dim" style={inRow ? { fontSize: 14, marginTop: 8 } : { fontSize: 14 }}>
-        Unclaimed province: another player fields the garrison. They gain no RP, Fate Cards or stats from this fight, so pick whoever is free to play. You fight with +20% points.
+        Unclaimed province: another player fields the garrison. They gain no RP, Fate Cards or stats from this fight, so pick whoever is free to play. When the battle is rolled you choose: +20% points for you, or -20% points for the garrison.
       </p>
     </>
   );

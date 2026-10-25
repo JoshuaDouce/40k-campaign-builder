@@ -258,6 +258,9 @@ export interface FallenCharacter {
   ex?: true;
 }
 
+/** Garrison battle handicap: +20% points for the attacker, or -20% points for the garrison. */
+export type GarrisonEdge = "attacker" | "defender";
+
 /** The battle behind a pick once its twists are rolled ("In battle"). Its figures are fixed at the roll. */
 export interface LiveBattle {
   /** The defender, or the garrison player. */
@@ -267,8 +270,12 @@ export interface LiveBattle {
   twists: number[];
   /** Figures worked out when the twists were rolled. A re-roll works them out again. */
   pts: number;
-  /** Attacker's points: equals `pts` unless this is a garrison battle (+20%). */
+  /** Attacker's points: equals `pts` unless this is a garrison battle with the +20% for the attacker. */
   attackerPts: number;
+  /** Defender's points when the garrison takes -20% instead. Missing means `pts`. */
+  defenderPts?: number;
+  /** Garrison battles: who the 20% goes to. Missing means the attacker (+20%). */
+  edge?: GarrisonEdge;
   notes: string[];
   cards: number;
   lightForces: boolean;
@@ -397,6 +404,7 @@ export type Action =
   | { type: "revealPicks" }
   | { type: "rollPick"; playerId: string; def?: string }
   | { type: "rerollPick"; playerId: string }
+  | { type: "setGarrisonEdge"; playerId: string; edge: GarrisonEdge }
   | { type: "resolvePick"; playerId: string; result: "a" | "d" | "x"; decisive?: boolean }
   | { type: "confirmQuietPick"; playerId: string }
   | { type: "switchPick"; playerId: string; act: ActionId; zone?: string; def?: string }
