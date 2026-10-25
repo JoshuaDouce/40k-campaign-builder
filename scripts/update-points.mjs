@@ -106,7 +106,7 @@ async function loadToughness() {
 
 /**
  * Role code from a unit's keywords: c Character, b Battleline, o Other (Dedicated Transport, Fortification),
- * v Vehicle / Monster (Aircraft included), i Infantry / Mounted (Infantry, Mounted, Beast, Swarm). First match wins.
+ * v Vehicle / Monster (Aircraft included), i Non-Monster / Vehicle (Infantry, Mounted, Beast, Swarm). First match wins.
  */
 function roleCode(e) {
   const k = new Set((e.categoryLinks ?? []).map((l) => l.name));
