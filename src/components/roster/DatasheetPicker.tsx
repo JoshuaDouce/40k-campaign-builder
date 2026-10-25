@@ -117,7 +117,10 @@ export function DatasheetPicker({ id, faction, value, points, onText, onPoints, 
   };
 
   const plain = data.status === "none";
-  const sizes = picked && picked.name === value && picked.sizes.length >= 2 ? picked.sizes : null;
+  // The datasheet named in the field: the one just picked, else an exact (folded) name match, so editing a
+  // unit already on the roster still offers its model counts.
+  const named = picked && picked.name === value ? picked : ready && q ? data.units.find((u) => !u.epic && u.folded === q) : undefined;
+  const sizes = named && named.sizes.length >= 2 ? named.sizes : null;
   const now = points.trim() === "" ? NaN : Number(points);
 
   return (
