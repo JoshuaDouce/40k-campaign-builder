@@ -9,6 +9,7 @@ import {
   RANKS,
   RELIC_PTS,
   TRAINING_PTS,
+  trainingEffect,
   roleOf,
   relicEffect,
   scarEffect,
@@ -206,8 +207,10 @@ export function UnitCard({ unit, editable, memorial, overLimit, toughOver, tough
       {training.length > 0 && (
         <div className="enh">
           <span>Battle Training · {training.length} of {MAX_TRAINING}</span>
-          {training.map((t, i) => (
-            <div key={i}>{t}</div>
+          {training.map((t) => (
+            <div key={t}>
+              <b>{t}</b> {trainingEffect(t)}
+            </div>
           ))}
         </div>
       )}

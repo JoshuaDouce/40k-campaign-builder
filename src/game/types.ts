@@ -200,7 +200,7 @@ export interface Unit {
   warlordTrait?: string;
   /** Characters only. Names from `RELICS`, at most 3, no duplicates. */
   relics?: string[];
-  /** Characters only. Battle Training bought with Promotion: free text, at most 3. */
+  /** Characters only. Names from `TRAINING`, bought with Promotion, at most 3, no duplicates. */
   training?: string[];
   /** Toughness (highest T among its models). Missing = unknown; never flagged. */
   t?: number;

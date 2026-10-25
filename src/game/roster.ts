@@ -1,6 +1,6 @@
 // Unit rosters: ranks, honours, scars and the post-battle / Requisition rules. Pure; dice come from the UI
 // (through an injected Rng) and arrive here already resolved.
-import { CHAR_HONOURS, CHAR_SCARS, HONOURS, RANKS, RELICS, SCARS } from "./data.ts";
+import { CHAR_HONOURS, CHAR_SCARS, HONOURS, RANKS, RELICS, SCARS, TRAINING } from "./data.ts";
 import { B, log } from "./log.ts";
 import { normaliseRole, roleOf } from "./forceOrg.ts";
 import { rollInt } from "./rng.ts";
@@ -24,7 +24,6 @@ export const MAX_RELICS = 3;
 export const RELIC_PTS = 10;
 export const MAX_TRAINING = 3;
 export const TRAINING_PTS = 10;
-const TRAINING_TEXT_MAX = 200;
 export const BACKSTORY_MAX = 280;
 export const TITLE_MAX = 60;
 export const TRAIT_MAX = 200;
@@ -143,6 +142,7 @@ const effects = (t: readonly { n: string; e: string }[]): Map<string, string> =>
 const HONOUR_FX = effects(ALL_HONOURS);
 const SCAR_FX = effects(ALL_SCARS);
 const RELIC_FX = effects(RELICS);
+const TRAINING_FX = effects(TRAINING);
 /** Effect text for an honour name from either table (undefined if unknown). */
 export function honourEffect(name: string): string | undefined {
   return HONOUR_FX.get(name);
@@ -153,6 +153,9 @@ export function scarEffect(scar: string): string | undefined {
 }
 export function relicEffect(name: string): string | undefined {
   return RELIC_FX.get(name);
+}
+export function trainingEffect(name: string): string | undefined {
+  return TRAINING_FX.get(name);
 }
 /** True if the unit will lose Grievous Wound after a battle it fights (it must hold it BEFORE the battle). */
 export function healsGrievous(unit: Pick<Unit, "scars">): boolean {
@@ -235,6 +238,7 @@ export function exampleUnits(rng: Rng, existing: readonly Unit[] = EMPTY): Unit[
 const isHonour = (h: string): boolean => HONOUR_FX.has(h);
 const isScar = (s: string): boolean => SCAR_FX.has(scarName(s));
 const isRelic = (r: string): boolean => RELICS.some((x) => x.n === r);
+const isTraining = (t: unknown): t is string => typeof t === "string" && TRAINING_FX.has(t);
 const isCount = (n: unknown): n is number => typeof n === "number" && Number.isInteger(n) && n >= 0;
 const unique = (a: readonly string[]): boolean => new Set(a).size === a.length;
 
@@ -276,9 +280,8 @@ function cleanUnit(u: Unit): Unit | null {
     if (title) out.title = title;
     if (story) out.backstory = story;
     if (u.relics?.length) out.relics = [...u.relics];
-    const training = Array.isArray(u.training)
-      ? u.training.filter((t): t is string => typeof t === "string").map((t) => t.trim().slice(0, TRAINING_TEXT_MAX)).filter(Boolean).slice(0, MAX_TRAINING)
-      : [];
+    // Unknown names are dropped, as are duplicates and any past the limit.
+    const training = Array.isArray(u.training) ? [...new Set(u.training.filter(isTraining))].slice(0, MAX_TRAINING) : [];
     if (training.length) out.training = training;
   }
   if (out.isWarlord) {
@@ -627,12 +630,11 @@ export function promoteUnit(s: CampaignState, playerId: string, unitId: string, 
   const u = rosterFor(s, playerId).find((x) => x.id === unitId);
   if (!p || !u || p.rp < PROMOTION_COST) return false;
   if (u.isCharacter) {
-    const text = training?.trim().slice(0, TRAINING_TEXT_MAX);
     const held = u.training ?? [];
-    if (!text || held.length >= MAX_TRAINING) return false;
+    if (!isTraining(training) || held.includes(training) || held.length >= MAX_TRAINING) return false;
     spendRp(s, playerId, PROMOTION_COST);
-    u.training = [...held, text];
-    log(s, B(p.name), ` spends ${PROMOTION_COST} RP on a Promotion: `, B(u.name), " completes Battle Training.");
+    u.training = [...held, training];
+    log(s, B(p.name), ` spends ${PROMOTION_COST} RP on a Promotion: `, B(u.name), ` completes Battle Training: ${training}.`);
   } else {
     if (s.round === 0 || u.xp < PROMOTION_MIN_XP) return false; // Setup allows no new Character
     spendRp(s, playerId, PROMOTION_COST);

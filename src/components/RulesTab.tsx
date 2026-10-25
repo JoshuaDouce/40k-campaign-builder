@@ -1,4 +1,4 @@
-import { ACTIONS, CHAR_HONOURS, CHAR_SCARS, HONOURS, LIGHT_FORCES_MAX_PTS, LIGHT_FORCES_TWIST, ORBITS, PTYPES, RELICS, SCARS, toggleOn, TOGGLE_KEYS, TOGGLE_NAMES, TWISTS, typeGains, VTYPES } from "../game/index.ts";
+import { ACTIONS, CHAR_HONOURS, CHAR_SCARS, HONOURS, LIGHT_FORCES_MAX_PTS, LIGHT_FORCES_TWIST, ORBITS, PTYPES, RELICS, SCARS, TRAINING, toggleOn, TOGGLE_KEYS, TOGGLE_NAMES, TWISTS, typeGains, VTYPES } from "../game/index.ts";
 import type { ProvinceType, ToggleKey } from "../game/index.ts";
 import { useOptionalCampaign } from "../store/useCampaign.ts";
 
@@ -204,8 +204,11 @@ export function RulesTab() {
 
       <h3>Relics (roll D6 or pick)</h3>
       <p>A Character can earn a relic when its player claims a Shrine province, or plays a Fate Card. A Character holds at most three relics, never the same one twice (re-roll or pick another). Each relic adds 10 pts to the Character's cost, after Battle Honours are counted.</p>
-      <p><b>Battle Training.</b> Spend 1 RP on a Promotion to give a Character Battle Training: a campaign ability you write and your group agrees, such as "Duellist's drills: re-roll hit rolls of 1 in melee." It is not a detachment Enhancement; those are still chosen and paid for in points when you muster. A Character can hold up to three, and each adds 10 pts to its cost.</p>
       <RollTable die="D6" label="Relic" rows={RELICS} />
+
+      <h3>Battle Training (roll D12 or pick)</h3>
+      <p>Spend 1 RP on a Promotion to give a Character Battle Training. It is not a detachment Enhancement; those are still chosen and paid for in points when you muster. A Character can hold up to three, never the same one twice (re-roll or pick another), and each adds 10 pts to its cost.</p>
+      <RollTable die="D12" label="Training" rows={TRAINING} />
 
       <h3>Spending Requisition</h3>
       <div className="tbl"><table>
