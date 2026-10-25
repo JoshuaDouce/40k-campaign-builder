@@ -12,6 +12,7 @@ import {
   RECRUITS_XP,
   ROLE_NAMES,
   roleOf,
+  slotRole,
   scarName,
   scarWeapon,
   setupCharacterBlock,
@@ -179,8 +180,13 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, r
     if (d.isCharacter || (role !== "Character" && isKnightsExempt(state, playerObj, datasheet))) return;
     pickRole(role);
   };
-  const roleMax = fo.rows.find((r) => r.role === d.role)?.max ?? 0;
-  const others = roster.filter((u) => u.id !== existing?.id && roleOf(u) === d.role).length;
+  // Battleline fills Non-Monster / Vehicle slots, so the hint counts the shared slots.
+  const slotR = d.role ? slotRole(d.role) : "";
+  const roleMax = fo.rows.find((r) => r.role === slotR)?.max ?? 0;
+  const others = roster.filter((u) => {
+    const r = roleOf(u);
+    return u.id !== existing?.id && !!r && slotRole(r) === slotR;
+  }).length;
   const projected = others + 1;
   const losesDetails = !!existing?.isCharacter && !d.isCharacter && !!(existing.relics?.length || existing.training?.length || existing.title || existing.backstory || existing.enhancement);
 
@@ -357,11 +363,11 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, r
           <div className="hint">Unassigned units fill no slot. You can set a role later.</div>
         ) : projected > roleMax ? (
           <div className="hint bad">
-            ! {d.role} slots are full ({others} / {roleMax}). You can still save; this unit would be over limit.
+            ! {slotR} slots are full ({others} / {roleMax}). You can still save; this unit would be over limit.
           </div>
         ) : (
           <div className="hint">
-            {d.role}: {projected} of {roleMax} slots used with this unit.
+            {slotR}: {projected} of {roleMax} slots used with this unit.{slotR !== d.role ? ` ${d.role} fills these slots.` : ""}
           </div>
         )}
         <div className="rolelink">

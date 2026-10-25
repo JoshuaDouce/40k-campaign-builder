@@ -209,12 +209,12 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
 
       {sorted.length ? (
         groups.map(({ role, units, row }) => {
-          const over = slots && row ? row.filled > row.max : false;
+          const over = slots && row ? row.over > 0 : false;
           return (
             <section key={role ?? "none"} aria-label={role ?? "Unassigned"}>
               <h3 className={`rgroup${over ? " over" : ""}`}>
                 {role ?? "Unassigned"}
-                <span>{slots && row ? `${row.filled} / ${row.max} slots` : `${units.length} unit${units.length === 1 ? "" : "s"}`}</span>
+                <span>{slots && row?.slotsIn ? `${units.length} · min ${row.min} · in ${row.slotsIn} slots` : slots && row ? `${row.filled} / ${row.max} slots` : `${units.length} unit${units.length === 1 ? "" : "s"}`}</span>
               </h3>
               {units.map((u) => (
                 <UnitCard

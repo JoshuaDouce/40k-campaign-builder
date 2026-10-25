@@ -4,16 +4,11 @@ import type { ForceOrg, ForceOrgRow } from "../../game/index.ts";
 
 const SHOWN = 3;
 
-function problemsOf(row: ForceOrgRow) {
-  return { short: Math.max(0, row.min - row.filled), over: Math.max(0, row.filled - row.max) };
-}
-
 const needRole = (n: number) => (n === 1 ? "1 unit needs a role" : `${n} units need a role`);
 
 function summaryOf(fo: ForceOrg): { text: string; bad: boolean } {
-  const probs = fo.rows.map(problemsOf);
-  const unmet = probs.filter((p) => p.short).length;
-  const over = probs.filter((p) => p.over).length;
+  const unmet = fo.rows.filter((r) => r.short).length;
+  const over = fo.rows.filter((r) => r.over).length;
   const parts: string[] = [];
   if (unmet) parts.push(`${unmet} minimum${unmet === 1 ? "" : "s"} unmet`);
   if (over) parts.push(`${over} over limit`);
@@ -24,7 +19,7 @@ function summaryOf(fo: ForceOrg): { text: string; bad: boolean } {
 }
 
 function Row({ row }: { row: ForceOrgRow }) {
-  const { short, over } = problemsOf(row);
+  const { short, over } = row;
   const warn = short > 0 || over > 0;
   const shown = row.sources.slice(0, SHOWN);
   return (
@@ -35,10 +30,12 @@ function Row({ row }: { row: ForceOrgRow }) {
       </div>
       <div className="ct">
         {row.filled}
-        <small> / {row.max}</small>
+        {!row.slotsIn && <small> / {row.max}</small>}
       </div>
       <div className="src">
-        {row.note ? (
+        {row.slotsIn ? (
+          `Fills ${row.slotsIn} slots`
+        ) : row.note ? (
           row.note
         ) : shown.length === 0 ? (
           "Base slots only"
@@ -51,8 +48,8 @@ function Row({ row }: { row: ForceOrgRow }) {
                 <b>+1 {s.label}</b> ({s.province})
               </span>
             ))}
-            {row.matching === HOLDING_CAP && " · cap reached"}
-            {row.matching > HOLDING_CAP && ` · ${row.matching} held, capped at +${HOLDING_CAP}`}
+            {row.matching === row.cap && " · cap reached"}
+            {row.matching > row.cap && ` · ${row.matching} held, capped at +${row.cap}`}
           </>
         )}
       </div>
@@ -88,7 +85,7 @@ export function ForceOrgChart({ fo }: { fo: ForceOrg }) {
             {needRole(fo.unassigned)}. Unassigned units fill no slot.
           </div>
         )}
-        Holdings add up to +{HOLDING_CAP} per role. Slots follow the provinces you hold right now. Guidance only: nothing is blocked.
+        Holdings add up to +{HOLDING_CAP} per role (+{fo.rows.find((r) => r.role === "Non-Monster / Vehicle")?.cap} for Non-Monster / Vehicle). Slots follow the provinces you hold right now. Guidance only: nothing is blocked.
       </div>
     </details>
   );
