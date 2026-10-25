@@ -28,6 +28,11 @@ nav.tabs button{flex:0 0 auto;font-family:var(--f-mono);font-size:13px;letter-sp
 nav.tabs button[aria-selected="true"]{color:var(--bg);background:var(--brass)}
 /* Wider than a phone, all tabs fit (wrapping if they must) instead of the last ones hiding off the edge. */
 @media (min-width:600px){nav.tabs{flex-wrap:wrap}nav.tabs button{padding:8px 9px}}
+nav.subtabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;margin-inline:-4px;padding-inline:4px;background:var(--panel);border-bottom:1px solid var(--line)}
+nav.subtabs::-webkit-scrollbar{display:none}
+nav.subtabs button{flex:0 0 auto;min-height:40px;font-family:var(--f-body);font-size:15px;font-weight:500;letter-spacing:.01em;background:none;color:var(--dim);border:0;border-bottom:3px solid transparent;border-radius:0;padding:6px 10px 3px;cursor:pointer}
+nav.subtabs button[aria-selected="true"]{color:var(--brass);border-bottom-color:var(--brass);font-weight:700;background:var(--panel2)}
+@media (max-width:599px){nav.tabs.tabs-five button{padding:8px 6px;letter-spacing:.03em}}
 nav.tabs button:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
 section.tab{padding-block:22px}
 h2{font-family:var(--f-display);font-weight:700;font-size:34px;line-height:1.05;margin:0 0 6px;text-wrap:balance}
