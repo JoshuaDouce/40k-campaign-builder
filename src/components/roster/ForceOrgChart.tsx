@@ -29,7 +29,10 @@ function Row({ row }: { row: ForceOrgRow }) {
   const shown = row.sources.slice(0, SHOWN);
   return (
     <div className={`fo-row${warn ? " warn" : ""}`}>
-      <div className="nm">{row.role}</div>
+      <div className="nm">
+        {row.role}
+        {row.covers && <span className="cv">{row.covers}</span>}
+      </div>
       <div className="ct">
         {row.filled}
         <small> / {row.max}</small>

@@ -10,13 +10,13 @@ Warlord"). The first hard rule on the roster; Force Organisation stays guidance 
 While the campaign is in Setup (before War Round 1), each player's roster may hold one Character, and it must be
 the Warlord. Trying to add or save a second Character is stopped, with a message saying why. The Force Org
 Character row reads max 1 during Setup, and each player's Setup checklist shows whether they have exactly one
-Character and that it is the Warlord. When War Round 1 begins, the normal Character slots (base 2, +1 per Shrine
+Character and that it is the Warlord. When War Round 1 begins, the normal Character slots (base 1, +1 per Shrine
 held) return as guidance.
 
 ## Rules
 | | Setup (round 0) | From War Round 1 |
 |---|---|---|
-| Characters on a roster | Exactly 1, and it is the Warlord. Hard block on adding a second | Guidance (base 2 + Shrines, min 1) |
+| Characters on a roster | Exactly 1, and it is the Warlord. Hard block on adding a second | Guidance (base 1 + Shrines, min 1) |
 | Force Org Character row max | 1 | 2 + Shrines |
 | Non-Warlord Characters | Not allowed | Allowed (Promotion, Recruits, edit) |
 | Ready / Begin | Flagged in the checklist, never blocked | n/a |
@@ -65,7 +65,7 @@ held) return as guidance.
    and a Character can be unticked or deleted to fix it.
 9. "Add example units" gives Character 1 / 1 with no warning. If the player already has a Character of their own,
    no example Captain is added.
-10. Once War Round 1 begins, the Character row goes back to base 2 + Shrines (guidance only), non-Warlord
+10. Once War Round 1 begins, the Character row goes back to base 1 + Shrines (guidance only), non-Warlord
     Characters can be made again (Promotion, Recruits, the editor), and nothing is blocked.
 11. The owner gets the same stops when editing another player's roster in Setup.
 12. The Rules tab gains one sentence (below). The rest of the Characters text on the Rules tab is unchanged.
