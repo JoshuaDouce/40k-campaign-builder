@@ -153,6 +153,7 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, r
   const warlord = d.isWarlord && (d.isCharacter || softAllowed);
   const slots = toggleOn(state, "forceOrg");
   const relics = d.isCharacter ? (existing?.relics ?? []) : [];
+  const training = d.isCharacter ? (existing?.training ?? []) : [];
   const honourList = allowedHonours(d);
   const scarList = allowedScars(d);
   const clearChar = { isCharacter: false, isWarlord: false, enhancement: "", warlordTrait: "" } as const;
@@ -166,7 +167,7 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, r
   const roleMax = fo.rows.find((r) => r.role === d.role)?.max ?? 0;
   const others = roster.filter((u) => u.id !== existing?.id && roleOf(u) === d.role).length;
   const projected = others + 1;
-  const losesDetails = !!existing?.isCharacter && !d.isCharacter && !!(existing.relics?.length || existing.title || existing.backstory || existing.enhancement);
+  const losesDetails = !!existing?.isCharacter && !d.isCharacter && !!(existing.relics?.length || existing.training?.length || existing.title || existing.backstory || existing.enhancement);
 
   // In Setup, a save that makes this unit a Character is stopped if the roster already has one. Saving an existing Character is fine.
   // A non-Character Warlord added in Setup is the one Character: it is refused beside a Character or another Warlord.
@@ -227,7 +228,10 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, r
     text("title", d.title, d.isCharacter);
     text("backstory", d.backstory, d.isCharacter);
     text("warlordTrait", d.warlordTrait, warlord);
-    if (!d.isCharacter) delete unit.relics;
+    if (!d.isCharacter) {
+      delete unit.relics;
+      delete unit.training;
+    }
     if (!toughBlank) unit.t = toughNum;
     else delete unit.t;
     if (d.battles.trim() !== "") unit.battles = Number(d.battles);
@@ -314,8 +318,9 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, r
       </div>
       <div className="mono" style={{ fontSize: 12 }}>
         RANK: <span style={{ color: "var(--brass)" }}>{rankOf(shownXp).toUpperCase()}</span> · {allowed} HONOUR SLOT{allowed === 1 ? "" : "S"} · EFFECTIVE{" "}
-        {effectivePoints({ points: Number.isFinite(points) ? points : 0, honours: d.honours, relics })} PTS
+        {effectivePoints({ points: Number.isFinite(points) ? points : 0, honours: d.honours, relics, training })} PTS
         {relics.length > 0 ? ` (${relics.length} RELIC${relics.length === 1 ? "" : "S"})` : ""}
+        {training.length > 0 ? ` (${training.length} TRAINING)` : ""}
       </div>
 
       <div className="sub">
@@ -366,7 +371,7 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, r
               Knights exemption: this Armiger can be your Setup Warlord without being a Character. It counts as your one Character.
             </div>
           )}
-          {losesDetails && <div className="hint bad">! Saving without Character removes this unit's title, backstory, enhancement and relics.</div>}
+          {losesDetails && <div className="hint bad">! Saving without Character removes this unit's title, backstory, enhancement, relics and Battle Training.</div>}
           {charBlock && (
             <div className="hint bad" id="f_charblock" role="alert">
               ! Setup allows one Character: your {charBlock.isWarlord ? "Warlord" : "Character"} ({charBlock.name}). Change or remove them first.

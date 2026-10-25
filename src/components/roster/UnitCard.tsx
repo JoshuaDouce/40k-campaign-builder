@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
 import {
   honourEffect,
+  extrasPoints,
   honourPoints,
   MAX_RELICS,
+  MAX_TRAINING,
   rankIndex,
   RANKS,
   RELIC_PTS,
+  TRAINING_PTS,
   roleOf,
   relicEffect,
   scarEffect,
@@ -58,9 +61,15 @@ export function UnitCard({ unit, editable, memorial, overLimit, toughOver, tough
   const remembered = unit.isCharacter && memorial;
   const pct = next ? Math.round(((unit.xp - rank.xp) / (next.xp - rank.xp)) * 100) : 100;
   const relics = unit.relics ?? [];
+  const training = unit.isCharacter ? (unit.training ?? []) : [];
   const hp = honourPoints(unit);
   const honourDelta = hp - unit.points;
-  const eff = hp + RELIC_PTS * relics.length;
+  const eff = hp + extrasPoints(unit);
+  const addOns = [
+    honourDelta > 0 && `+${honourDelta} honour`,
+    relics.length > 0 && `+${RELIC_PTS * relics.length} relics`,
+    training.length > 0 && `+${TRAINING_PTS * training.length} training`,
+  ].filter(Boolean);
   const battles = unit.battles ?? 0;
   const kills = unit.kills ?? 0;
   const hasDetails = !!((unit.isWarlord && unit.warlordTrait) || unit.enhancement || unit.backstory);
@@ -86,14 +95,10 @@ export function UnitCard({ unit, editable, memorial, overLimit, toughOver, tough
         </div>
         <div className="pts">
           <b>{eff} pts</b>
-          {unit.isCharacter && (unit.honours.length > 0 || relics.length > 0) ? (
+          {unit.isCharacter && (unit.honours.length > 0 || relics.length > 0 || training.length > 0) ? (
             <>
               <s>{unit.points} base</s>
-              <em>
-                {honourDelta > 0 && `+${honourDelta} honour`}
-                {honourDelta > 0 && relics.length > 0 && " "}
-                {relics.length > 0 && `+${RELIC_PTS * relics.length} relics`}
-              </em>
+              <em>{addOns.join(" ")}</em>
             </>
           ) : unit.honours.length ? (
             <>
@@ -196,6 +201,14 @@ export function UnitCard({ unit, editable, memorial, overLimit, toughOver, tough
         <div className="enh">
           <span>Enhancement</span>
           {unit.enhancement}
+        </div>
+      )}
+      {training.length > 0 && (
+        <div className="enh">
+          <span>Battle Training · {training.length} of {MAX_TRAINING}</span>
+          {training.map((t, i) => (
+            <div key={i}>{t}</div>
+          ))}
         </div>
       )}
       {unit.isCharacter && (relics.length > 0 || editable) && (

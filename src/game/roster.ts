@@ -22,6 +22,9 @@ export const PROMOTION_MIN_XP = 8;
 /** Relics a Character can hold, and the points each adds (flat, after honours). */
 export const MAX_RELICS = 3;
 export const RELIC_PTS = 10;
+export const MAX_TRAINING = 3;
+export const TRAINING_PTS = 10;
+const TRAINING_TEXT_MAX = 200;
 export const BACKSTORY_MAX = 280;
 export const TITLE_MAX = 60;
 export const TRAIT_MAX = 200;
@@ -64,9 +67,13 @@ export function honoursOwed(unit: Pick<Unit, "honours">, newXp: number): number 
 export function honourPoints(unit: Pick<Unit, "points" | "honours">): number {
   return Math.round((unit.points * (1 + 0.1 * unit.honours.length)) / 5) * 5;
 }
-/** Honour-adjusted points (rounded to 5) plus 10 per relic. */
-export function effectivePoints(unit: Pick<Unit, "points" | "honours" | "relics">): number {
-  return honourPoints(unit) + RELIC_PTS * (unit.relics?.length ?? 0);
+/** Points added by relics and Battle Training (10 each). */
+export function extrasPoints(unit: Pick<Unit, "relics" | "training">): number {
+  return RELIC_PTS * (unit.relics?.length ?? 0) + TRAINING_PTS * (unit.training?.length ?? 0);
+}
+/** Honour-adjusted points (rounded to 5) plus 10 per relic and per Battle Training. */
+export function effectivePoints(unit: Pick<Unit, "points" | "honours" | "relics" | "training">): number {
+  return honourPoints(unit) + extrasPoints(unit);
 }
 export function totalEffective(units: readonly Unit[]): number {
   return units.reduce((a, u) => a + effectivePoints(u), 0);
@@ -269,6 +276,10 @@ function cleanUnit(u: Unit): Unit | null {
     if (title) out.title = title;
     if (story) out.backstory = story;
     if (u.relics?.length) out.relics = [...u.relics];
+    const training = Array.isArray(u.training)
+      ? u.training.filter((t): t is string => typeof t === "string").map((t) => t.trim().slice(0, TRAINING_TEXT_MAX)).filter(Boolean).slice(0, MAX_TRAINING)
+      : [];
+    if (training.length) out.training = training;
   }
   if (out.isWarlord) {
     const trait = typeof u.warlordTrait === "string" ? u.warlordTrait.trim().slice(0, TRAIT_MAX) : "";
@@ -611,16 +622,17 @@ export function fieldSurgeonOn(s: CampaignState, playerId: string, unitId: strin
   return true;
 }
 
-export function promoteUnit(s: CampaignState, playerId: string, unitId: string, enhancement?: string): boolean {
+export function promoteUnit(s: CampaignState, playerId: string, unitId: string, training?: string): boolean {
   const p = getPlayer(s, playerId);
   const u = rosterFor(s, playerId).find((x) => x.id === unitId);
   if (!p || !u || p.rp < PROMOTION_COST) return false;
   if (u.isCharacter) {
-    const enh = enhancement?.trim();
-    if (!enh) return false;
+    const text = training?.trim().slice(0, TRAINING_TEXT_MAX);
+    const held = u.training ?? [];
+    if (!text || held.length >= MAX_TRAINING) return false;
     spendRp(s, playerId, PROMOTION_COST);
-    u.enhancement = enh;
-    log(s, B(p.name), ` spends ${PROMOTION_COST} RP on a Promotion: `, B(u.name), " gains an enhancement.");
+    u.training = [...held, text];
+    log(s, B(p.name), ` spends ${PROMOTION_COST} RP on a Promotion: `, B(u.name), " completes Battle Training.");
   } else {
     if (s.round === 0 || u.xp < PROMOTION_MIN_XP) return false; // Setup allows no new Character
     spendRp(s, playerId, PROMOTION_COST);

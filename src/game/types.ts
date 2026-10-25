@@ -200,6 +200,8 @@ export interface Unit {
   warlordTrait?: string;
   /** Characters only. Names from `RELICS`, at most 3, no duplicates. */
   relics?: string[];
+  /** Characters only. Battle Training bought with Promotion: free text, at most 3. */
+  training?: string[];
   /** Toughness (highest T among its models). Missing = unknown; never flagged. */
   t?: number;
   /** Career record, every unit. Missing = 0. */
@@ -419,7 +421,7 @@ export type Action =
   | { type: "clearExamples"; playerId: string }
   | { type: "setReady"; playerId: string; ready: boolean }
   | { type: "fieldSurgeon"; playerId: string; unitId: string; scar: string }
-  | { type: "promotion"; playerId: string; unitId: string; enhancement?: string }
+  | { type: "promotion"; playerId: string; unitId: string; training?: string }
   | { type: "seasonedRecruits"; playerId: string; unit: Unit }
   | { type: "setToggle"; key: ToggleKey; on: boolean }
   | { type: "regen" }

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { forceOrgFor, PROMOTION_COST, PROMOTION_MIN_XP, rankOf, RECRUITS_COST, scarEffect, SURGEON_COST, scarLabel, scarName } from "../../game/index.ts";
+import { forceOrgFor, MAX_TRAINING, PROMOTION_COST, PROMOTION_MIN_XP, rankOf, RECRUITS_COST, scarEffect, SURGEON_COST, scarLabel, scarName } from "../../game/index.ts";
 import type { Unit } from "../../game/index.ts";
 import { useCampaign } from "../../store/useCampaign.ts";
 import { Overlay, SheetFooter } from "./Overlay.tsx";
@@ -90,30 +90,31 @@ export function PromotionDialog({ playerId, roster, rp, onDone, onClose }: Props
   const setup = state.round === 0;
   const [mode, setMode] = useState<PromoMode>("char");
   const [uid, setUid] = useState<string | null>(null);
-  const [enh, setEnh] = useState("");
-  const list = mode === "char" ? roster.filter((u) => u.isCharacter) : setup ? [] : roster.filter((u) => !u.isCharacter && u.xp >= PROMOTION_MIN_XP);
+  const [training, setTraining] = useState("");
+  const trained = (u: Unit) => (u.training ?? []).length;
+  const list = mode === "char" ? roster.filter((u) => u.isCharacter && trained(u) < MAX_TRAINING) : setup ? [] : roster.filter((u) => !u.isCharacter && u.xp >= PROMOTION_MIN_XP);
   const unit = list.find((u) => u.id === uid);
-  const ready = !!unit && rp >= PROMOTION_COST && (mode === "vet" || enh.trim() !== "");
+  const ready = !!unit && rp >= PROMOTION_COST && (mode === "vet" || training.trim() !== "");
 
   const go = () => {
     if (!unit || !ready) return;
-    dispatch({ type: "promotion", playerId, unitId: unit.id, enhancement: mode === "char" ? enh.trim() : undefined });
-    onDone(mode === "char" ? `Promotion: ${unit.name} gains an enhancement (-${PROMOTION_COST} RP)` : `Promotion: ${unit.name} is now a Character (-${PROMOTION_COST} RP)`);
+    dispatch({ type: "promotion", playerId, unitId: unit.id, training: mode === "char" ? training.trim() : undefined });
+    onDone(mode === "char" ? `Promotion: ${unit.name} completes Battle Training (-${PROMOTION_COST} RP)` : `Promotion: ${unit.name} is now a Character (-${PROMOTION_COST} RP)`);
   };
   const pickMode = (m: PromoMode) => {
     setMode(m);
     setUid(null);
-    setEnh("");
+    setTraining("");
   };
 
   return (
     <Overlay title="Promotion" onClose={onClose}>
       <p className="dim">
-        {PROMOTION_COST} RP. Give a Character an enhancement, or make a Veteran unit's sergeant a Character. You have {rp} RP.
+        {PROMOTION_COST} RP. Give a Character Battle Training (a campaign ability your group agrees, +10 pts, up to {MAX_TRAINING}), or make a Veteran unit's sergeant a Character. You have {rp} RP.
       </p>
       <div className="seg" role="group" aria-label="Promotion type">
         <button type="button" className="chip" aria-pressed={mode === "char"} onClick={() => pickMode("char")}>
-          Character enhancement
+          Battle Training
         </button>
         <button type="button" className="chip" aria-pressed={mode === "vet"} onClick={() => pickMode("vet")}>
           Veteran becomes Character
@@ -127,19 +128,19 @@ export function PromotionDialog({ playerId, roster, rp, onDone, onClose }: Props
                 <b>{c.name}</b>
                 <small>
                   {c.datasheet} · {rankOf(c.xp)}
-                  {c.enhancement ? " · has an enhancement already" : ""}
+                  {trained(c) ? ` · ${trained(c)} of ${MAX_TRAINING} Battle Training` : ""}
                 </small>
               </div>
             </button>
           ))
         ) : (
-          <p className="dim">{mode === "char" ? "No Characters on the roster." : setup ? "Setup allows one Character: your Warlord. Veterans can be promoted from War Round 1." : "No Veteran units that aren't already Characters."}</p>
+          <p className="dim">{mode === "char" ? `No Characters on the roster with room for Battle Training (${MAX_TRAINING} at most).` : setup ? "Setup allows one Character: your Warlord. Veterans can be promoted from War Round 1." : "No Veteran units that aren't already Characters."}</p>
         )}
       </div>
       {mode === "char" && uid && (
         <div className="field">
-          <label htmlFor="p_enh">Enhancement</label>
-          <input type="text" id="p_enh" value={enh} placeholder="Enhancement name and effect" onChange={(e) => setEnh(e.target.value)} />
+          <label htmlFor="p_training">Battle Training</label>
+          <input type="text" id="p_training" value={training} maxLength={200} placeholder="Training name and effect" onChange={(e) => setTraining(e.target.value)} />
         </div>
       )}
       {mode === "vet" && uid && (
