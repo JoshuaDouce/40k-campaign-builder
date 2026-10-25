@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { canPerform, ROLE_NAMES, roleOf, countsAsSetupNine, datasheetLimit, distinctDatasheets, forceOrgFor, overStageCap, PROMOTION_COST, RECRUITS_COST, rosterOf, setupToughnessBlock, SURGEON_COST, supplyOf, toggleOn, totalEffective, toughStageActive, warlordNotCharacter } from "../../game/index.ts";
+import { canPerform, HAND_LIMIT, ROLE_NAMES, roleOf, countsAsSetupNine, datasheetLimit, distinctDatasheets, forceOrgFor, overStageCap, PROMOTION_COST, RECRUITS_COST, rosterOf, setupToughnessBlock, SURGEON_COST, supplyOf, toggleOn, totalEffective, toughStageActive, warlordNotCharacter } from "../../game/index.ts";
 import type { Unit } from "../../game/index.ts";
 import { useCampaign } from "../../store/useCampaign.ts";
 import { ForceOrgChart } from "./ForceOrgChart.tsx";
@@ -185,6 +185,17 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
               </button>
               <button className="btn sm" disabled={player.rp < RECRUITS_COST} onClick={() => setDialog({ kind: "recruits" })}>
                 Seasoned Recruits · {RECRUITS_COST} RP
+              </button>
+              <button
+                className="btn sm"
+                disabled={player.rp < 1 || player.hand.length >= HAND_LIMIT}
+                title={player.hand.length >= HAND_LIMIT ? "Hand full. Play or discard a card first." : "Spend 1 RP to draw one Fate Card"}
+                onClick={() => {
+                  dispatch({ type: "requisitionDeck", playerId: pid });
+                  say("Drew a Fate Card.");
+                }}
+              >
+                Requisition the Deck · 1 RP
               </button>
             </div>
           </>

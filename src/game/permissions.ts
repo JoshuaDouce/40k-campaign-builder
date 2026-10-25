@@ -45,7 +45,7 @@ export function canPerform(state: CampaignState, action: Action, ctx: Permission
       return !!u && !u.reportFiled && u.attacker === action.attacker && (controls(state, u.attacker, userId) || (u.defender !== undefined && controls(state, u.defender, userId)));
     }
 
-    case "drawCard":
+    case "requisitionDeck":
     case "playCard":
     case "discardCard":
     case "buyReinforcements":

@@ -62,7 +62,7 @@ catch-up bonus, with no setup.
 - **War Room before round 1:** the old Setup card (Chart and Begin buttons) is removed. One card: "Campaign
   setup is under way" with "Go to Setup". Log stays. After round 1, "Begin War Round N" is unchanged.
 - **Players tab before round 1:** Add player and Remove hidden, with a pointer line to Setup. Everything else
-  stays (name, faction, stats, supply, hand, Draw card, Reset). After round 1, exactly as today.
+  stays (name, faction, stats, supply, hand, Reset). After round 1, exactly as today.
 - **Pitch tab:** wording unchanged. At round 0 only, a one-line pointer at the top.
 - **Rules and Turn Guide:** unchanged.
 
