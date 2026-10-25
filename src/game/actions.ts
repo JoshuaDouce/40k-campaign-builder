@@ -20,7 +20,7 @@ import {
   removeUnitFrom,
   updateUnitIn,
 } from "./roster.ts";
-import { DATASHEET_COST, datasheetLimit, isToggleKey, toggleOn, TOGGLE_NAMES } from "./toggles.ts";
+import { DATASHEET_COST, datasheetLimit, isToggleKey, toggleOn, TOGGLE_EXCLUDES, TOGGLE_NAMES } from "./toggles.ts";
 import {
   confirmQuietPick,
   dropPlayerPicks,
@@ -241,8 +241,9 @@ function run(s: CampaignState, a: Action, rng: Rng): boolean {
     case "setToggle": {
       if (!isToggleKey(a.key) || typeof a.on !== "boolean") return false;
       if (toggleOn(s, a.key) === a.on) return false; // unchanged: no-op, no log line
-      s.toggles = { ...s.toggles, [a.key]: a.on };
-      log(s, "Campaign rule changed: ", B(TOGGLE_NAMES[a.key]), ` is now ${a.on ? "on" : "off"}.`);
+      const other = a.on ? TOGGLE_EXCLUDES[a.key] : undefined;
+      s.toggles = { ...s.toggles, [a.key]: a.on, ...(other && { [other]: false }) };
+      log(s, "Campaign rule changed: ", B(TOGGLE_NAMES[a.key]), ` is now ${a.on ? "on" : "off"}`, ...(other ? [", so ", B(TOGGLE_NAMES[other]), " is off."] : ["."]));
       return true;
     }
 

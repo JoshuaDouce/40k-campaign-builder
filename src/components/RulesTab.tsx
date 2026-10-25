@@ -3,8 +3,8 @@ import type { ProvinceType, ToggleKey } from "../game/index.ts";
 import { useOptionalCampaign } from "../store/useCampaign.ts";
 
 const TOGGLE_DESC: Record<ToggleKey, string> = {
-  forceOrg: "Role slots, minimums and over-limit warnings.",
-  datasheetLimit: "5 datasheets, +1 for each Extra Datasheet bought with RP.",
+  forceOrg: "Role slots, minimums and over-limit warnings. Can't be on with the Datasheet limit.",
+  datasheetLimit: "5 datasheets, +1 for each Extra Datasheet bought with RP. Replaces Force Organisation slots.",
   toughnessStages: "No unit above T11 in War Rounds 1–2, until supply reaches 1250.",
   knights: "Armigers and War Dogs count as Battleline; one may be the Setup Warlord.",
 };
@@ -79,7 +79,7 @@ export function RulesTab() {
       )}
       <p><b>Which role?</b> Picking a datasheet from the list fills in its role from the datasheet's keywords, in this order: Character, then Battleline, then Dedicated Transport or Fortification (Other), then Vehicle, Monster or Aircraft (Vehicle / Monster), and everything else is Non-Monster / Vehicle. Non-Monster / Vehicle covers foot troops of every kind, Beasts, Swarms, Jump Pack infantry, bikes, cavalry and jetbikes. Walkers, tanks, big monsters and Aircraft are Vehicle / Monster. Dedicated Transports and Fortifications are Other. Psykers take the role their datasheet gives them, usually Character. Allied units and Agents take whatever role their own datasheet gives them.</p>
       {toggled("datasheetLimit") && (
-        <p><b>Datasheet limit.</b> A roster may use at most 5 different datasheets. Several units of the same datasheet count once, and so does your Warlord's. A unit with no datasheet named isn't counted. The limit does not grow on its own: spend 1 RP on an Extra Datasheet for +1 to your limit for the rest of the campaign, as many times as you like. At the limit, you can't add a unit of a new datasheet until you buy one.</p>
+        <p><b>Datasheet limit.</b> This rule replaces Force Organisation slots: switching it on turns slots off. A roster may use at most 5 different datasheets. Several units of the same datasheet count once, and so does your Warlord's. A unit with no datasheet named isn't counted. The limit does not grow on its own: spend 1 RP on an Extra Datasheet for +1 to your limit for the rest of the campaign, as many times as you like. At the limit, you can't add a unit of a new datasheet until you buy one.</p>
       )}
       {toggled("toughnessStages") && (
         <p><b>Toughness stages.</b> In War Rounds 1 and 2, no unit may have Toughness 12 or higher. From War Round 3, or as soon as your supply limit reaches 1250 pts, the cap is gone. The Setup limits still apply first.</p>

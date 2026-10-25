@@ -25,8 +25,18 @@ export function isToggleKey(x: unknown): x is ToggleKey {
   return typeof x === "string" && (TOGGLE_KEYS as readonly string[]).includes(x);
 }
 
+/** Rules that can't both be on: switching one on switches the other off. */
+export const TOGGLE_EXCLUDES: Readonly<Partial<Record<ToggleKey, ToggleKey>>> = {
+  forceOrg: "datasheetLimit",
+  datasheetLimit: "forceOrg",
+};
+
+const storedOn = (state: Pick<CampaignState, "toggles">, key: ToggleKey): boolean => state.toggles?.[key] ?? TOGGLE_DEFAULTS[key];
+
+/** True if the rule is on. Saves from before the rules were exclusive may hold both: the Datasheet limit wins. */
 export function toggleOn(state: Pick<CampaignState, "toggles">, key: ToggleKey): boolean {
-  return state.toggles?.[key] ?? TOGGLE_DEFAULTS[key];
+  if (key === "forceOrg" && storedOn(state, "datasheetLimit")) return false;
+  return storedOn(state, key);
 }
 
 /** Toggle names that are on, in panel order. */
