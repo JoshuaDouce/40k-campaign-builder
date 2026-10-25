@@ -9,6 +9,7 @@ import { JoinScreen } from "./components/account/JoinScreen.tsx";
 import { NewCampaignScreen } from "./components/account/NewCampaignScreen.tsx";
 import { PublicHeader } from "./components/account/PublicHeader.tsx";
 import { SignInScreen } from "./components/account/SignInScreen.tsx";
+import { ViewAsProvider } from "./components/account/ViewAs.tsx";
 import { DeckTab } from "./components/DeckTab.tsx";
 import { FactionsTab } from "./components/FactionsTab.tsx";
 import { MapTab } from "./components/MapTab.tsx";
@@ -20,7 +21,6 @@ import { SetupTab } from "./components/SetupTab.tsx";
 import { RulesTab } from "./components/RulesTab.tsx";
 import { TurnGuideTab } from "./components/turnGuide/TurnGuideTab.tsx";
 import { WarRoomTab } from "./components/WarRoomTab.tsx";
-import { CampaignProvider } from "./store/CampaignProvider.tsx";
 import { useAuth } from "./store/useAuth.ts";
 import type { AuthUser } from "./store/useAuth.ts";
 import { useCampaign } from "./store/useCampaign.ts";
@@ -211,9 +211,9 @@ function CampaignView({ id, user, onBack, onSignOut }: { id: string; user: AuthU
     <div className="wrap">
       <AccountBar email={user.email} isOrganiser={user.isOrganiser} onSignOut={onSignOut} />
       {remote.status === "ready" ? (
-        <CampaignProvider store={remote.store}>
+        <ViewAsProvider store={remote.store} canSwitch={user.isOrganiser}>
           <CampaignBody onBack={onBack} />
-        </CampaignProvider>
+        </ViewAsProvider>
       ) : remote.status === "gone" ? (
         <CampaignGone onBack={onBack} />
       ) : (
