@@ -27,6 +27,7 @@ import type {
   BattleInfo,
   BattleRecord,
   CampaignState,
+  GarrisonEdge,
   LiveBattle,
   PickStatus,
   Player,
@@ -298,8 +299,17 @@ function rollTwistSet(zone: Zone, s: CampaignState, rng: Rng): number[] {
   return idx;
 }
 
+/** The garrison's points, the attacker's points and the garrison note for a fixed battle size. */
+function garrisonFigures(a: Player, d: Player, pts: number, edge: GarrisonEdge) {
+  const weaken = edge === "defender";
+  const defenderPts = r5(pts * 0.8);
+  const note = `Garrison battle: ${d.name} fields the unclaimed province's garrison and gains nothing from it. ${a.name} must fight it, ${weaken ? `against a garrison with -20% points (${defenderPts} pts)` : "with +20% points"}.`;
+  return { attackerPts: weaken ? pts : r5(pts * 1.2), ...(weaken && { defenderPts, edge }), note };
+}
+const isGarrisonNote = (n: string): boolean => n.startsWith("Garrison battle: ");
+
 /** Points, notes and the rest for a battle, worked out from the state right now. Read-only. */
-function figures(s: CampaignState, a: Player, d: Player, v: Zone, act: ActionId, garrison: boolean, twists: number[]) {
+function figures(s: CampaignState, a: Player, d: Player, v: Zone, act: ActionId, garrison: boolean, twists: number[], edge: GarrisonEdge) {
   const notes: string[] = [];
   let pts = sizeOf(s, v);
   twists.forEach((i) => (pts *= TWISTS[i].m));
@@ -317,11 +327,8 @@ function figures(s: CampaignState, a: Player, d: Player, v: Zone, act: ActionId,
     );
     pts = Math.floor(cap / 50) * 50;
   }
-  const attackerPts = garrison ? r5(pts * 1.2) : pts;
-  if (garrison)
-    notes.push(
-      `Garrison battle: ${d.name} fields the unclaimed province's garrison and gains nothing from it. ${a.name} must fight it, with +20% points.`,
-    );
+  const { note, ...gar } = garrison ? garrisonFigures(a, d, pts, edge) : { note: "", attackerPts: pts };
+  if (garrison) notes.push(note);
   else if (count(s, a) < count(s, d)) notes.push(`${a.name} is the Underdog: +10% (${r5(pts * 1.1)} pts).`);
   const held = s.terr[v.id] === d.id;
   if (held && (s.fort[v.id] || v.type === "fortress"))
@@ -332,11 +339,11 @@ function figures(s: CampaignState, a: Player, d: Player, v: Zone, act: ActionId,
   if (a.scout) notes.push(`Scout: ${a.name} may swap one twist for any twist of their choice.`);
   const cards = twists.includes(8) ? 1 : Math.max(1, Math.floor(pts / 500));
   const lightForces = pts <= LIGHT_FORCES_MAX_PTS && !twists.includes(LIGHT_FORCES_TWIST);
-  return { pts, attackerPts, notes, cards, lightForces };
+  return { pts, ...gar, notes, cards, lightForces };
 }
 
 /** What `makeBattle` needs: the given `twists` (converting an old save), or an `rng` to roll them. */
-export type BattleSpec = { attackerId: string; act: ActionId; zone: string; def: string; garrison: boolean } & (
+export type BattleSpec = { attackerId: string; act: ActionId; zone: string; def: string; garrison: boolean; edge?: GarrisonEdge } & (
   | { twists: number[] }
   | { rng: Rng }
 );
@@ -348,7 +355,7 @@ export function makeBattle(s: CampaignState, b: BattleSpec): LiveBattle | null {
   const v = getZone(s, b.zone);
   if (!a || !d || !v) return null;
   const twists = "twists" in b ? b.twists : rollTwistSet(v, s, b.rng);
-  return { def: b.def, garrison: b.garrison, twists, ...figures(s, a, d, v, b.act, b.garrison, twists) };
+  return { def: b.def, garrison: b.garrison, twists, ...figures(s, a, d, v, b.act, b.garrison, twists, b.edge ?? "attacker") };
 }
 
 const RIFT_TRAIT = {
@@ -398,9 +405,23 @@ export function rollPick(s: CampaignState, playerId: string, defArg: string | un
 export function rerollPick(s: CampaignState, playerId: string, rng: Rng): boolean {
   const pk = s.picks[playerId];
   if (!pk?.battle || pk.done || !pk.zone || !pk.act) return false;
-  const battle = makeBattle(s, { attackerId: playerId, act: pk.act, zone: pk.zone, def: pk.battle.def, garrison: pk.battle.garrison, rng });
+  const b = pk.battle;
+  const battle = makeBattle(s, { attackerId: playerId, act: pk.act, zone: pk.zone, def: b.def, garrison: b.garrison, edge: b.edge, rng });
   if (!battle) return false;
   pk.battle = battle;
+  return true;
+}
+
+/** Garrison battle In battle: +20% points for the attacker or -20% for the garrison. The battle size stays fixed. */
+export function setGarrisonEdge(s: CampaignState, playerId: string, edge: GarrisonEdge): boolean {
+  const pk = s.picks[playerId];
+  const b = pk?.battle;
+  const a = getPlayer(s, playerId);
+  const d = getPlayer(s, b?.def);
+  if (!b?.garrison || pk.done || !a || !d || (edge !== "attacker" && edge !== "defender")) return false;
+  const { note, ...gar } = garrisonFigures(a, d, b.pts, edge);
+  const { defenderPts: _d, edge: _e, ...rest } = b;
+  pk.battle = { ...rest, ...gar, notes: b.notes.map((n) => (isGarrisonNote(n) ? note : n)) };
   return true;
 }
 

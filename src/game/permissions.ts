@@ -30,6 +30,7 @@ export function canPerform(state: CampaignState, action: Action, ctx: Permission
     case "unreadyPick":
     case "rollPick":
     case "rerollPick":
+    case "setGarrisonEdge":
     case "confirmQuietPick":
     case "switchPick":
       return controls(state, action.playerId, userId);

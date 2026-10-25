@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { battleInfo, LIGHT_FORCES_MAX_PTS, LIGHT_FORCES_TWIST, planetOf, TWISTS, VTYPES } from "../../game/index.ts";
-import type { Action, CampaignState } from "../../game/index.ts";
+import { battleInfo, LIGHT_FORCES_MAX_PTS, LIGHT_FORCES_TWIST, planetOf, r5, TWISTS, VTYPES } from "../../game/index.ts";
+import type { Action, CampaignState, GarrisonEdge } from "../../game/index.ts";
 
 interface Props {
   state: CampaignState;
@@ -23,6 +23,9 @@ export function BattleCard({ state, dispatch, can, playerId }: Props) {
     { result: "x", label: "Draw", primary: false },
   ];
   const reroll: Action = { type: "rerollPick", playerId };
+  const edge: GarrisonEdge = B.edge ?? "attacker";
+  const edgeId = `edgeSel-${playerId}`;
+  const setEdge = (e: GarrisonEdge): Action => ({ type: "setGarrisonEdge", playerId, edge: e });
   return (
     <div className="battle">
       <div className="eyebrow">
@@ -31,9 +34,23 @@ export function BattleCard({ state, dispatch, can, playerId }: Props) {
       </div>
       <div className="size">{B.pts} pts</div>
       {B.garrison && (
-        <p className="mono dim" style={{ fontSize: 12 }}>
-          GARRISON {B.pts} PTS · {B.a.name.toUpperCase()} {B.attackerPts} PTS (+20%)
-        </p>
+        <>
+          <p className="mono dim" style={{ fontSize: 12 }}>
+            GARRISON {B.defenderPts ?? B.pts} PTS{edge === "defender" ? " (-20%)" : ""} · {B.a.name.toUpperCase()} {B.attackerPts} PTS
+            {edge === "attacker" ? " (+20%)" : ""}
+          </p>
+          <div className="field">
+            <label htmlFor={edgeId}>Garrison handicap ({B.a.name} chooses)</label>
+            <select id={edgeId} value={edge} disabled={!can(setEdge(edge))} onChange={(e) => dispatch(setEdge(e.target.value as GarrisonEdge))}>
+              <option value="attacker">
+                {B.a.name} +20% ({r5(B.pts * 1.2)} pts vs {B.pts})
+              </option>
+              <option value="defender">
+                Garrison -20% ({B.pts} pts vs {r5(B.pts * 0.8)})
+              </option>
+            </select>
+          </div>
+        </>
       )}
       <p className="mono dim" style={{ fontSize: 12 }}>
         {B.a.name.toUpperCase()} (ATTACKER) VS {B.d.name.toUpperCase()} ({B.garrison ? "GARRISON" : "DEFENDER"}) · FATE CARDS: UP TO {B.cards} EACH

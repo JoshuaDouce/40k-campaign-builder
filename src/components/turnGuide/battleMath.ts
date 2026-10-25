@@ -18,6 +18,8 @@ interface SizeInfo {
   capped: boolean;
   /** Your own points: +20% in a garrison battle, +10% as the Underdog. */
   yours: number;
+  /** The garrison's points if you take -20% off them instead of +20% for you. */
+  garrisonLess: number;
   light: boolean;
   supply: number;
 }
@@ -36,7 +38,7 @@ export function sizeInfo(env: Env): SizeInfo {
   const playable = supply < size ? Math.floor(supply / 50) * 50 : size;
   const yours = garrison ? r5(playable * 1.2) : ctx.underdog ? r5(playable * 1.1) : playable;
   const hasLightTwist = ctx.twists.includes(LIGHT_FORCES_TWIST);
-  return { base, mult, raid, garrison, size, playable, capped: playable < size, yours, light: playable <= LIGHT_FORCES_MAX_PTS && !hasLightTwist, supply };
+  return { base, mult, raid, garrison, size, playable, capped: playable < size, yours, garrisonLess: r5(playable * 0.8), light: playable <= LIGHT_FORCES_MAX_PTS && !hasLightTwist, supply };
 }
 
 /** Fate Cards each side may play: 1 per 500 pts, minimum 1; Supply Shortage allows only 1. */

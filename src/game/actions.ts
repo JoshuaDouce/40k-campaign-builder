@@ -27,6 +27,7 @@ import {
   forgetRoundCache,
   readyPick,
   rerollPick,
+  setGarrisonEdge,
   resolvePick,
   revealPicks,
   rollPick,
@@ -87,6 +88,9 @@ function run(s: CampaignState, a: Action, rng: Rng): boolean {
 
     case "rerollPick":
       return rerollPick(s, a.playerId, rng);
+
+    case "setGarrisonEdge":
+      return setGarrisonEdge(s, a.playerId, a.edge);
 
     case "resolvePick": {
       if (a.result !== "a" && a.result !== "d" && a.result !== "x") return false;

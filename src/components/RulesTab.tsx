@@ -125,7 +125,7 @@ export function RulesTab() {
         </tbody>
       </table></div>
       <p>If either player's supply limit is lower than the battle size, play at the lower number. An attacker with fewer provinces than the defender is the <b>Underdog</b> and gets +10% points.</p>
-      <p><b>Garrison battles.</b> Attacking an unclaimed province means fighting its garrison, played by another player (never the attacker). You must fight it. Only your supply limit caps the size, Underdog doesn't apply, and you get +20% points. The garrison is a favour: that player gains no RP, Fate Cards, wins or supply. Light Forces still goes by the base size, before the +20%. If you win and lost under 25% of your army, it's a <b>Decisive win</b>: +1 RP.</p>
+      <p><b>Garrison battles.</b> Attacking an unclaimed province means fighting its garrison, played by another player (never the attacker). You must fight it. Only your supply limit caps the size, Underdog doesn't apply, and you choose your edge: +20% points for you, or -20% points for the garrison. The garrison is a favour: that player gains no RP, Fate Cards, wins or supply. Light Forces and Fate Cards still go by the base size, before the 20%. If you win and lost under 25% of your army, it's a <b>Decisive win</b>: +1 RP.</p>
       <p>Battles of {LIGHT_FORCES_MAX_PTS} pts or fewer automatically use the <b>Light Forces</b> rule. {TWISTS[LIGHT_FORCES_TWIST].e}</p>
 
       <h3>Province types</h3>
