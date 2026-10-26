@@ -94,7 +94,7 @@ through `/build-feature`.
     Capital and starts under the prototype's "No foothold" rule. Allow it, or lock joins
     once round 1 starts? ❓
 11. **Who can do what isn't fully listed.** My proposal ❓:
-    - Begin War Round: any member
+    - Begin War Round: owner for War Round 1, then any member
     - Take a turn / play / discard / spend RP: that player, or the owner
     - Record a battle result: attacker, defender, or the owner
     - Map "Held by" override, stat +/- buttons, remove player, reset campaign, chart a new

@@ -179,7 +179,7 @@ export function SetupTab({ colors, onNavigate }: { colors: Record<string, string
                   Begin War Round 1
                 </button>
               </div>
-              <p className="su-who">Any member can begin.</p>
+              <p className="su-who">{viewer.isOwner ? "Only you, the campaign owner, can begin." : "Only the campaign owner can begin."}</p>
             </>
           )}
         </Step>

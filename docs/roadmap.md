@@ -68,7 +68,7 @@ password. On first sign-in you set a display name.
 
 ### 7. Permissions (stage 2 logic, stages 3–4 UI)
 Buttons you can't use are hidden or disabled, with a short reason.
-- Any member can begin a War Round.
+- Only the owner can begin War Round 1 (start the campaign); any member can begin later War Rounds.
 - Turn, cards, RP: that player or the owner. Battle result: attacker, defender or owner.
 - Owner only: map "Held by" override, stat +/-, remove player, reset, chart a new Reach.
 - Check with two phones: a non-owner sees no owner-only controls and can't take another's turn.
