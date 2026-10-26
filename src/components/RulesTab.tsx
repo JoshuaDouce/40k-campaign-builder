@@ -56,40 +56,115 @@ export function RulesTab() {
   return (
     <section className="tab" id="rules">
       <h2>Rules</h2>
-      <p className="dim">Everything the War Room does, written out so you can play it on paper too.</p>
+      <p className="dim">Everything the War Room does, as plain rules you can also play on paper.</p>
 
       <CampaignRules />
 
       <h3>The War Round</h3>
       <ol className="steps">
-        <li><div><b>Income</b>+1 RP for your Capital and each Hive City you hold. Draw 1 Fate Card for each Refinery you hold (hand limit 5).</div></li>
+        <li><div><b>Income</b>+1 RP for your Capital and each Hive City. 1 Fate Card for each Refinery (hand limit 5).</div></li>
+        <li><div><b>Plan</b>Everyone secretly picks an action and a target, then marks Ready.</div></li>
+        <li><div><b>Reveal</b>Once everyone is Ready, the owner reveals all picks at once.</div></li>
+        <li><div><b>Play</b>Everyone plays their pick at the same time.</div></li>
+        <li><div><b>Round end</b>When every pick is done. Hold the Hollowgate now and you win the Reach.</div></li>
       </ol>
-      <p>Each War Round has four steps. Plan: every player secretly chooses an action and target at the same time, then marks Ready. Reveal: once everyone is Ready, the owner reveals all picks at once. Play: everyone plays their own pick at the same time. If two players picked the same province, the weaker goes first and the other waits, or switches to something else. Round end: when every pick is done. If a pick is no longer possible when its turn comes, that player chooses again.</p>
-      <p>If someone holds the Hollowgate when the round ends, they win the Reach. Otherwise start the next War Round. The weakest is whoever holds the fewest provinces; break ties with a roll-off.</p>
-      <p className="dim">Can't get every game played in one evening? Fine. A War Round can stretch over a couple of weeks. Non-battle turns take a minute and can be done over the group chat.</p>
+      <ul className="rl">
+        <li>Two picks on the same province: the weaker player goes first. The other waits, or switches pick.</li>
+        <li>A pick that's no longer possible when its turn comes: choose again.</li>
+        <li>Weakest = fewest provinces. Ties: roll off.</li>
+        <li>A War Round can stretch over a couple of weeks.</li>
+      </ul>
+
+      <h3>Your warband</h3>
+      <h4 className="rl-h">In Setup (before War Round 1)</h4>
+      <ul className="rl">
+        <li>A 750 pt roster.</li>
+        <li>Exactly 1 Character: your Warlord.</li>
+        <li>At least 2 Battleline.</li>
+        <li>No unit at Toughness 10 or higher.</li>
+        <li>At most 1 non-Battleline unit at Toughness 9.</li>
+        <li>No Epic Heroes, ever.</li>
+        <li>Add, remove and resize units freely.</li>
+      </ul>
+      <h4 className="rl-h">From War Round 1</h4>
+      <ul className="rl">
+        <li>Units can't be removed. Only a third Battle Scar takes them off your roster.</li>
+        <li>Units can grow but never shrink: base points can't go down.</li>
+        <li>Field at least 1 Character and 2 Battleline.</li>
+        <li>Add Characters through Promotion or as your supply grows, up to your Character slots.</li>
+        <li>One Warlord per roster.</li>
+        <li>Your supply limit caps your roster's total points.</li>
+        {toggled("toughnessStages") && <li><b>Toughness stages:</b> no unit at Toughness 12 or higher in War Rounds 1 and 2. Lifts from War Round 3, or once your supply limit reaches 1250.</li>}
+      </ul>
+
+      <h4 className="rl-h">Roles</h4>
+      <ul className="rl">
+        <li>Every unit has one role: Character, Battleline, Non-Monster / Vehicle, Vehicle / Monster or Other.</li>
+        <li>Picking a datasheet sets the role from its keywords, first match wins: Character, then Battleline, then Other (Dedicated Transport, Fortification), then Vehicle / Monster (Vehicle, Monster, Aircraft).</li>
+        <li>Everything else is Non-Monster / Vehicle: Infantry, Mounted, Beasts, Swarms, bikes, jump packs.</li>
+        <li>Allies, Agents and Psykers take the role their own datasheet gives them.</li>
+      </ul>
+
+      {slots ? (
+        <>
+          <h4 className="rl-h">Force Organisation slots</h4>
+          <ul className="rl">
+            <li>Start with 1 Character, 6 Non-Monster / Vehicle, 1 Vehicle / Monster and 2 Other slots.</li>
+            <li>Each unit fills one slot, whatever its size.</li>
+            <li>Battleline fills Non-Monster / Vehicle slots.</li>
+            <li>A Character always fills a Character slot, even a Monster or Vehicle.</li>
+            <li>+1 slot per holding: Shrine = Character. Fortress, Hive City or Settlement = Non-Monster / Vehicle. Forge or Refinery = Vehicle / Monster. Spaceport = Other.</li>
+            <li>Up to +3 per role (+6 for Non-Monster / Vehicle). Lose the province, lose the slot.</li>
+            <li>The Character slot is held at 1 in Setup.</li>
+            <li>Slots are guidance: your group decides how strictly to hold to them.</li>
+          </ul>
+        </>
+      ) : (
+        <>
+          <h4 className="rl-h">Character slots</h4>
+          <ul className="rl">
+            <li>1 Character slot, +1 per Shrine held (up to +3).</li>
+            <li>Held at 1 in Setup.</li>
+            <li>No slots for other roles.</li>
+          </ul>
+        </>
+      )}
+
+      {toggled("datasheetLimit") && (
+        <>
+          <h4 className="rl-h">Datasheet limit</h4>
+          <ul className="rl">
+            <li>At most 5 different datasheets on your roster.</li>
+            <li>Units sharing a datasheet count once. Units with none named don't count.</li>
+            <li>+1 for each Extra Datasheet bought (1 RP each, no cap).</li>
+            <li>At the limit, you can't add a new datasheet until you buy one.</li>
+          </ul>
+        </>
+      )}
+
+      {toggled("knights") && (
+        <>
+          <h4 className="rl-h">Knights</h4>
+          <ul className="rl">
+            <li>Armigers and War Dogs count as Battleline, so the Toughness 9 limit doesn't apply to them.</li>
+            <li>In Setup, your Warlord may be an Armiger or War Dog: Warlord trait only, no title, backstory, enhancement or relics.</li>
+            <li>From War Round 1, field at least 1 Character. It may become your Warlord.</li>
+          </ul>
+        </>
+      )}
+
+      <h4 className="rl-h">Mustering for a battle</h4>
+      <ul className="rl">
+        <li>Your roster is a pool of models, not fixed units. Ten Intercessors in one {slots ? "slot" : "unit"} can field as two squads of five.</li>
+        <li>Build each game's army from your roster with the normal 40k muster rules.</li>
+      </ul>
 
       <h3>Characters</h3>
-      <p>Your warband starts with exactly one Character: your Warlord. From War Round 1 you can add more, through Promotion or as your supply limit grows, up to your Character slots. One Warlord per roster.</p>
-      <p>Characters use their own Battle Honour and Battle Scar tables, and can carry up to three relics. Give your Character a title and a few lines of backstory; its battles and kills are kept on its record. Fallen Characters are remembered in the Hall of Heroes.</p>
-      <p><b>Setup limits.</b> Until War Round 1 begins: exactly one Character (your Warlord), no unit at Toughness 10 or higher, and only one non-Battleline unit at Toughness 9. The heavy armour comes later. No Epic Heroes, ever: your heroes are your own, not the galaxy's legends.</p>
-      {slots ? (
-        <><p><b>Force Organisation.</b> Every unit has one role: Character, Battleline, Non-Monster / Vehicle (Infantry, Mounted, Beasts, Swarms: anything not a Monster or Vehicle), Vehicle / Monster (Aircraft included) or Other (Dedicated Transports and Fortifications). Each unit fills one slot, whatever its size. A Character always fills a Character slot, even a Monster or Vehicle. Battleline has no slots of its own: it fills Non-Monster / Vehicle slots.</p>
-        <p>You start with 1 Character, 6 Non-Monster / Vehicle, 1 Vehicle / Monster and 2 Other slots. Each holding adds one: a Shrine, a Character slot; a Fortress, Hive City or Settlement, a Non-Monster / Vehicle; a Forge or Refinery, a Vehicle / Monster; a Spaceport, an Other. Up to +3 per role (+6 for Non-Monster / Vehicle). Lose the ground and you lose the slot. Field at least 1 Character and 2 Battleline, and no more of a role than its slots. In Setup the Character slot is held at 1: your Warlord. Slots are guidance, not law: your group decides how strictly to hold to them. Supply still caps total points.</p></>
-      ) : (
-        <p><b>Roles.</b> Every unit has a role: Character, Battleline, Non-Monster / Vehicle (Infantry, Mounted, Beasts, Swarms: anything not a Monster or Vehicle), Vehicle / Monster (Aircraft included) or Other (Dedicated Transports and Fortifications). This campaign doesn't use slots, but two role rules still hold: field at least 2 Battleline, and at least 1 Character with 1 Character slot, +1 per Shrine held (up to +3). In Setup the Character slot is held at 1: your Warlord.</p>
-      )}
-      <p><b>Which role?</b> Picking a datasheet from the list fills in its role from the datasheet's keywords, in this order: Character, then Battleline, then Dedicated Transport or Fortification (Other), then Vehicle, Monster or Aircraft (Vehicle / Monster), and everything else is Non-Monster / Vehicle. Non-Monster / Vehicle covers foot troops of every kind, Beasts, Swarms, Jump Pack infantry, bikes, cavalry and jetbikes. Walkers, tanks, big monsters and Aircraft are Vehicle / Monster. Dedicated Transports and Fortifications are Other. Psykers take the role their datasheet gives them, usually Character. Allied units and Agents take whatever role their own datasheet gives them.</p>
-      {toggled("datasheetLimit") && (
-        <p><b>Datasheet limit.</b> Replaces Force Organisation slots. Your roster may use at most 5 different datasheets: units sharing a datasheet count once, and units with none named don't count. The only way up is 1 RP for an Extra Datasheet: +1 for the rest of the campaign, as often as you like. At the limit, you can't add a new datasheet until you buy one.</p>
-      )}
-      {toggled("toughnessStages") && (
-        <p><b>Toughness stages.</b> In War Rounds 1 and 2, no unit may be Toughness 12 or higher. The cap lifts from War Round 3, or as soon as your supply limit reaches 1250 pts.</p>
-      )}
-      {toggled("knights") && (
-        <p><b>Knights.</b> For Imperial Knights and Chaos Knights players: Armigers and War Dogs count as Battleline, so the one Toughness 9 limit doesn't apply to them. In Setup, your Warlord may be an Armiger or War Dog instead of a Character. It carries the Warlord trait, but no title, backstory, enhancement or relics. From War Round 1 the normal rules apply: field at least 1 Character, and you may make it your Warlord.</p>
-      )}
-      <p><b>No going back.</b> In Setup, add, remove and resize freely. Once War Round 1 begins, a unit stays on your roster until a third Battle Scar takes it, and it can grow but never shrink: its base points can't go down.</p>
-      <p><b>{slots ? "Slots hold" : "Your roster holds"} models, not fixed units.</b> Your roster is the pool of models you draw on for a battle. Ten Intercessors in one Battleline {slots ? "slot" : "unit"} can take the field as two squads of five. Build each game's army from your roster using the normal 40k muster rules.</p>
+      <ul className="rl">
+        <li>Use their own Battle Honour and Battle Scar tables.</li>
+        <li>Up to 3 relics and 3 Battle Training each.</li>
+        <li>Fallen Characters go to the Hall of Heroes.</li>
+      </ul>
 
       <h3>Campaign actions</h3>
       <div className="tbl"><table>
@@ -102,9 +177,17 @@ export function RulesTab() {
       </table></div>
 
       <h3>The Reach</h3>
-      <p>The system is charted for your group: one outer world for each player, plus middle and inner worlds nearer the Hollowgate (at least 4 worlds), each with 5 to 7 provinces. Every player starts with a Capital on an outer world, bordered by a 500, a 750 and a 1000 pt battle. Inner worlds sit nearest the Hollowgate.</p>
-
-      <p><b>Late arrivals.</b> A player who joins after War Round 1 has begun gets a new outer world and Capital, 1 extra Fate Card, and a supply limit set to the average of the other players' limits (rounded to the nearest 50) minus 150, but never below 750. They join the turn order next round.</p>
+      <ul className="rl">
+        <li>One outer world per player, plus middle and inner worlds (at least 4 worlds). 5 to 7 provinces each.</li>
+        <li>Inner worlds sit nearest the Hollowgate.</li>
+        <li>Each player starts with a Capital on an outer world, bordered by a 500, a 750 and a 1000 pt battle.</li>
+      </ul>
+      <h4 className="rl-h">Late arrivals (joining after War Round 1 begins)</h4>
+      <ul className="rl">
+        <li>A new outer world and Capital, and 1 extra Fate Card.</li>
+        <li>Supply limit: the other players' average (to the nearest 50) minus 150, never below 750.</li>
+        <li>They join the turn order next round.</li>
+      </ul>
 
       <h3>Where you can attack</h3>
       <ol className="steps">
@@ -115,7 +198,12 @@ export function RulesTab() {
       </ol>
 
       <h3>Battle size</h3>
-      <p>Province size × the world's orbit. A little outpost stays a small fight all campaign, but a hive city on an inner world is a 2000 pt war.</p>
+      <ul className="rl">
+        <li>Province base points × the world's orbit multiplier.</li>
+        <li>If either player's supply limit is lower, play at the lower number.</li>
+        <li><b>Underdog:</b> an attacker with fewer provinces than the defender gets +10% points.</li>
+        <li><b>Light Forces:</b> battles of {LIGHT_FORCES_MAX_PTS} pts or fewer. {TWISTS[LIGHT_FORCES_TWIST].e}</li>
+      </ul>
       <div className="tbl"><table>
         <thead><tr><th>Orbit</th><th>Multiplier</th><th>Twists</th></tr></thead>
         <tbody>
@@ -125,9 +213,15 @@ export function RulesTab() {
           <tr><td><b>The Hollowgate</b></td><td className="n">2000</td><td className="n">2</td></tr>
         </tbody>
       </table></div>
-      <p>If either player's supply limit is lower than the battle size, play at the lower number. An attacker with fewer provinces than the defender is the <b>Underdog</b> and gets +10% points.</p>
-      <p><b>Garrison battles.</b> Attacking an unclaimed province means fighting its garrison, played by another player (never the attacker). You must fight it. Only your supply limit caps the size, Underdog doesn't apply, and you choose your edge: +20% points for you, or -20% points for the garrison. The garrison is a favour: that player gains no RP, Fate Cards, wins or supply. Light Forces and Fate Cards still go by the base size, before the 20%. If you win and lost under 25% of your army, it's a <b>Decisive win</b>: +1 RP.</p>
-      <p>Battles of {LIGHT_FORCES_MAX_PTS} pts or fewer automatically use the <b>Light Forces</b> rule. {TWISTS[LIGHT_FORCES_TWIST].e}</p>
+      <h4 className="rl-h">Garrison battles (unclaimed provinces)</h4>
+      <ul className="rl">
+        <li>Another player (never the attacker) plays the garrison. You must fight it.</li>
+        <li>Only your supply limit caps the size. No Underdog bonus.</li>
+        <li>Choose your edge: +20% points for you, or −20% for the garrison.</li>
+        <li>Light Forces and Fate Cards go by the base size, before the 20%.</li>
+        <li>The garrison player gains nothing: no RP, Fate Cards, wins or supply.</li>
+        <li><b>Decisive win:</b> win having lost under 25% of your army for +1 RP.</li>
+      </ul>
 
       <h3>Province types</h3>
       <div className="tbl"><table>
@@ -162,11 +256,11 @@ export function RulesTab() {
 
       <h3>After each battle</h3>
       <ol className="steps">
-        <li><div><b>Award XP</b>+1 to every unit that fought and was not destroyed. +1 per enemy unit it destroyed. +2 to one unit you <i>Marked for Glory</i> before the game.</div></li>
-        <li><div><b>Roll for the fallen</b>Every unit destroyed rolls a D6 (Hard to Kill adds 1). On a 1 it gains a Battle Scar; Characters on a 1–2. Roll a D3 on the Battle Scars table. The Warlord never rolls: see Battle Scars.</div></li>
-        <li><div><b>Requisition</b>+1 RP to the winner. Nothing for a loss or a draw. Bank up to 10. (Garrison battles: the garrison player never gains RP.)</div></li>
+        <li><div><b>Award XP</b>+1 to every unit that fought and survived. +1 per enemy unit it destroyed. +2 to one unit you <i>Marked for Glory</i> before the game.</div></li>
+        <li><div><b>Roll for the fallen</b>Each destroyed unit rolls a D6 (Hard to Kill adds 1). On a 1 it gains a Battle Scar, Characters on a 1–2. The Warlord never rolls.</div></li>
+        <li><div><b>Requisition</b>+1 RP to the winner. Nothing for a loss or a draw. Bank up to 10.</div></li>
         <li><div><b>Spoils</b>The winner draws 1 Fate Card. A Conquer winner takes the province. A Raid winner steals 1 RP and a random Fate Card.</div></li>
-        <li><div><b>Underdog's grit</b>Any player now holding the fewest provinces in the campaign draws 1 Fate Card.</div></li>
+        <li><div><b>Underdog's grit</b>Any player now holding the fewest provinces draws 1 Fate Card.</div></li>
       </ol>
 
       <h3>Ranks</h3>
@@ -180,41 +274,66 @@ export function RulesTab() {
           <tr><td>Legend of the Reach</td><td className="n">25</td><td>4, and the unit gets a name in the campaign log</td></tr>
         </tbody>
       </table></div>
-      <p>Each Battle Honour adds 10% of the unit's base points to its cost, worked out on the total and rounded to the nearest 5, so veterans take up real space in your list.</p>
-      <p>When a unit reaches a new rank, roll or pick 1 Battle Honour for each rank gained, straight after the battle. A unit can't hold the same honour twice: re-roll, or pick another.</p>
+      <ul className="rl">
+        <li>Each rank gained: roll or pick 1 Battle Honour, straight after the battle.</li>
+        <li>No duplicate honours: re-roll or pick another.</li>
+        <li>Each Battle Honour adds 10% of the unit's base points (on the total, rounded to the nearest 5).</li>
+      </ul>
 
       <h3>Battle Honours (roll D6 or pick)</h3>
       <RollTable die="D6" label="Honour" rows={HONOURS} />
 
       <h3>Battle Scars (roll D3)</h3>
       <RollTable die="D3" label="Scar" rows={SCARS} />
-      <p>A unit can't hold the same scar twice: re-roll duplicates. Worn Gear: choose the weapon when the scar is gained and note it on your roster. Scars never change a unit's points.</p>
-      <p className="dim">Three scars and the unit is gone: remove it from your roster. That's the cost of a long war. A Character's third scar removes it like any other unit, except the Warlord, which is never removed.</p>
-      <p className="dim">Example: Breach Team Seven is destroyed and rolls a 1: a scar. The D3 comes up 2: Crippled. With one scar already, one more and the squad is gone.</p>
-      <p className="dim">The My Warband tab tracks all of this: XP, ranks, honours, scars, relics, each unit's career record and points, with a post-battle helper for the rolls. Fallen Characters are kept in its Hall of Heroes.</p>
+      <ul className="rl">
+        <li>No duplicate scars: re-roll.</li>
+        <li>Worn Gear: choose the weapon when the scar is gained.</li>
+        <li>Scars never change a unit's points.</li>
+        <li>Third scar: the unit is removed from your roster. Characters too, except the Warlord.</li>
+      </ul>
+      <p className="dim">My Warband tracks XP, ranks, honours, scars and relics, with a post-battle helper for the rolls.</p>
 
       <h3>Character Battle Honours (roll D6 or pick)</h3>
       <RollTable die="D6" label="Honour" rows={CHAR_HONOURS} />
-      <p className="dim">Characters use this table. Other units use the one above. No duplicates across both lists.</p>
+      <ul className="rl">
+        <li>Characters use this table, other units the one above.</li>
+        <li>No duplicates across both tables.</li>
+      </ul>
 
       <h3>Character Battle Scars (roll D3)</h3>
       <RollTable die="D3" label="Scar" rows={CHAR_SCARS} />
-      <p className="dim">Grievous Wound is the only temporary scar: it counts toward the three-scar limit until it heals, after the next battle the unit fights.</p>
-      <p>Your Warlord never rolls for the fallen. If it is destroyed, it automatically takes a Character Battle Scar: roll a D3 on the Character Battle Scars table (re-roll scars it already holds). A Warlord is never removed, and there is no RP penalty. A Warlord that already holds three scars and is destroyed again replaces its oldest scar with the new one. Other Characters still roll for the fallen on a 1–2, and a third scar removes them.</p>
+      <ul className="rl">
+        <li>Grievous Wound is temporary: it counts toward the three-scar limit until it heals after the unit's next battle.</li>
+      </ul>
+      <h4 className="rl-h">The Warlord</h4>
+      <ul className="rl">
+        <li>Never rolls for the fallen. If destroyed, it takes a Character Battle Scar (D3, re-roll scars it holds).</li>
+        <li>Never removed, and no RP penalty.</li>
+        <li>Already at three scars: the new scar replaces the oldest.</li>
+      </ul>
 
       <h3>Relics (roll D6 or pick)</h3>
-      <p>A Character can earn a relic when its player claims a Shrine province, or plays a Fate Card. A Character holds at most three relics, never the same one twice (re-roll or pick another). Each relic adds 10 pts to the Character's cost, after Battle Honours are counted.</p>
+      <ul className="rl">
+        <li>A Character earns one when its player claims a Shrine, or from a Fate Card.</li>
+        <li>Up to 3 per Character, no duplicates: re-roll or pick another.</li>
+        <li>+10 pts each, added after Battle Honours.</li>
+      </ul>
       <RollTable die="D6" label="Relic" rows={RELICS} />
 
       <h3>Battle Training (roll D12 or pick)</h3>
-      <p>Spend 1 RP on a Promotion to give a Character Battle Training. It is not a detachment Enhancement; those are still chosen and paid for in points when you muster. A Character can hold up to three, never the same one twice (re-roll or pick another), and each adds 10 pts to its cost.</p>
+      <ul className="rl">
+        <li>Bought with a Promotion (1 RP).</li>
+        <li>Not a detachment Enhancement: those are still paid in points when you muster.</li>
+        <li>Up to 3 per Character, no duplicates. +10 pts each.</li>
+      </ul>
       <RollTable die="D12" label="Training" rows={TRAINING} />
 
       <h3>Spending Requisition</h3>
+      <p>Spend RP at any time outside a battle.</p>
       <div className="tbl"><table>
         <thead><tr><th>Cost</th><th>Requisition</th><th>Effect</th></tr></thead>
         <tbody>
-          <tr><td className="n">1 RP</td><td>Reinforcements</td><td>+200 pts to your supply limit. Besides Muster, Outposts and Ruins, this is the only way it grows.</td></tr>
+          <tr><td className="n">1 RP</td><td>Reinforcements</td><td>+200 pts to your supply limit.</td></tr>
           {toggled("datasheetLimit") && <tr><td className="n">1 RP</td><td>Extra Datasheet</td><td>+1 to your datasheet limit, for the rest of the campaign.</td></tr>}
           <tr><td className="n">1 RP</td><td>Field Surgeon</td><td>Remove one Battle Scar.</td></tr>
           <tr><td className="n">1 RP</td><td>Requisition the Deck</td><td>Draw one Fate Card.</td></tr>
@@ -222,7 +341,6 @@ export function RulesTab() {
           <tr><td className="n">2 RP</td><td>Seasoned Recruits</td><td>Add a new unit that starts at 3 XP (Blooded), with its first Battle Honour.</td></tr>
         </tbody>
       </table></div>
-      <p className="dim">Spend RP at any time outside a battle.</p>
     </section>
   );
 }
