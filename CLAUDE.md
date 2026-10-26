@@ -143,7 +143,7 @@ entries without refreshing.
   holding the fewest provinces draws 1 Fate Card, not just the two who fought. (The
   prototype code only checked the combatants.) It doubles as the first catch-up help.
 - **Player name** defaults to the user's display name and stays editable (warband name).
-- **Permissions:** any member can begin a War Round. Turns, cards and RP: that player or
+- **Permissions:** only the owner can begin War Round 1 (start the campaign); any member can begin later War Rounds. Turns, cards and RP: that player or
   the owner. Battle results: attacker, defender or owner. Map "Held by" override, stat
   +/- buttons, remove player, reset campaign, chart a new Reach: owner only.
 - **Security is honour-system for MVP:** hidden hands and per-player permissions are

@@ -24,7 +24,8 @@ export function canPerform(state: CampaignState, action: Action, ctx: Permission
   const { userId } = ctx;
   switch (action.type) {
     case "beginRound":
-      return userId !== null;
+      // Starting the campaign (War Round 1) is the owner's call; later rounds any member can begin.
+      return userId !== null && state.round !== 0;
 
     case "readyPick":
     case "unreadyPick":
