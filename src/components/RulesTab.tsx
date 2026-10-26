@@ -155,7 +155,8 @@ export function RulesTab() {
 
       <h4 className="rl-h">Mustering for a battle</h4>
       <ul className="rl">
-        <li>Your roster is a pool of models, not fixed units. Ten Intercessors in one {slots ? "slot" : "unit"} can field as two squads of five.</li>
+        <li>You can field a unit at a smaller size than it is on your roster.</li>
+        <li>You can't split a unit: ten Intercessors on your roster take the field as one squad of up to ten, never two squads of five.</li>
         <li>Build each game's army from your roster with the normal 40k muster rules.</li>
       </ul>
 
