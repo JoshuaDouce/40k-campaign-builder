@@ -140,9 +140,11 @@ export function SetupTab({ colors, onNavigate }: { colors: Record<string, string
             <span>
               <b>Campaign rules:</b> {rulesOn.length === 0 ? "No optional rules" : rulesOn.map((k) => TOGGLE_NAMES[k]).join(", ")}
             </span>
-            <button className="btn sm" onClick={() => onNavigate("rules")}>
-              Campaign rules
-            </button>
+            {viewer.isOwner ? (
+              <button className="btn sm" onClick={() => onNavigate("rules")}>
+                Campaign rules
+              </button>
+            ) : null}
           </div>
           <div className="su-blist">
             {state.players.map((p) => (

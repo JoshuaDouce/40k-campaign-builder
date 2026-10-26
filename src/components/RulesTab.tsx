@@ -9,15 +9,15 @@ const TOGGLE_DESC: Record<ToggleKey, string> = {
   knights: "Armigers and War Dogs count as Battleline; one may be the Setup Warlord.",
 };
 
-/** The four owner-switched campaign rules. Everyone sees the state; only the owner gets the switches. */
+/** The owner's switches for the four campaign rules. Hidden from players: the rules text below follows whatever is on. */
 function CampaignRules() {
   const campaign = useOptionalCampaign();
-  if (!campaign) return null;
-  const { state, viewer, dispatch } = campaign;
+  if (!campaign?.viewer.isOwner) return null;
+  const { state, dispatch } = campaign;
   return (
     <div className="rt-panel">
       <h3>Campaign rules</h3>
-      <p className="rt-who">{viewer.isOwner ? "You are the owner: switch rules at any time" : "Only the campaign owner can change these"}</p>
+      <p className="rt-who">You are the owner: switch rules at any time. Players don't see these switches.</p>
       {TOGGLE_KEYS.map((k) => {
         const on = toggleOn(state, k);
         return (
@@ -27,7 +27,7 @@ function CampaignRules() {
               <span className={`badge ${on ? "rt-on" : "rt-off"}`}>{on ? "On" : "Off"}</span>
             </div>
             <p className="rt-desc">{TOGGLE_DESC[k]}</p>
-            {viewer.isOwner && <button type="button" className="rt-sw" aria-pressed={on} aria-label={TOGGLE_NAMES[k]} onClick={() => dispatch({ type: "setToggle", key: k, on: !on })} />}
+            <button type="button" className="rt-sw" aria-pressed={on} aria-label={TOGGLE_NAMES[k]} onClick={() => dispatch({ type: "setToggle", key: k, on: !on })} />
           </div>
         );
       })}
