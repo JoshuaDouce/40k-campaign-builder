@@ -439,6 +439,7 @@ export type Action =
   | { type: "addUnit"; playerId: string; unit: Unit }
   | { type: "updateUnit"; playerId: string; unit: Unit }
   | { type: "removeUnit"; playerId: string; unitId: string; cause?: string }
+  | { type: "organiserRemoveUnit"; playerId: string; unitId: string }
   | { type: "addRelic"; playerId: string; unitId: string; relic: string; source: "shrine" | "fate" }
   | { type: "removeRelic"; playerId: string; unitId: string; relic: string }
   | { type: "deleteFallen"; id: string }

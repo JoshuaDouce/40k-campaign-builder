@@ -1,6 +1,8 @@
 import { useState } from "react";
 import {
   BACKSTORY_MAX,
+  capProblem,
+  withUnit,
   allowedHonours,
   allowedScars,
   effectivePoints,
@@ -225,12 +227,12 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, r
   else if (hasWorn && !d.weapon.trim()) problem = "Worn Gear needs a weapon.";
   else if (recruits && d.honours.length !== 1) problem = "Pick exactly one Battle Honour.";
 
-  const save = () => {
-    if (problem || charBlock || toughStop || epicBlock || dsBlock) return;
+  /** The unit as the form would save it, under `id`. */
+  const build = (id: string): Unit => {
     const enh = d.isCharacter ? d.enhancement.trim() : "";
     const unit: Unit = {
       ...existing,
-      id: existing?.id ?? newUnitId(rng, roster),
+      id,
       name: d.name.trim() || (recruits ? "Seasoned recruits" : "Unnamed squad"),
       datasheet: d.datasheet.trim(),
       points,
@@ -262,7 +264,15 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, r
     else delete unit.battles;
     if (d.kills.trim() !== "") unit.kills = Number(d.kills);
     else delete unit.kills;
-    onSave(unit);
+    return unit;
+  };
+  // Supply and slot caps, checked on the roster as this save would leave it.
+  const capBlock = problem ? null : capProblem(state, playerId, withUnit(roster, build(existing?.id ?? "")));
+  const blocked = !!problem || !!charBlock || toughStop || epicBlock || dsBlock || !!capBlock;
+
+  const save = () => {
+    if (blocked) return;
+    onSave(build(existing?.id ?? newUnitId(rng, roster)));
   };
 
   const shownName = (d.name.trim() || "Unnamed squad").toUpperCase();
@@ -366,9 +376,12 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, r
         {!slots || charBlock ? null : d.role === "" ? (
           <div className="hint">Unassigned units fill no slot. You can set a role later.</div>
         ) : projected > roleMax ? (
-          <div className="hint bad">
-            ! {slotR} slots are full ({others} / {roleMax}). You can still save; this unit would be over limit.
-          </div>
+          // A save that grows the row is refused with the cap message below; a level edit of an over-full row may save.
+          capBlock ? null : (
+            <div className="hint bad">
+              ! {slotR} slots are over the limit ({projected} / {roleMax}). This save doesn't add to it.
+            </div>
+          )
         ) : (
           <div className="hint">
             {slotR}: {projected} of {roleMax} slots used with this unit.{slotR !== d.role ? ` ${d.role} fills these slots.` : ""}
@@ -510,13 +523,18 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, r
       )}
 
       <div className="row sub">
-        <button type="button" className="btn primary" disabled={!!problem || !!charBlock || toughStop || epicBlock || dsBlock} aria-describedby={describedBy} onClick={save}>
+        <button type="button" className="btn primary" disabled={blocked} aria-describedby={describedBy} onClick={save}>
           {COPY[mode].cta}
         </button>
         <button type="button" className="btn" onClick={onClose}>
           Cancel
         </button>
       </div>
+      {capBlock && (
+        <div className="hint bad" role="alert">
+          ! {capBlock}
+        </div>
+      )}
       {problem && (
         <div className="msg" style={{ marginTop: 6 }}>
           {problem}

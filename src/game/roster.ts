@@ -2,10 +2,10 @@
 // (through an injected Rng) and arrive here already resolved.
 import { CHAR_HONOURS, CHAR_SCARS, HONOURS, RANKS, RELICS, SCARS, TRAINING } from "./data.ts";
 import { B, log } from "./log.ts";
-import { normaliseRole, roleOf } from "./forceOrg.ts";
+import { forceOrgFor, normaliseRole, roleOf } from "./forceOrg.ts";
 import { rollInt } from "./rng.ts";
 import type { Rng } from "./rng.ts";
-import { getPlayer } from "./selectors.ts";
+import { getPlayer, supplyOf } from "./selectors.ts";
 import { datasheetLimit, datasheetLimitBlock, foldDatasheet, isKnightsExempt, toggleOn, toughStageBlock } from "./toggles.ts";
 import type { CampaignState, FallenCharacter, PostBattleResult, Unit } from "./types.ts";
 
@@ -376,6 +376,34 @@ function ruleBlock(s: CampaignState, playerId: string, u: Unit): boolean {
   return datasheetLimitBlock(s, playerId, u) || toughStageBlock(s, playerId, u.t);
 }
 
+/**
+ * Why the roster as it would be (`after`) breaks a cap, or null. A roster already over may stay level or shrink: only a
+ * rise past supply, or a slot row growing past its limit, is refused. Character slots always count; the other rows only
+ * with Force Organisation slots on.
+ */
+export function capProblem(s: CampaignState, playerId: string, after: readonly Unit[]): string | null {
+  const p = getPlayer(s, playerId);
+  if (!p) return null;
+  const supply = supplyOf(s, p);
+  const total = totalEffective(after);
+  if (total > supply && total > totalEffective(rosterOf(s, playerId))) {
+    return `This would take your roster to ${total} pts, over your ${supply} supply.`;
+  }
+  const was = forceOrgFor(s, playerId).rows;
+  const now = forceOrgFor({ ...s, rosters: { ...s.rosters, [playerId]: [...after] } }, playerId).rows;
+  for (const r of now) {
+    if (r.slotsIn || (r.role !== "Character" && !toggleOn(s, "forceOrg"))) continue;
+    const old = was.find((x) => x.role === r.role)?.filled ?? 0;
+    if (r.filled > r.max && r.filled > old) return `${r.role} slots are full (${old} / ${r.max}).`;
+  }
+  return null;
+}
+
+/** The roster with `u` saved over the unit of the same id, or added at the end. */
+export function withUnit(roster: readonly Unit[], u: Unit): Unit[] {
+  return roster.some((x) => x.id === u.id) ? roster.map((x) => (x.id === u.id ? u : x)) : [...roster, u];
+}
+
 function rosterFor(s: CampaignState, playerId: string): Unit[] {
   s.rosters ??= {};
   return (s.rosters[playerId] ??= []);
@@ -410,6 +438,7 @@ export function addUnitTo(s: CampaignState, playerId: string, unit: Unit): boole
   if (!u || roster.some((x) => x.id === u.id)) return false;
   if (!gateNonCharacterWarlord(s, playerId, u)) return false;
   if (breaksSetupRule(s, playerId, u) || setupToughnessBlock(s, u.t) || setupToughnessNineBlock(s, playerId, u) || ruleBlock(s, playerId, u)) return false;
+  if (capProblem(s, playerId, [...roster, u])) return false;
   roster.push(u);
   enforceWarlord(roster, u);
   checkLegend(s, getPlayer(s, playerId)?.name ?? "", u);
@@ -442,6 +471,7 @@ export function updateUnitIn(s: CampaignState, playerId: string, unit: Unit): bo
   if (old.ex) u.ex = true;
   if (old.legendLogged) u.legendLogged = true;
   if (old.xpRound) u.xpRound = old.xpRound;
+  if (capProblem(s, playerId, withUnit(roster, u))) return false;
   roster[i] = u;
   enforceWarlord(roster, u);
   checkLegend(s, p.name, u);
@@ -489,12 +519,24 @@ export function removeUnitFrom(s: CampaignState, playerId: string, unitId: strin
   return true;
 }
 
+/** The organiser removes any unit, locked or not, as a correction: no Hall of Heroes entry. */
+export function organiserRemoveUnitFrom(s: CampaignState, playerId: string, unitId: string): boolean {
+  const p = getPlayer(s, playerId);
+  const roster = rosterFor(s, playerId);
+  const u = roster.find((x) => x.id === unitId);
+  if (!p || !u) return false;
+  s.rosters![playerId] = roster.filter((x) => x.id !== unitId);
+  if (!u.ex) log(s, B(u.name), " was removed from ", B(p.name), "'s roster by the organiser.");
+  return true;
+}
+
 export function addRelicTo(s: CampaignState, playerId: string, unitId: string, relic: string, source: "shrine" | "fate"): boolean {
   const p = getPlayer(s, playerId);
   const u = rosterFor(s, playerId).find((x) => x.id === unitId);
   if (!p || !u || !u.isCharacter || !isRelic(relic) || (source !== "shrine" && source !== "fate")) return false;
   const held = u.relics ?? [];
   if (held.length >= MAX_RELICS || held.includes(relic)) return false;
+  if (capProblem(s, playerId, withUnit(rosterFor(s, playerId), { ...u, relics: [...held, relic] }))) return false;
   u.relics = [...held, relic];
   log(s, B(u.name), " of ", B(p.name), ` finds ${relic} (${source === "shrine" ? "Shrine" : "Fate Card"}).`);
   return true;
@@ -665,10 +707,16 @@ export function fieldSurgeonOn(s: CampaignState, playerId: string, unitId: strin
   return true;
 }
 
+/** The unit as a Promotion would leave it: one more Battle Training for a Character, else a new Character. */
+export function promoted(u: Unit, training?: string): Unit {
+  return u.isCharacter ? { ...u, training: [...(u.training ?? []), training ?? ""] } : { ...u, isCharacter: true, role: "Character" };
+}
+
 export function promoteUnit(s: CampaignState, playerId: string, unitId: string, training?: string): boolean {
   const p = getPlayer(s, playerId);
   const u = rosterFor(s, playerId).find((x) => x.id === unitId);
   if (!p || !u || p.rp < PROMOTION_COST) return false;
+  if (capProblem(s, playerId, withUnit(rosterFor(s, playerId), promoted(u, training)))) return false;
   if (u.isCharacter) {
     const held = u.training ?? [];
     if (!isTraining(training) || held.includes(training) || held.length >= MAX_TRAINING) return false;
@@ -695,6 +743,7 @@ export function recruitUnit(s: CampaignState, playerId: string, unit: Unit): boo
   if (!u || roster.some((x) => x.id === u.id)) return false;
   if (!gateNonCharacterWarlord(s, playerId, u)) return false;
   if (breaksSetupRule(s, playerId, u) || setupToughnessBlock(s, u.t) || setupToughnessNineBlock(s, playerId, u) || ruleBlock(s, playerId, u)) return false;
+  if (capProblem(s, playerId, [...roster, u])) return false;
   spendRp(s, playerId, RECRUITS_COST);
   roster.push(u);
   enforceWarlord(roster, u);

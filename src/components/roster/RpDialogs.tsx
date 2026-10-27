@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { forceOrgFor, MAX_TRAINING, TRAINING, TRAINING_PTS, trainingEffect, PROMOTION_COST, PROMOTION_MIN_XP, rankOf, RECRUITS_COST, scarEffect, SURGEON_COST, scarLabel, scarName } from "../../game/index.ts";
+import { capProblem, forceOrgFor, promoted, withUnit, MAX_TRAINING, TRAINING, TRAINING_PTS, trainingEffect, PROMOTION_COST, PROMOTION_MIN_XP, rankOf, RECRUITS_COST, scarEffect, SURGEON_COST, scarLabel, scarName } from "../../game/index.ts";
 import type { Action, Unit } from "../../game/index.ts";
 import { useCampaign } from "../../store/useCampaign.ts";
 import { DieControl } from "./DieControl.tsx";
@@ -102,7 +102,8 @@ export function PromotionDialog({ playerId, roster, rp, onDone, onClose }: Props
   const dupRoll = !!rolledName && held.includes(rolledName) && !pick;
   const candidate = pick || rolledName;
   const training = candidate && !held.includes(candidate) ? candidate : undefined;
-  const ready = !!unit && rp >= PROMOTION_COST && (mode === "vet" || !!training);
+  const capBlock = unit && (mode === "vet" || training) ? capProblem(state, playerId, withUnit(roster, promoted(unit, training))) : null;
+  const ready = !!unit && rp >= PROMOTION_COST && (mode === "vet" || !!training) && !capBlock;
 
   const go = () => {
     if (!unit || !ready) return;
@@ -183,6 +184,11 @@ export function PromotionDialog({ playerId, roster, rp, onDone, onClose }: Props
         <p className="mono" style={{ fontSize: 12, color: "var(--brass)" }}>
           THE SERGEANT STEPS UP. THE UNIT GAINS THE CHARACTER BADGE.
         </p>
+      )}
+      {capBlock && (
+        <div className="hint bad" role="alert">
+          ! {capBlock}
+        </div>
       )}
       <SheetFooter label={`Spend ${PROMOTION_COST} RP`} disabled={!ready} onGo={go} onClose={onClose} />
     </Overlay>
