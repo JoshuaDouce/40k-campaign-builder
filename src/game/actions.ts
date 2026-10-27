@@ -2,6 +2,7 @@
 import { drawCard } from "./cards.ts";
 import { FACTIONS } from "./data.ts";
 import { beginRound, fresh, lateArrivalBonus, regen, START_RP } from "./engine.ts";
+import { rememberArmies, setArmyList } from "./army.ts";
 import { B, log } from "./log.ts";
 import { addWorld } from "./map.ts";
 import type { Rng } from "./rng.ts";
@@ -92,12 +93,16 @@ function run(s: CampaignState, a: Action, rng: Rng): boolean {
     case "setGarrisonEdge":
       return setGarrisonEdge(s, a.playerId, a.edge);
 
+    case "setArmyList":
+      return setArmyList(s, a.playerId, a.side, a.list);
+
     case "resolvePick": {
       if (a.result !== "a" && a.result !== "d" && a.result !== "x") return false;
       if (a.decisive !== undefined && typeof a.decisive !== "boolean") return false;
       const before = takeSnapshot(s);
       const b = s.picks[a.playerId]?.battle;
       if (!b || !resolvePick(s, a.playerId, a.result, rng, a.decisive)) return false;
+      rememberArmies(s, a.playerId, b);
       s.undo = { before, attacker: a.playerId, defender: b.def, reportFiled: false, later: [] };
       return true;
     }
@@ -158,7 +163,9 @@ function run(s: CampaignState, a: Action, rng: Rng): boolean {
     case "deleteFallen":
       return deleteFallenEntry(s, a.id);
     case "applyPostBattle":
-      return applyPostBattleTo(s, a.playerId, a.results);
+      if (!applyPostBattleTo(s, a.playerId, a.results)) return false;
+      if (s.lastArmy) delete s.lastArmy[a.playerId];
+      return true;
     case "addExamples":
       return addExamplesTo(s, a.playerId, rng);
     case "clearExamples":
@@ -224,6 +231,7 @@ function run(s: CampaignState, a: Action, rng: Rng): boolean {
       delete s.cap[a.playerId];
       removePlayerRoster(s, a.playerId);
       if (s.ready) delete s.ready[a.playerId];
+      if (s.lastArmy) delete s.lastArmy[a.playerId];
       if (s.won === a.playerId) s.won = null;
       dropPlayerPicks(s, a.playerId, gone.name);
       return true;

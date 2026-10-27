@@ -272,7 +272,7 @@ export interface LiveBattle {
   twists: number[];
   /** Figures worked out when the twists were rolled. A re-roll works them out again. */
   pts: number;
-  /** Attacker's points: equals `pts` unless this is a garrison battle with the +20% for the attacker. */
+  /** Attacker's points: `pts` plus the garrison +20% for the attacker or the Underdog +10%, when either applies. */
   attackerPts: number;
   /** Defender's points when the garrison takes -20% instead. Missing means `pts`. */
   defenderPts?: number;
@@ -281,6 +281,15 @@ export interface LiveBattle {
   notes: string[];
   cards: number;
   lightForces: boolean;
+  /** Army lists by player id (the attacker, and the defender unless a garrison). Missing = not changed from the default. */
+  lists?: Record<string, ArmyList>;
+}
+
+/** One side's army for a battle: the roster units it fields, in roster order. */
+export interface ArmyList {
+  units: string[];
+  /** Unit id to the points it is fielded at, when smaller than its roster entry. */
+  field?: Record<string, number>;
 }
 
 /** One player's pick for the current War Round. Planning: act, target and ready. Resolution: the rest. */
@@ -337,7 +346,7 @@ export interface BattleRecord {
 /** The parts of the campaign a battle result can change. Restored by Undo. */
 export type UndoSnapshot = Pick<
   CampaignState,
-  "round" | "phase" | "order" | "picks" | "log" | "won" | "fort" | "terr" | "players" | "hollOpened"
+  "round" | "phase" | "order" | "picks" | "log" | "won" | "fort" | "terr" | "players" | "hollOpened" | "lastArmy"
 >;
 
 /** The open Undo window for the latest battle result. Present only while Undo is still possible. */
@@ -375,6 +384,8 @@ export interface CampaignState {
   hollOpened: boolean;
   /** Unit rosters keyed by player id. Missing on old saves = every roster empty. */
   rosters?: Record<string, Unit[]>;
+  /** Unit ids each player fielded in their latest recorded battle, to preselect the post-battle helper. */
+  lastArmy?: Record<string, string[]>;
   /** Hall of Heroes memorial, oldest first (show newest first). Missing on old saves = none. */
   fallen?: FallenCharacter[];
   /** Round-0 setup: players who ticked Ready. Missing = nobody ready. */
@@ -407,6 +418,8 @@ export type Action =
   | { type: "rollPick"; playerId: string; def?: string }
   | { type: "rerollPick"; playerId: string }
   | { type: "setGarrisonEdge"; playerId: string; edge: GarrisonEdge }
+  /** `playerId` is the attacker whose battle it is; `side` is the player whose list this is. */
+  | { type: "setArmyList"; playerId: string; side: string; list: ArmyList }
   | { type: "resolvePick"; playerId: string; result: "a" | "d" | "x"; decisive?: boolean }
   | { type: "confirmQuietPick"; playerId: string }
   | { type: "switchPick"; playerId: string; act: ActionId; zone?: string; def?: string }

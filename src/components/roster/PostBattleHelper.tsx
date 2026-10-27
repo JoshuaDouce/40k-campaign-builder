@@ -14,9 +14,11 @@ interface Props {
 
 /** Two steps: who fought and what they did, then the rank-up and fallen rolls. Nothing is saved until Confirm. */
 export function PostBattleHelper({ playerId, roster, onClose }: Props) {
-  const { dispatch } = useCampaign();
+  const { state, dispatch } = useCampaign();
   const [step, setStep] = useState<1 | 2>(1);
-  const [rows, setRows] = useState<Record<string, Row | undefined>>({});
+  // Units on the player's latest army list start as fought.
+  const [preset] = useState(() => (state.lastArmy?.[playerId] ?? []).filter((id) => roster.some((u) => u.id === id)));
+  const [rows, setRows] = useState<Record<string, Row | undefined>>(() => Object.fromEntries(preset.map((id) => [id, { ...BLANK_ROW, fought: true }])));
   const [glory, setGlory] = useState<string | null>(null);
   const [rolls, setRolls] = useState<Rolls>(NO_ROLLS);
 
@@ -39,6 +41,11 @@ export function PostBattleHelper({ playerId, roster, onClose }: Props) {
     <>
       <h2>Post-battle helper</h2>
       <p className="dim">Step 1 of 2. Who fought? Award XP the way the rules say: +1 to every unit that fought and survived, +1 per enemy unit destroyed, +2 to the one unit Marked for Glory.</p>
+      {preset.length > 0 && (
+        <p className="hint" style={{ margin: "0 0 8px" }}>
+          Preselected from your army list.
+        </p>
+      )}
       {roster.map((u) => {
         const r = row(u.id);
         const g = xpGainFor(r, glory === u.id);
