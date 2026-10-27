@@ -1,5 +1,5 @@
 // Force Organisation: a guidance chart of how many units of each battlefield role a warband may field.
-// Pure. Nothing here blocks an action; the UI shows warnings only.
+// Pure. `capProblem` in roster.ts uses it to refuse saves that would grow a row past its limit.
 import { VTYPES } from "./data.ts";
 import { provsOf, getPlayer } from "./selectors.ts";
 import { toggleOn } from "./toggles.ts";

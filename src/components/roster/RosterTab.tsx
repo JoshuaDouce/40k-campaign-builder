@@ -89,7 +89,7 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
   return (
     <section className="tab" id="roster">
       <h2>My Warband</h2>
-      <p className="dim">Your hub: your Fate Cards, your RP and your units with their XP, honours and scars. Points over supply only warn, they never block.</p>
+      <p className="dim">Your hub: your Fate Cards, your RP and your units with their XP, honours and scars. Nothing can be added that would take your roster over supply or past a full slot. Battle Honours from a battle always apply.</p>
       <div className="seg hallseg" role="group" aria-label="Roster view">
         <button type="button" className="chip" aria-pressed={view === "roster"} onClick={() => setView("roster")}>
           Roster
@@ -133,7 +133,7 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
               {total.toLocaleString()} <small>/ {supply.toLocaleString()} pts</small>
             </div>
             {over ? (
-              <div className="overline">{total - supply} over supply. Allowed, but your opponent will notice.</div>
+              <div className="overline">{total - supply} over supply. Nothing that adds points can be saved until you're back under.</div>
             ) : (
               <div className="mono dim" style={{ fontSize: 12, marginTop: 4 }}>
                 {supply - total} pts to spare
@@ -299,6 +299,14 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
                     dispatch({ type: "removeUnit", playerId: pid, unitId: u.id, cause });
                     say(u.isCharacter && state.round !== 0 ? `${u.name} moved to the Hall of Heroes.` : "Unit removed.");
                   }}
+                  onOrganiserDelete={
+                    viewer.isOwner
+                      ? () => {
+                          dispatch({ type: "organiserRemoveUnit", playerId: pid, unitId: u.id });
+                          say(`${u.name} deleted.`);
+                        }
+                      : undefined
+                  }
                 />
               ))}
             </section>

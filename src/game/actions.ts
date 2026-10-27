@@ -19,6 +19,7 @@ import {
   removePlayerRoster,
   removeRelicFrom,
   removeUnitFrom,
+  organiserRemoveUnitFrom,
   updateUnitIn,
 } from "./roster.ts";
 import { DATASHEET_COST, datasheetLimit, isToggleKey, toggleOn, TOGGLE_EXCLUDES, TOGGLE_NAMES } from "./toggles.ts";
@@ -48,6 +49,7 @@ const ROSTER_ONLY: ReadonlySet<ActionType> = new Set<ActionType>([
   "addUnit",
   "updateUnit",
   "removeUnit",
+  "organiserRemoveUnit",
   "addRelic",
   "removeRelic",
   "deleteFallen",
@@ -156,6 +158,8 @@ function run(s: CampaignState, a: Action, rng: Rng): boolean {
       return updateUnitIn(s, a.playerId, a.unit);
     case "removeUnit":
       return removeUnitFrom(s, a.playerId, a.unitId, a.cause);
+    case "organiserRemoveUnit":
+      return organiserRemoveUnitFrom(s, a.playerId, a.unitId);
     case "addRelic":
       return addRelicTo(s, a.playerId, a.unitId, a.relic, a.source);
     case "removeRelic":

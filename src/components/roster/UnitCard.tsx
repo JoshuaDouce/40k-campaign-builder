@@ -41,18 +41,26 @@ interface Props {
   removable: boolean;
   /** Characters pass the cause entered on the "Why did they fall?" sheet. */
   onRemove(cause?: string): void;
+  /** The organiser's delete for a locked unit (owner only): removes it outright, no Hall of Heroes. */
+  onOrganiserDelete?(): void;
   onRollRelic(): void;
   onRemoveRelic(relic: string): void;
 }
 
-export function UnitCard({ unit, editable, memorial, overLimit, toughOver, toughNineExtra, epic, toughStage, warlordNotChar, removable, onEdit, onRemove, onRollRelic, onRemoveRelic }: Props) {
+export function UnitCard({ unit, editable, memorial, overLimit, toughOver, toughNineExtra, epic, toughStage, warlordNotChar, removable, onEdit, onRemove, onOrganiserDelete, onRollRelic, onRemoveRelic }: Props) {
   const [armed, setArmed] = useState(false);
+  const [armedDelete, setArmedDelete] = useState(false);
   const [asking, setAsking] = useState(false);
   useEffect(() => {
     if (!armed) return;
     const t = setTimeout(() => setArmed(false), 4000);
     return () => clearTimeout(t);
   }, [armed]);
+  useEffect(() => {
+    if (!armedDelete) return;
+    const t = setTimeout(() => setArmedDelete(false), 4000);
+    return () => clearTimeout(t);
+  }, [armedDelete]);
 
   const role = roleOf(unit);
   const ri = rankIndex(unit.xp);
@@ -274,6 +282,17 @@ export function UnitCard({ unit, editable, memorial, overLimit, toughOver, tough
               }}
             >
               {armed && !remembered ? "Confirm remove" : "Remove"}
+            </button>
+          )}
+          {!removable && onOrganiserDelete && (
+            <button
+              className="btn sm danger"
+              onClick={() => {
+                if (armedDelete) onOrganiserDelete();
+                else setArmedDelete(true);
+              }}
+            >
+              {armedDelete ? "Confirm delete" : "Delete (organiser)"}
             </button>
           )}
         </div>

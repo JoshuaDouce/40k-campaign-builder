@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { MAX_RELICS, RELIC_PTS, RELICS, relicEffect } from "../../game/index.ts";
+import { capProblem, MAX_RELICS, RELIC_PTS, RELICS, relicEffect, rosterOf, withUnit } from "../../game/index.ts";
 import type { Unit } from "../../game/index.ts";
 import { useCampaign } from "../../store/useCampaign.ts";
 import { DieControl } from "./DieControl.tsx";
@@ -15,7 +15,7 @@ interface Props {
 type Source = "shrine" | "fate";
 
 export function RelicDialog({ playerId, unit, onDone, onClose }: Props) {
-  const { dispatch } = useCampaign();
+  const { state, dispatch } = useCampaign();
   const [source, setSource] = useState<Source | null>(null);
   const [roll, setRoll] = useState<number | undefined>();
   const [pick, setPick] = useState("");
@@ -24,6 +24,7 @@ export function RelicDialog({ playerId, unit, onDone, onClose }: Props) {
   const dupRoll = !!rolledName && held.includes(rolledName) && !pick;
   const candidate = pick || rolledName;
   const chosen = candidate && !held.includes(candidate) ? candidate : undefined;
+  const capBlock = chosen ? capProblem(state, playerId, withUnit(rosterOf(state, playerId), { ...unit, relics: [...held, chosen] })) : null;
 
   const go = () => {
     if (!source || !chosen) return;
@@ -87,7 +88,12 @@ export function RelicDialog({ playerId, unit, onDone, onClose }: Props) {
           {pick ? "Picked" : `Rolled ${roll}`}: <b>{chosen}</b>. {relicEffect(chosen)}
         </div>
       )}
-      <SheetFooter label={`Add relic (+${RELIC_PTS} pts)`} disabled={!source || !chosen} onGo={go} onClose={onClose} />
+      {capBlock && (
+        <div className="hint bad" role="alert">
+          ! {capBlock}
+        </div>
+      )}
+      <SheetFooter label={`Add relic (+${RELIC_PTS} pts)`} disabled={!source || !chosen || !!capBlock} onGo={go} onClose={onClose} />
     </Overlay>
   );
 }

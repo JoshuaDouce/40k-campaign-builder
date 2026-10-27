@@ -152,6 +152,10 @@ entries without refreshing.
   friends; the user tests manually in the browser. Verification = `npm run build` (type-check)
   and `npm run lint`. Add testing back (Vitest for `src/game/` first) only if the project
   grows beyond the friends group.
+- **Roster caps are hard (2026-10-27):** a roster change that would raise the total over supply, or grow a slot row past
+  its limit (Character always; other roles with Force Organisation slots on), is refused. A roster already over may stay
+  level or shrink. Battle Honours from the post-battle helper always apply. The owner can delete any unit, even one
+  locked since War Round 1, with no Hall of Heroes entry.
 - **`main` deploys straight to live** and committing to `main` is fine (friends-only app).
 
 ## Not in the MVP
