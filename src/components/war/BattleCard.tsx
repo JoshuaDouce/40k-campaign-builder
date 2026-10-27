@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { battleInfo, LIGHT_FORCES_MAX_PTS, LIGHT_FORCES_TWIST, planetOf, r5, TWISTS, VTYPES } from "../../game/index.ts";
+import { armySides, battleInfo, LIGHT_FORCES_MAX_PTS, LIGHT_FORCES_TWIST, planetOf, r5, TWISTS, VTYPES } from "../../game/index.ts";
 import type { Action, CampaignState, GarrisonEdge } from "../../game/index.ts";
+import { ArmyList } from "./ArmyList.tsx";
 
 interface Props {
   state: CampaignState;
@@ -88,6 +89,9 @@ export function BattleCard({ state, dispatch, can, playerId }: Props) {
         </p>
       ))}
       <p className="hint">Points and notes are fixed now. Re-roll works them out again.</p>
+      {armySides({ def: B.d.id, garrison: B.garrison }, playerId).map((side) => (
+        <ArmyList key={side} state={state} dispatch={dispatch} can={can} attackerId={playerId} side={side} battle={B} />
+      ))}
       <p className="mono" style={{ fontSize: 12, color: "var(--brass)", marginTop: 12 }}>
         PLAY THE BATTLE WITH NORMAL FORCE RULES, THEN RECORD THE RESULT
       </p>

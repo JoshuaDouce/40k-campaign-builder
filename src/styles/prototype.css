@@ -670,3 +670,26 @@ h4.rl-h{font-family:var(--f-mono);font-weight:500;font-size:12px;letter-spacing:
 .st-fall{background:var(--bg)}
 .st-fall b{color:var(--blood)}
 .st-done{font-family:var(--f-display);font-size:26px;color:var(--verd);margin:12px 0 0}
+/* Battle army list */
+.al-body{padding:0 12px 10px}
+.al-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;column-gap:10px;row-gap:4px;align-items:center;padding:8px 0 8px 9px;border-left:3px solid transparent;border-top:1px solid var(--line)}
+.al-row.ro-row{grid-template-columns:minmax(0,1fr) auto;padding-left:0;border-left:0}
+.al-row.off{opacity:.6}
+.al-row.locked{border-left-color:var(--brass)}
+.al-tick{min-width:56px;min-height:44px;justify-content:center}
+.al-row .nm{font-family:var(--f-display);font-size:20px;line-height:1.15;min-width:0}
+.al-row .nm .cv{display:block;font-family:var(--f-mono);font-size:11.5px;line-height:1.4;color:var(--dim);overflow-wrap:anywhere;text-transform:uppercase;letter-spacing:.06em}
+.al-row .nm .badge{margin:2px 4px 0 0;display:inline-block}
+.al-pts{font-family:var(--f-display);font-size:22px;line-height:1;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.al-pts small{font-family:var(--f-mono);font-size:11px;color:var(--dim)}
+.al-pts s{display:block;font-family:var(--f-mono);font-size:12px;color:var(--dim);text-decoration:line-through}
+.al-edit{border:0;background:none;padding:0;min-height:44px;font:inherit;color:inherit;text-align:right;cursor:pointer;text-decoration:underline dotted var(--dim);text-underline-offset:4px}
+.al-edit:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+.al-more{grid-column:2 / -1;display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;font-family:var(--f-mono);font-size:12px;color:var(--dim)}
+.al-more label{display:inline-flex;align-items:center;gap:8px;text-transform:uppercase;letter-spacing:.08em;font-size:11px}
+.al-more input{width:84px;min-height:44px}
+.al-lock{grid-column:2 / -1;font-family:var(--f-mono);font-size:12px;line-height:1.4;color:var(--brass)}
+.al-note{border-left:3px solid var(--brass);padding:6px 10px;margin:10px 0 0;background:var(--panel);font-family:var(--f-mono);font-size:12px;line-height:1.4;color:var(--ink)}
+.al-foot{border-top:1px solid var(--line);padding-top:6px;margin-top:2px}
+.al-foot .hint{margin:0}
+.al-limit{font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);margin:10px 0 0}

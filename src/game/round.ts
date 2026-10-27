@@ -327,9 +327,10 @@ function figures(s: CampaignState, a: Player, d: Player, v: Zone, act: ActionId,
     );
     pts = Math.floor(cap / 50) * 50;
   }
-  const { note, ...gar } = garrison ? garrisonFigures(a, d, pts, edge) : { note: "", attackerPts: pts };
+  const underdog = !garrison && count(s, a) < count(s, d);
+  const { note, ...gar } = garrison ? garrisonFigures(a, d, pts, edge) : { note: "", attackerPts: underdog ? r5(pts * 1.1) : pts };
   if (garrison) notes.push(note);
-  else if (count(s, a) < count(s, d)) notes.push(`${a.name} is the Underdog: +10% (${r5(pts * 1.1)} pts).`);
+  if (underdog) notes.push(`${a.name} is the Underdog: +10% (${gar.attackerPts} pts).`);
   const held = s.terr[v.id] === d.id;
   if (held && (s.fort[v.id] || v.type === "fortress"))
     notes.push(`Fortified: ${d.name} gets +1 CP and one extra piece of terrain.`);
@@ -408,7 +409,7 @@ export function rerollPick(s: CampaignState, playerId: string, rng: Rng): boolea
   const b = pk.battle;
   const battle = makeBattle(s, { attackerId: playerId, act: pk.act, zone: pk.zone, def: b.def, garrison: b.garrison, edge: b.edge, rng });
   if (!battle) return false;
-  pk.battle = battle;
+  pk.battle = { ...battle, ...(b.lists && { lists: b.lists }) };
   return true;
 }
 
@@ -544,6 +545,7 @@ export function takeSnapshot(s: CampaignState): UndoSnapshot {
     terr: s.terr,
     players: s.players,
     hollOpened: s.hollOpened,
+    lastArmy: s.lastArmy,
   });
 }
 
@@ -567,6 +569,8 @@ export function undoBattle(s: CampaignState, attacker: string): boolean {
   s.players = b.players;
   s.hollOpened = b.hollOpened;
   s.history = (s.history ?? []).slice(0, -1);
+  if (b.lastArmy) s.lastArmy = b.lastArmy;
+  else delete s.lastArmy;
   delete s.undo;
   return true;
 }

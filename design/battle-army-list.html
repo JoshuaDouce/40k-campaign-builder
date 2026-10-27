@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Varkesh Reach - Battle army list (design mock)</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Grenze+Gothic:wght@500;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Share+Tech+Mono&display=swap">
+<style>
+/* ===== Tokens and base: copied from reference/index.html and src/styles/prototype.css ===== */
+[hidden]{display:none!important}
+body{margin:0}
+:root{
+  --bg:#16120f; --panel:#211a16; --panel2:#2a211c; --line:#3d312a;
+  --ink:#ebdfc8; --dim:#a8977f; --brass:#d0a952; --blood:#b8392e; --verd:#6f9a86;
+  --f-display:"Grenze Gothic","Palatino Linotype",Georgia,serif;
+  --f-body:"Alegreya Sans","Segoe UI",system-ui,sans-serif;
+  --f-mono:"Share Tech Mono",ui-monospace,Menlo,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.55;overflow-wrap:break-word;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px}
+.wrap{max-width:440px;margin:0 auto}
+header.hero{padding-block:28px 18px;border-bottom:1px solid var(--line)}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass)}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(40px,11vw,68px);line-height:.95;margin:6px 0 10px;text-wrap:balance;letter-spacing:.01em}
+h1 span{color:var(--blood)}
+.lede{color:var(--dim);max-width:62ch;margin:0}
+button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+p{margin:0 0 12px;max-width:65ch}
+.dim{color:var(--dim)}
+.mono{font-family:var(--f-mono)}
+.btn{font-family:var(--f-mono);font-size:13px;letter-spacing:.05em;text-transform:uppercase;background:var(--panel2);color:var(--ink);border:1px solid var(--line);padding:9px 14px;border-radius:2px;cursor:pointer;min-height:44px}
+.btn.primary{background:var(--brass);color:var(--bg);border-color:var(--brass)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.sm{padding:5px 9px;font-size:11px;min-height:36px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:6px;font-family:var(--f-mono);font-size:12px;padding:4px 9px;border:1px solid var(--line);border-radius:20px;color:var(--dim);background:none;cursor:pointer}
+.chip[aria-pressed="true"]{border-color:var(--brass);color:var(--ink);background:var(--panel2)}
+.chip:disabled{opacity:.4;cursor:not-allowed}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips .chip{font-size:12.5px;min-height:40px}
+select,input[type=text],input[type=number]{font:inherit;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:2px;padding:7px 9px;max-width:100%}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1 1 180px}
+.field label,.lbl{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.battle{border:1px solid var(--brass);border-radius:3px;padding:14px;margin-top:12px;background:var(--bg)}
+.battle .size{font-family:var(--f-display);font-size:46px;line-height:1;color:var(--brass)}
+.twist{border-left:3px solid var(--blood);padding:4px 10px;margin:8px 0}
+.twist b{font-family:var(--f-display);font-size:19px;font-weight:500}
+.hint{font-family:var(--f-mono);font-size:12px;color:var(--dim);margin-top:8px;line-height:1.4}
+.hint.bad{color:var(--blood)}
+.overline{font-family:var(--f-mono);font-size:12px;color:var(--blood);margin-top:6px}
+.badge{font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:2px;border:1px solid var(--line);color:var(--ink);background:var(--panel2);white-space:nowrap}
+.badge.war{background:var(--brass);color:var(--bg);border-color:var(--brass)}
+.badge.role{color:var(--ink)}
+.badge.ex{color:var(--dim);border-style:dashed}
+.empty{text-align:center;border:1px dashed var(--line);border-radius:3px;padding:28px 16px;margin:14px 0;background:var(--panel)}
+.empty b{font-family:var(--f-display);font-size:26px;font-weight:500;display:block}
+.empty p{margin-inline:auto}
+.ro{font-family:var(--f-mono);font-size:12px;color:var(--dim);border:1px dashed var(--line);padding:6px 10px;border-radius:2px;margin:6px 0}
+.panel{background:var(--panel);border:1px solid var(--brass);border-radius:3px;padding:16px;margin:12px 0}
+.pbunit{border:1px solid var(--line);background:var(--bg);border-radius:3px;padding:12px;margin:8px 0}
+.pbunit.off{opacity:.6}
+.pbunit .nm{font-family:var(--f-display);font-size:20px;line-height:1.1}
+/* Force Organisation collapsible: reused as-is */
+.fo{border:1px solid var(--line);border-radius:3px;background:var(--bg);margin:12px 0}
+.fo > summary{list-style:none;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;padding:8px 12px;min-height:48px;cursor:pointer}
+.fo > summary::-webkit-details-marker{display:none}
+.fo .ttl{white-space:nowrap;font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.fo .state{font-family:var(--f-mono);font-size:12.5px;color:var(--verd);line-height:1.35}
+.fo .state.bad{color:var(--blood)}
+.fo .chev{font-family:var(--f-mono);font-size:18px;color:var(--brass);width:24px;text-align:center;flex:none;margin-left:auto}
+.fo .chev::before{content:"+"}
+.fo[open] .chev::before{content:"\2212"}
+.fo[open] > summary{border-bottom:1px solid var(--line)}
+
+/* ===== Battle army list additions (new, "al-" prefix, built from the same tokens) ===== */
+.al-body{padding:0 12px 10px}
+.al-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;column-gap:10px;row-gap:4px;align-items:center;padding:8px 0 8px 9px;border-left:3px solid transparent;border-top:1px solid var(--line)}
+.al-row:first-of-type{border-top:0}
+.al-row.ro-row{grid-template-columns:minmax(0,1fr) auto;padding-left:0;border-left:0}
+.al-row.off{opacity:.6}
+.al-row.locked{border-left-color:var(--brass)}
+.al-tick{min-width:56px;min-height:44px;justify-content:center}
+.al-row .nm{font-family:var(--f-display);font-size:20px;line-height:1.15;min-width:0}
+.al-row .nm .cv{display:block;font-family:var(--f-mono);font-size:11.5px;line-height:1.4;color:var(--dim);overflow-wrap:anywhere;text-transform:uppercase;letter-spacing:.06em}
+.al-row .nm .badge{margin-top:2px;display:inline-block}
+.al-pts{font-family:var(--f-display);font-size:22px;line-height:1;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.al-pts small{font-family:var(--f-mono);font-size:11px;color:var(--dim)}
+.al-pts s{display:block;font-family:var(--f-mono);font-size:12px;color:var(--dim);text-decoration:line-through}
+.al-more{grid-column:2 / -1;display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;font-family:var(--f-mono);font-size:12px;color:var(--dim)}
+.al-row.ro-row .al-more{grid-column:1 / -1}
+.al-more label{display:inline-flex;align-items:center;gap:8px;text-transform:uppercase;letter-spacing:.08em;font-size:11px}
+.al-more input{width:84px;min-height:44px}
+.al-lock{grid-column:2 / -1;font-family:var(--f-mono);font-size:12px;line-height:1.4;color:var(--brass)}
+.al-note{border-left:3px solid var(--brass);padding:6px 10px;margin:10px 0 0;background:var(--panel);font-family:var(--f-mono);font-size:12px;line-height:1.4;color:var(--ink)}
+.al-foot{border-top:1px solid var(--line);padding-top:6px;margin-top:2px}
+.al-foot .hint{margin:0}
+.al-limit{font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);margin:10px 0 0}
+.al-gap{height:2px}
+
+/* mock-only: labels (not part of the product) */
+.mocklabel{display:flex;gap:8px;align-items:baseline;font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--brass);border-bottom:1px dashed var(--line);padding-bottom:6px;margin:30px 0 4px}
+.mocklabel b{font-weight:400;color:var(--ink)}
+.mocknote{font-family:var(--f-mono);font-size:12px;color:var(--dim);margin:6px 0 10px;line-height:1.45}
+.ctx{font-family:var(--f-mono);font-size:12px;color:var(--dim);border:1px dashed var(--line);border-radius:2px;padding:6px 10px;margin:10px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+  <div class="eyebrow">Design mock · War Room · Battle card</div>
+  <h1>Army <span>list</span></h1>
+  <p class="lede">Each side picks which roster units they field. It sits in the battle card, below the twists and notes, above the result buttons. Points over the limit warn, they never block. Tap the chips and edit the numbers: the totals and locks are live.</p>
+</header>
+
+<div class="mocklabel"><span>1</span><b>Attacker editing, under the limit, one reduced unit</b></div>
+<div class="mocknote">Ninth Muster is the attacker and is viewing their own list. Anvil Squad is fielded at 80 of 160 pts.</div>
+<div id="s1"></div>
+
+<div class="mocklabel"><span>2</span><b>Defender over the limit</b></div>
+<div class="mocknote">Tomb of Karesh is 60 pts over. Total turns blood red and a warning appears. Result buttons stay enabled.</div>
+<div id="s2"></div>
+
+<div class="mocklabel"><span>3a</span><b>Read-only opponent view, collapsed</b></div>
+<div class="mocknote">A viewer who is not this side's player or the owner. Collapsed by default so the result buttons stay close.</div>
+<div id="s3a"></div>
+
+<div class="mocklabel"><span>3b</span><b>Read-only opponent view, expanded</b></div>
+<div class="mocknote">Same list, no inputs, only fielded units shown.</div>
+<div id="s3b"></div>
+
+<div class="mocklabel"><span>4</span><b>Roster with only 1 Battleline (garrison battle)</b></div>
+<div class="mocknote">Garrison battle: only the attacker has a list. The single Battleline can not be dropped, so it is locked with a note.</div>
+<div id="s4"></div>
+
+<div class="mocklabel"><span>5</span><b>Empty roster</b></div>
+<div class="mocknote">Nothing to tick. The result buttons still work.</div>
+<div id="s5"></div>
+
+<div class="mocklabel"><span>6</span><b>Post-battle helper, Fought preselected</b></div>
+<div class="mocknote">Step 1 of the post-battle helper (Roster tab). Fielded units start with Fought on. Units left out start off, and can still be switched on.</div>
+<div id="s6"></div>
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmt=n=>n.toLocaleString("en-GB");
+
+/* unit: {id,name,ds,pts,role:"warlord"|"battleline"|string,on,field(null|number)} */
+const U=(id,name,ds,pts,role,on=true,field=null)=>({id,name,ds,pts,role,on,field});
+
+const S={
+ s1:{open:true,mode:"edit",player:"Ninth Muster",limit:1250,limitNote:"",units:[
+  U(1,"Captain Idris Valen","Captain",85,"warlord"),
+  U(2,"Anvil Squad","Intercessor Squad",160,"battleline",true,80),
+  U(3,"Vanguard Squad","Intercessor Squad",180,"battleline"),
+  U(4,"Red Hand Assault","Assault Intercessor Squad",150,"Infantry"),
+  U(5,"Ashfall Gun-Line","Hellblasters",110,"Fire support"),
+  U(6,"Gatekeepers","Bladeguard Veteran Squad",150,"Elites"),
+  U(7,"Breach Team Seven","Eradicator Squad",100,"Elites",false),
+  U(8,"The Anvil of Kharst","Redemptor Dreadnought",210,"Vehicle",false),
+  U(9,"Hammerfall Squad","Outrider Squad",115,"Mounted")]},
+ s2:{open:true,mode:"edit",player:"Tomb of Karesh",limit:1250,limitNote:"",units:[
+  U(21,"Overlord Neferkhet","Overlord",85,"warlord"),
+  U(22,"First Phalanx","Necron Warriors",120,"battleline"),
+  U(23,"Second Phalanx","Necron Warriors",120,"battleline"),
+  U(24,"Deathless Guard","Immortals",150,"Infantry"),
+  U(25,"Lychguard of Karesh","Lychguard",150,"Elites"),
+  U(26,"Sun-Eaters","Heavy Destroyers",160,"Fire support"),
+  U(27,"Dirge Ark","Doomsday Ark",200,"Vehicle"),
+  U(28,"Gate of Karesh","Monolith",325,"Vehicle")]},
+ s3a:{open:false,mode:"view",player:"Grot-Hammer Boyz",limit:1250,limitNote:"",units:null},
+ s3b:{open:true,mode:"view",player:"Grot-Hammer Boyz",limit:1250,limitNote:"",units:null},
+ s4:{open:true,mode:"edit",player:"Ninth Muster",limit:1500,limitNote:"Limit 1,500 pts: 1,250 + 20% garrison attacker edge",units:[
+  U(41,"Captain Idris Valen","Captain",85,"warlord"),
+  U(42,"Anvil Squad","Intercessor Squad",160,"battleline"),
+  U(43,"Red Hand Assault","Assault Intercessor Squad",150,"Infantry"),
+  U(44,"Ashfall Gun-Line","Hellblasters",110,"Fire support",false),
+  U(45,"Gatekeepers","Bladeguard Veteran Squad",150,"Elites",false)]},
+ s5:{open:true,mode:"edit",player:"Ninth Muster",limit:1250,limitNote:"",units:[]}
+};
+const ORK=()=>[
+  U(61,"Warboss Gutzgrind","Warboss",85,"warlord"),
+  U(62,"Skullkrumpa's Boyz","Boyz",135,"battleline"),
+  U(63,"Rustjaw Boyz","Boyz",135,"battleline"),
+  U(64,"Nob Mob","Nobz",120,"Elites"),
+  U(65,"Hardcases","Meganobz",190,"Elites"),
+  U(66,"Lootas of the Pit","Lootas",120,"Fire support"),
+  U(67,"Big Scrap","Deff Dread",150,"Vehicle"),
+  U(68,"Rattlebox","Battlewagon",245,"Vehicle"),
+  U(69,"Wartrukk Gang","Trukk",70,"Vehicle")].map((x,i)=>i===8?{...x,on:false}:x);
+S.s3a.units=ORK(); S.s3b.units=ORK();
+
+const fielded=x=>x.field!==null&&x.field!==""?Math.min(+x.field,x.pts):x.pts;
+const sum=st=>st.units.filter(x=>x.on).reduce((a,x)=>a+fielded(x),0);
+
+function rowHTML(st,x,k){
+  const bl=st.units.filter(u=>u.role==="battleline");
+  const blOn=bl.filter(u=>u.on).length;
+  const reduced=x.on&&fielded(x)<x.pts;
+  let lock="",locked=false;
+  if(x.role==="warlord"){locked=true;lock="Warlord: always fielded"}
+  else if(x.role==="battleline"){
+    if(bl.length<2){locked=true;lock="Only Battleline on the roster: always fielded"}
+    else if(x.on&&blOn<=2){locked=true;lock="2 Battleline minimum: tick another Battleline to swap"}
+  }
+  const role=x.role==="warlord"?`<span class="badge war">Warlord</span>`:x.role==="battleline"?`<span class="badge role">Battleline</span>`:`<span class="badge ex">${esc(x.role)}</span>`;
+  const ptsHTML=reduced?`<s>${x.pts}</s>${fielded(x)} <small>pts</small>`:`${x.pts} <small>pts</small>`;
+  const ds=`<span class="cv">${esc(x.ds)}</span>`;
+  if(st.mode==="view"){
+    return `<div class="al-row ro-row"><div class="nm">${esc(x.name)}${ds}${role}</div><div class="al-pts">${ptsHTML}</div></div>`;
+  }
+  const more=x.on&&x.role!=="warlord"||x.on&&x.role==="warlord"
+    ?`<div class="al-more"><label>Fielded at <input type="number" inputmode="numeric" min="0" max="${x.pts}" step="5" data-k="${k}" data-f="${x.id}" placeholder="${x.pts}" value="${x.field??""}" aria-label="Fielded points for ${esc(x.name)}"> pts</label></div>`:"";
+  return `<div class="al-row${x.on?"":" off"}${locked?" locked":""}">
+    <button type="button" class="chip al-tick" aria-pressed="${x.on}" aria-label="${esc(x.name)}${locked?" (locked)":""}" data-k="${k}" data-t="${x.id}" ${locked?"disabled":""}>${x.on?"In":"Out"}</button>
+    <div class="nm">${esc(x.name)}${ds}${role}</div>
+    <div class="al-pts">${ptsHTML}</div>
+    ${locked?`<div class="al-lock">${esc(lock)}</div>`:""}
+    ${more}
+  </div>`;
+}
+
+function listHTML(k){
+  const st=S[k], tot=sum(st), over=tot-st.limit, n=st.units.filter(x=>x.on).length;
+  const shown=st.mode==="view"?st.units.filter(x=>x.on):st.units;
+  const bl=st.units.filter(u=>u.role==="battleline").length;
+  let body;
+  if(!st.units.length){
+    body=`<div class="empty" style="margin:10px 0"><b>No units</b><p class="dim" style="font-size:14.5px">No units on your roster. Add them on My Warband.</p></div>`;
+  } else {
+    body=`${st.mode==="view"?`<div class="ro" style="margin-top:10px">READ-ONLY: only ${esc(st.player)} (or the campaign owner) can change this list.</div>`:""}
+      ${st.limitNote?`<div class="al-limit">${esc(st.limitNote)}</div>`:""}
+      ${st.mode==="edit"&&bl<2?`<div class="al-note">Only ${bl} Battleline on the roster, so it stays fielded. Add another on My Warband to choose.</div>`:""}
+      ${over>0?`<div class="overline" role="alert">Over by ${over} pts. Agree it with your opponent or trim the list.</div>`:""}
+      <div class="al-gap"></div>${shown.map(x=>rowHTML(st,x,k)).join("")}
+      ${st.mode==="edit"?`<div class="al-foot"><p class="hint">Field a unit smaller, never split it. Leave blank for full points.</p></div>`:""}`;
+  }
+  return `<details class="fo" data-k="${k}" ${st.open?"open":""}>
+    <summary><span class="ttl">${esc(st.player)} · Army list</span>
+      <span class="state${over>0?" bad":""}">${n} unit${n===1?"":"s"} · ${fmt(tot)} / ${fmt(st.limit)} pts</span><span class="chev" aria-hidden="true"></span></summary>
+    <div class="al-body">${body}</div></details>`;
+}
+
+function cardHTML(k,opts){
+  const o=opts||{};
+  const garrison=k==="s4";
+  return `<div class="battle">
+    <div class="eyebrow">Hesper Prime · Forge World · Gate of Karesh${garrison?" · Garrison battle":""}</div>
+    <div class="size">${garrison?"1,250":"1,250"} pts</div>
+    <div class="ctx">Twists, world trait and notes sit here, as they do now.</div>
+    <div id="${k}-list">${listHTML(k)}</div>
+    ${garrison?"":""}
+    <p class="mono" style="font-size:12px;color:var(--brass);margin-top:12px">PLAY THE BATTLE WITH NORMAL FORCE RULES, THEN RECORD THE RESULT</p>
+    <div class="row">
+      <button type="button" class="btn primary">${garrison?"Ninth Muster won":"Ninth Muster won"}</button>
+      <button type="button" class="btn primary">${garrison?"Garrison won (garrison)":(k==="s2"?"Tomb of Karesh won":"Grot-Hammer Boyz won")}</button>
+      <button type="button" class="btn">Draw</button>
+      <button type="button" class="btn sm">Re-roll twists</button>
+    </div>
+  </div>`;
+}
+
+function render(k){
+  const el=$("#"+k+"-list"); if(el) el.innerHTML=listHTML(k);
+}
+["s1","s2","s3a","s3b","s4","s5"].forEach(k=>{ $("#"+k).innerHTML=cardHTML(k) });
+
+document.addEventListener("click",e=>{
+  const b=e.target.closest("button[data-t]"); if(!b) return;
+  const k=b.dataset.k, x=S[k].units.find(u=>u.id==b.dataset.t);
+  x.on=!x.on; if(!x.on) x.field=null; render(k);
+});
+document.addEventListener("change",e=>{
+  const i=e.target; if(i.dataset.f===undefined) return;
+  const k=i.dataset.k, x=S[k].units.find(u=>u.id==i.dataset.f);
+  x.field=i.value===""?null:Math.max(0,Math.min(+i.value,x.pts)); render(k);
+});
+document.addEventListener("toggle",e=>{
+  const d=e.target; if(d.dataset&&d.dataset.k) S[d.dataset.k].open=d.open;
+},true);
+
+/* ---------- Post-battle helper panel ---------- */
+(function(){
+  const list=S.s1.units;
+  const rows=[list[0],list[1],list[3],list[6]].map(x=>`<div class="pbunit${x.on?"":" off"}">
+    <div class="nm">${esc(x.name)}</div>
+    <div class="mono dim" style="font-size:11px">${esc(x.ds.toUpperCase())} · 4 XP · BLOODED</div>
+    <div class="row" style="margin-top:8px">
+      <button type="button" class="chip" aria-pressed="${x.on}">Fought</button>
+      <button type="button" class="chip" aria-pressed="false" ${x.on?"":"disabled"}>Destroyed</button>
+    </div></div>`).join("");
+  $("#s6").innerHTML=`<div class="panel">
+    <h2 style="font-family:var(--f-display);font-weight:700;font-size:28px;line-height:1.05;margin:0 0 6px">Post-battle helper</h2>
+    <p class="dim">Step 1 of 2. Who fought?</p>
+    <p class="hint" style="margin:0 0 8px">Preselected from your army list.</p>
+    ${rows}
+    <p class="mono dim" style="font-size:12px">...and the rest of the roster.</p>
+    <div class="row" style="margin-top:10px"><button type="button" class="btn primary">Next: results</button><button type="button" class="btn">Cancel</button></div></div>`;
+})();
+</script>
+</body>
+</html>

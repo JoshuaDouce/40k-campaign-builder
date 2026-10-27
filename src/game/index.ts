@@ -7,6 +7,7 @@ export * from "./selectors.ts";
 export * from "./cards.ts";
 export * from "./roster.ts";
 export * from "./forceOrg.ts";
+export * from "./army.ts";
 export * from "./setup.ts";
 export * from "./engine.ts";
 export * from "./round.ts";
