@@ -40,7 +40,6 @@ import type {
 export interface PickChoice {
   act: ActionId;
   zone?: string;
-  def?: string;
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -116,7 +115,6 @@ function computeFallReason(s: CampaignState, playerId: string): string | null {
     if (holder === p.id) return `${place} is already held by ${p.name}`;
     if (pk.act === "raid" && !holder) return `${place} is no longer held by anyone`;
     if (!targets(s, p, pk.act).some((v) => v.id === pk.zone)) return `${place} is no longer within reach`;
-    if (pk.act === "conquer" && !holder && pk.def && !getPlayer(s, pk.def)) return "the garrison player has left";
   }
   if (pk.act === "fortify" && (!pk.zone || s.terr[pk.zone] !== p.id)) return `${place} is no longer held by ${p.name}`;
   return null;
@@ -236,7 +234,7 @@ export function actionAvailable(s: CampaignState, p: Player, act: ActionId, zone
   return act === "fortify" ? zones.length > 0 : true;
 }
 
-/** A complete, legal pick built from `c`, or null. Fills in or drops the garrison player to match the province. */
+/** A complete, legal pick built from `c`, or null. An unclaimed Conquer names its garrison player later, when rolled. */
 export function buildPick(s: CampaignState, p: Player, c: PickChoice): RoundPick | null {
   const def = ACTIONS.find((x) => x.id === c.act);
   if (!def) return null;
@@ -244,11 +242,8 @@ export function buildPick(s: CampaignState, p: Player, c: PickChoice): RoundPick
   if (!actionAvailable(s, p, c.act, zones)) return null;
   if (def.battle) {
     if (!c.zone || !zones.some((v) => v.id === c.zone)) return null;
-    const holder = s.terr[c.zone];
-    if (holder) return { act: c.act, zone: c.zone, ready: true };
-    if (c.act !== "conquer") return null;
-    if (!c.def || c.def === p.id || !getPlayer(s, c.def)) return null;
-    return { act: c.act, zone: c.zone, def: c.def, ready: true };
+    if (!s.terr[c.zone] && c.act !== "conquer") return null;
+    return { act: c.act, zone: c.zone, ready: true };
   }
   if (c.act === "fortify") {
     if (!c.zone || s.terr[c.zone] !== p.id) return null;
@@ -379,8 +374,8 @@ export function battleInfo(s: CampaignState, playerId: string): BattleInfo | nul
 
 /**
  * Roll the twists for a Conquer or Raid pick that is Ready to play and fix its figures. `defArg` is the garrison
- * player when the province is unclaimed and the pick has none (a removed player's province). Returns false (changing
- * nothing) if the pick cannot be played now, e.g. it was already rolled.
+ * player when the province is unclaimed (chosen now that picks are revealed; older saves may have one stored on the
+ * pick). Returns false (changing nothing) if the pick cannot be played now, e.g. it was already rolled.
  */
 export function rollPick(s: CampaignState, playerId: string, defArg: string | undefined, rng: Rng): boolean {
   const pk = s.picks[playerId];
@@ -392,7 +387,7 @@ export function rollPick(s: CampaignState, playerId: string, defArg: string | un
   let garrison = false;
   if (holder) def = holder;
   else {
-    def = pk.def ?? defArg ?? "";
+    def = defArg ?? pk.def ?? "";
     if (pk.act !== "conquer" || def === a.id || !getPlayer(s, def)) return false;
     garrison = true;
   }
@@ -625,8 +620,8 @@ export function switchPick(s: CampaignState, playerId: string, c: PickChoice): b
 
 /**
  * A player has been removed (call after they leave `s.players`; `name` is the name they had). Their pick is
- * dropped. Planning: picks that named them as garrison go back to un-Ready. Resolution: their slot counts as Done,
- * and the other side of any battle they were in gets "Choose again".
+ * dropped and any stored garrison choice of them is cleared. Resolution: their slot counts as Done, and the other
+ * side of any battle they were in gets "Choose again".
  */
 export function dropPlayerPicks(s: CampaignState, playerId: string, name: string): void {
   delete s.picks[playerId];
@@ -636,9 +631,8 @@ export function dropPlayerPicks(s: CampaignState, playerId: string, name: string
       delete pk.battle;
       delete pk.def;
       pk.fell = `${name} has left the campaign`;
-    } else if (pk.def === playerId && s.phase === "planning") {
+    } else if (pk.def === playerId) {
       delete pk.def;
-      pk.ready = false;
     }
   });
   checkRoundEnd(s);

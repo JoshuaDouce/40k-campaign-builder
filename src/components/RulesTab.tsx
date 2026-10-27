@@ -217,6 +217,7 @@ export function RulesTab() {
       <h4 className="rl-h">Garrison battles (unclaimed provinces)</h4>
       <ul className="rl">
         <li>Another player (never the attacker) plays the garrison. You must fight it.</li>
+        <li>The garrison player is chosen once picks are revealed, before the battle is rolled.</li>
         <li>Only your supply limit caps the size. No Underdog bonus.</li>
         <li>Choose your edge: +20% points for you, or −20% for the garrison.</li>
         <li>Light Forces and Fate Cards go by the base size, before the 20%.</li>
