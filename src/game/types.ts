@@ -209,6 +209,8 @@ export interface Unit {
   /** Career record, every unit. Missing = 0. */
   battles?: number;
   kills?: number;
+  /** Capped XP (survived + kills) earned in War Round `round`, for the per-round cap. Kept by the engine, not edited. */
+  xpRound?: { round: number; xp: number };
   /** True for example units added by "Add example units". Examples never log a Legend. */
   ex?: boolean;
   /** Set once "becomes a Legend of the Reach" has been logged, so it is only logged once. */
@@ -222,7 +224,7 @@ export interface PostBattleResult {
   /** Only valid if `fought`. */
   destroyed: boolean;
   kills: number;
-  /** True for the one unit Marked for Glory (+2 XP). At most one per report. */
+  /** True for the one unit Marked for Glory (+1 XP, on top of the round cap). At most one per report. */
   glory: boolean;
   /** Replaces the computed XP gain when set. */
   xpOverride?: number;

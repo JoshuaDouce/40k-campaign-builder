@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { rankOf } from "../../game/index.ts";
+import { rankOf, XP_ROUND_CAP, xpThisRound } from "../../game/index.ts";
 import type { Unit } from "../../game/index.ts";
 import { useCampaign } from "../../store/useCampaign.ts";
 import { BLANK_ROW, evaluate, NO_ROLLS, xpGainFor } from "./pbLogic.ts";
@@ -25,7 +25,7 @@ export function PostBattleHelper({ playerId, roster, onClose }: Props) {
   const row = (id: string): Row => rows[id] ?? BLANK_ROW;
   const patch = (id: string, p: Partial<Row>) => setRows((r) => ({ ...r, [id]: { ...(r[id] ?? BLANK_ROW), ...p } }));
   const anyFought = roster.some((u) => row(u.id).fought);
-  const ev = evaluate(roster, rows, glory, rolls);
+  const ev = evaluate(roster, rows, glory, rolls, state.round);
 
   const confirm = () => {
     if (ev.blocked || !ev.results.length) return;
@@ -40,7 +40,7 @@ export function PostBattleHelper({ playerId, roster, onClose }: Props) {
   return (
     <>
       <h2>Post-battle helper</h2>
-      <p className="dim">Step 1 of 2. Who fought? Award XP the way the rules say: +1 to every unit that fought and survived, +1 per enemy unit destroyed, +2 to the one unit Marked for Glory.</p>
+      <p className="dim">Step 1 of 2. Who fought? Award XP the way the rules say: +1 to every unit that fought and survived, +1 per enemy unit destroyed (at most {XP_ROUND_CAP} XP a War Round from these), +1 to the one unit Marked for Glory.</p>
       {preset.length > 0 && (
         <p className="hint" style={{ margin: "0 0 8px" }}>
           Preselected from your army list.
@@ -48,7 +48,8 @@ export function PostBattleHelper({ playerId, roster, onClose }: Props) {
       )}
       {roster.map((u) => {
         const r = row(u.id);
-        const g = xpGainFor(r, glory === u.id);
+        const already = xpThisRound(u, state.round);
+        const { gain: g, capped } = xpGainFor(r, glory === u.id, already);
         return (
           <div key={u.id} className={`pbunit${r.fought ? "" : " off"}`}>
             <div className="nm">{u.name}</div>
@@ -92,6 +93,7 @@ export function PostBattleHelper({ playerId, roster, onClose }: Props) {
               <span className="dim">
                 {u.xp} → {u.xp + g}
               </span>
+              {capped && <span className="dim">{already > 0 ? `Capped: ${already} XP already this round` : `Capped: ${XP_ROUND_CAP} XP a round`}</span>}
               <label className="dim" style={{ marginLeft: "auto" }}>
                 Override{" "}
                 <input type="number" min={0} step={1} inputMode="numeric" placeholder="auto" disabled={!r.fought} value={r.ov} onChange={(e) => patch(u.id, { ov: e.target.value })} />
