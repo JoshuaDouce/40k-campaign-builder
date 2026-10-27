@@ -77,9 +77,32 @@ export function effectivePoints(unit: Pick<Unit, "points" | "honours" | "relics"
 export function totalEffective(units: readonly Unit[]): number {
   return units.reduce((a, u) => a + effectivePoints(u), 0);
 }
-/** +1 if it fought and survived, +1 per kill (counted if it fought or is Marked for Glory), +2 for Glory. */
-export function computeXpGain(fought: boolean, destroyed: boolean, kills: number, glory: boolean): number {
-  return (fought && !destroyed ? 1 : 0) + (fought || glory ? Math.max(0, kills) : 0) + (glory ? 2 : 0);
+/** Most XP a unit earns in one War Round from surviving and kills. Marked for Glory is on top. */
+export const XP_ROUND_CAP = 2;
+export const GLORY_XP = 1;
+
+/** Capped XP the unit has already earned in War Round `round`. */
+export function xpThisRound(u: Pick<Unit, "xpRound">, round: number): number {
+  return u.xpRound?.round === round ? u.xpRound.xp : 0;
+}
+
+export interface XpGain {
+  /** XP the battle gives. */
+  total: number;
+  /** The part that counts toward the round cap. */
+  counted: number;
+  /** True when the cap cut survived + kills. */
+  capped: boolean;
+}
+
+/**
+ * +1 if it fought and survived and +1 per kill (counted if it fought or is Marked for Glory), together at most
+ * XP_ROUND_CAP a War Round counting the `already` earned this round. Then +1 for Glory, outside the cap.
+ */
+export function computeXpGain(fought: boolean, destroyed: boolean, kills: number, glory: boolean, already = 0): XpGain {
+  const raw = (fought && !destroyed ? 1 : 0) + (fought || glory ? Math.max(0, kills) : 0);
+  const counted = Math.min(raw, Math.max(0, XP_ROUND_CAP - already));
+  return { total: counted + (glory ? GLORY_XP : 0), counted, capped: counted < raw };
 }
 
 /* ---------- Scars ---------- */
@@ -418,6 +441,7 @@ export function updateUnitIn(s: CampaignState, playerId: string, unit: Unit): bo
   if (setupToughnessBlock(s, u.t) || setupToughnessNineBlock(s, playerId, u) || ruleBlock(s, playerId, u)) return false;
   if (old.ex) u.ex = true;
   if (old.legendLogged) u.legendLogged = true;
+  if (old.xpRound) u.xpRound = old.xpRound;
   roster[i] = u;
   enforceWarlord(roster, u);
   checkLegend(s, p.name, u);
@@ -567,7 +591,11 @@ export function applyPostBattleTo(s: CampaignState, playerId: string, results: P
 
     const before = { honours: [...u.honours], isCharacter: u.isCharacter };
     const heals = r.fought && healsGrievous(u);
-    const gain = r.xpOverride ?? computeXpGain(r.fought, r.destroyed, r.kills, r.glory);
+    const already = xpThisRound(u, s.round);
+    const calc = computeXpGain(r.fought, r.destroyed, r.kills, r.glory, already);
+    const gain = r.xpOverride ?? calc.total;
+    // An override is awarded as typed, and counts toward the round cap up to what is left of it.
+    const counted = r.xpOverride === undefined ? calc.counted : Math.min(r.xpOverride, Math.max(0, XP_ROUND_CAP - already));
     const newXp = u.xp + gain;
 
     // Honours
@@ -593,6 +621,7 @@ export function applyPostBattleTo(s: CampaignState, playerId: string, results: P
     // Apply
     const oldRank = rankIndex(u.xp);
     u.xp = newXp;
+    if (counted > 0) u.xpRound = { round: s.round, xp: already + counted };
     u.honours.push(...newHon);
     if (r.fought) u.battles = (u.battles ?? 0) + 1;
     u.kills = (u.kills ?? 0) + (r.fought || r.glory ? r.kills : 0);

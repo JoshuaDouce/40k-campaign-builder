@@ -258,7 +258,7 @@ export function RulesTab() {
 
       <h3>After each battle</h3>
       <ol className="steps">
-        <li><div><b>Award XP</b>+1 to every unit that fought and survived. +1 per enemy unit it destroyed. +2 to one unit you <i>Marked for Glory</i> before the game.</div></li>
+        <li><div><b>Award XP</b>+1 to every unit that fought and survived. +1 per enemy unit it destroyed. A unit earns at most 2 XP a War Round from these. +1 to one unit you <i>Marked for Glory</i> before the game, on top of the cap.</div></li>
         <li><div><b>Roll for the fallen</b>Each destroyed unit rolls a D6 (Hard to Kill adds 1). On a 1 it gains a Battle Scar, Characters on a 1–2. The Warlord never rolls.</div></li>
         <li><div><b>Requisition</b>+1 RP to the winner. Nothing for a loss or a draw. Bank up to 10.</div></li>
         <li><div><b>Spoils</b>The winner draws 1 Fate Card. A Conquer winner takes the province. A Raid winner steals 1 RP and a random Fate Card.</div></li>

@@ -467,7 +467,7 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, r
           </div>
         </div>
         <div className="mono dim" style={{ fontSize: 11 }}>
-          THE POST-BATTLE HELPER ADDS TO THESE. EDIT ONLY TO CORRECT THEM. EACH KILL ADDED OR REMOVED HERE MOVES XP BY 1; ADD MARKED FOR GLORY'S +2 XP BY HAND.
+          THE POST-BATTLE HELPER ADDS TO THESE. EDIT ONLY TO CORRECT THEM. EACH KILL ADDED OR REMOVED HERE MOVES XP BY 1; ADD MARKED FOR GLORY'S +1 XP BY HAND.
         </div>
       </div>
 

@@ -172,7 +172,7 @@ function battleText(env: Env): string {
   if (ctx.prov === "capital" && ctx.holder === "enemy" && ctx.action === "conquer") l.push("This is the defender's Capital: if you win, you also steal 2 RP.");
   if (ctx.prov === "shrine") l.push("Shrine: +1 XP to both players' Marked for Glory units in any battle fought here (this guide plays it that way).");
   if (s.garrison) l.push("Garrison: another player runs the defence as a favour and gains nothing.");
-  l.push("Before the game, name one unit Marked for Glory (+2 XP after). Play with normal force rules, then record the result.");
+  l.push("Before the game, name one unit Marked for Glory (+1 XP after). Play with normal force rules, then record the result.");
   return l.join("\n");
 }
 
@@ -186,7 +186,7 @@ export function afterReminders(ctx: Ctx, sc: Scenario): string[] {
     return [];
   }
   const l = [
-    "1. XP: +1 to every unit that fought and was not destroyed, +1 per enemy unit it destroyed, and +2 to the unit you Marked for Glory.",
+    "1. XP: +1 to every unit that fought and was not destroyed and +1 per enemy unit it destroyed (at most 2 XP a War Round from these), and +1 to the unit you Marked for Glory.",
     "2. Rank-up and honour: a unit that reaches a new rank rolls a D6 (or picks) for 1 Battle Honour per rank gained. No duplicates: re-roll or pick another.",
     "3. Roll for the fallen: each destroyed unit rolls a D6 (Hard to Kill adds 1). On a 1 it gains a Battle Scar; Characters on a 1–2.",
     "4. Battle Scar: roll a D3 on the Battle Scars table and re-roll duplicates. Three scars and the unit is gone.",

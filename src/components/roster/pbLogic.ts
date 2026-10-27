@@ -1,4 +1,4 @@
-import { computeXpGain, fallenModifier, fallenThreshold, healsGrievous, honoursOwed, honourTableFor, isScarred, scarName, scarOutcome, scarTableFor, WORN_GEAR } from "../../game/index.ts";
+import { computeXpGain, fallenModifier, fallenThreshold, healsGrievous, honoursOwed, honourTableFor, isScarred, scarName, scarOutcome, scarTableFor, WORN_GEAR, xpThisRound } from "../../game/index.ts";
 import type { PostBattleResult, Unit } from "../../game/index.ts";
 
 export interface Row {
@@ -80,19 +80,22 @@ const validOv = (ov: string): number | null => {
   return Number.isInteger(n) && n >= 0 ? n : null;
 };
 
-export function xpGainFor(row: Row, glory: boolean): number {
-  return validOv(row.ov) ?? computeXpGain(row.fought, row.destroyed, row.kills, glory);
+/** The XP a row gives (an override as typed, never capped), and whether the round cap cut it. */
+export function xpGainFor(row: Row, glory: boolean, already: number): { gain: number; capped: boolean } {
+  const ov = validOv(row.ov);
+  const calc = computeXpGain(row.fought, row.destroyed, row.kills, glory, already);
+  return ov === null ? { gain: calc.total, capped: calc.capped } : { gain: ov, capped: false };
 }
 
 /** Works out step 2 for the units that fought, and the finished results to send once nothing is blocked. */
-export function evaluate(roster: readonly Unit[], rows: Record<string, Row | undefined>, glory: string | null, rolls: Rolls): Evaluation {
+export function evaluate(roster: readonly Unit[], rows: Record<string, Row | undefined>, glory: string | null, rolls: Rolls, round: number): Evaluation {
   const views: UnitView[] = [];
   const results: PostBattleResult[] = [];
   for (const unit of roster) {
     const row = rows[unit.id] ?? BLANK_ROW;
     if (!row.fought) continue;
     const isGlory = glory === unit.id;
-    const gain = xpGainFor(row, isGlory);
+    const { gain } = xpGainFor(row, isGlory, xpThisRound(unit, round));
     const newXp = unit.xp + gain;
     const owed = honoursOwed(unit, newXp);
     let done = true;
