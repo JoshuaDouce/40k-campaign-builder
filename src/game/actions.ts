@@ -76,7 +76,7 @@ function run(s: CampaignState, a: Action, rng: Rng): boolean {
       return true;
 
     case "readyPick":
-      return readyPick(s, a.playerId, { act: a.act, zone: a.zone, def: a.def });
+      return readyPick(s, a.playerId, { act: a.act, zone: a.zone });
 
     case "unreadyPick":
       return unreadyPick(s, a.playerId);
@@ -114,7 +114,7 @@ function run(s: CampaignState, a: Action, rng: Rng): boolean {
       return confirmQuietPick(s, a.playerId, rng);
 
     case "switchPick":
-      return switchPick(s, a.playerId, { act: a.act, zone: a.zone, def: a.def });
+      return switchPick(s, a.playerId, { act: a.act, zone: a.zone });
 
     case "requisitionDeck": {
       const p = getPlayer(s, a.playerId);

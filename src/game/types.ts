@@ -298,7 +298,7 @@ export interface RoundPick {
   act: ActionId | null;
   /** Target province (or "holl") for Conquer, Raid and Fortify. */
   zone?: string;
-  /** Garrison player chosen in Planning for an unclaimed province (Conquer). */
+  /** Garrison player for an unclaimed Conquer, stored by older saves (chosen in Planning). Preselected when rolling. */
   def?: string;
   /** Marked Ready in Planning. */
   ready: boolean;
@@ -412,7 +412,7 @@ export type BattleInfo = Omit<LiveBattle, "def"> & {
 
 export type Action =
   | { type: "beginRound" }
-  | { type: "readyPick"; playerId: string; act: ActionId; zone?: string; def?: string }
+  | { type: "readyPick"; playerId: string; act: ActionId; zone?: string }
   | { type: "unreadyPick"; playerId: string }
   | { type: "revealPicks" }
   | { type: "rollPick"; playerId: string; def?: string }
@@ -422,7 +422,7 @@ export type Action =
   | { type: "setArmyList"; playerId: string; side: string; list: ArmyList }
   | { type: "resolvePick"; playerId: string; result: "a" | "d" | "x"; decisive?: boolean }
   | { type: "confirmQuietPick"; playerId: string }
-  | { type: "switchPick"; playerId: string; act: ActionId; zone?: string; def?: string }
+  | { type: "switchPick"; playerId: string; act: ActionId; zone?: string }
   | { type: "undoBattle"; attacker: string }
   | { type: "requisitionDeck"; playerId: string }
   | { type: "playCard"; playerId: string; index: number }

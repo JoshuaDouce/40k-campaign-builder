@@ -1,9 +1,7 @@
-import { useId, useState } from "react";
+import { useState } from "react";
 import type { ReactNode } from "react";
 import { ACTIONS, actionAvailable, buildPick, pickZones, tiedUp } from "../../game/index.ts";
 import type { ActionId, CampaignState, PickChoice, Player, RoundPick, Zone } from "../../game/index.ts";
-import { GarrisonSelect } from "./GarrisonSelect.tsx";
-import { garrisonFor } from "./pickText.ts";
 import { TargetList } from "./TargetList.tsx";
 
 interface Props {
@@ -23,12 +21,10 @@ interface Props {
   extra?: ReactNode;
 }
 
-/** Action picker, legal targets and garrison player. Used to plan, to switch and to choose again. */
+/** Action picker and legal targets. Used to plan, to switch and to choose again. */
 export function PickPicker({ state, player, initial, greyTiedUp, submitLabel, allowed, onSubmit, hint, extra }: Props) {
   const [act, setAct] = useState<ActionId | null>(initial?.act ?? null);
   const [zoneSel, setZoneSel] = useState<string | null>(initial?.zone ?? null);
-  const [defSel, setDefSel] = useState<string | null>(initial?.def ?? null);
-  const defId = useId();
 
   const def = ACTIONS.find((a) => a.id === act);
   const used = (id: string) => !!greyTiedUp && tiedUp(state, id, player.id);
@@ -37,9 +33,7 @@ export function PickPicker({ state, player, initial, greyTiedUp, submitLabel, al
   const zones: Zone[] = (act && zonesFor.get(act)) || [];
   const hasTarget = !!def && (def.battle || def.id === "fortify");
   const zoneId = zoneSel && zones.some((v) => v.id === zoneSel && !used(v.id)) ? zoneSel : null;
-  const unclaimedConquer = act === "conquer" && !!zoneId && !state.terr[zoneId];
-  const garrisonId = garrisonFor(state, player.id, defSel);
-  const choice: PickChoice | null = act ? { act, zone: hasTarget ? (zoneId ?? undefined) : undefined, def: unclaimedConquer ? garrisonId : undefined } : null;
+  const choice: PickChoice | null = act ? { act, zone: hasTarget ? (zoneId ?? undefined) : undefined } : null;
   const complete = !!choice && !!buildPick(state, player, choice);
 
   return (
@@ -74,7 +68,6 @@ export function PickPicker({ state, player, initial, greyTiedUp, submitLabel, al
           <TargetList state={state} zones={zones} selected={zoneId} onSelect={setZoneSel} tiedUp={used} label={`${def.n} targets`} />
         </>
       ) : null}
-      {unclaimedConquer ? <GarrisonSelect state={state} playerId={player.id} id={defId} value={garrisonId} onChange={setDefSel} inRow /> : null}
       {hint ? (
         <p className="dim" style={{ fontSize: 14, margin: "8px 0 0" }}>
           {hint}

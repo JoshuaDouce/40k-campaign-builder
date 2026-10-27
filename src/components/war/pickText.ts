@@ -32,8 +32,20 @@ export function againstText(state: CampaignState, playerId: string): string | nu
   return g ? `${g.name} (garrison)` : "unclaimed";
 }
 
-/** The garrison player actually used: the selection if it is still another player, else the first other player. */
+/** The garrison player chosen so far: the selection, else one stored by an older save, if still another player. Else "". */
 export function garrisonFor(state: CampaignState, playerId: string, sel: string | null): string {
-  const others = state.players.filter((p) => p.id !== playerId);
-  return sel && others.some((p) => p.id === sel) ? sel : (others[0]?.id ?? "");
+  const ok = (id: string | null | undefined): id is string => !!id && id !== playerId && !!getPlayer(state, id);
+  const stored = state.picks[playerId]?.def;
+  return ok(sel) ? sel : ok(stored) ? stored : "";
+}
+
+/** What a player is doing this round, from revealed picks: "in battle", "attacking Quarry Ridge", "Scout", "done". */
+export function doingText(state: CampaignState, playerId: string): string {
+  const pk = state.picks[playerId];
+  const defending = Object.entries(state.picks).some(([id, o]) => id !== playerId && !o.done && o.battle?.def === playerId);
+  if (defending || (pk?.battle && !pk.done)) return "in battle";
+  if (!pk) return "no pick";
+  if (pk.done) return "done";
+  if (isBattleAct(pk.act)) return `attacking ${zoneName(state, pk.zone, "")}`;
+  return pickLine(state, pk);
 }

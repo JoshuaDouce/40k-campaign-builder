@@ -29,10 +29,10 @@ export function MyMovePanel({ playerId, isMine, onBack, ...ctx }: Props) {
   const status = pickStatus(state, playerId);
   const who = isMine ? "You" : player.name;
   const def = ACTIONS.find((a) => a.id === pk?.act);
-  // A Conquer on an unclaimed province with no garrison player yet (the holder left): the roller picks one.
-  const needsGarrison = !!pk && pk.act === "conquer" && !!pk.zone && !defenderOf(state, playerId) && !pk.def;
+  // A Conquer on an unclaimed province: the roller picks the garrison player now that every pick is revealed.
+  const needsGarrison = !!pk && pk.act === "conquer" && !!pk.zone && !defenderOf(state, playerId);
   const garrisonId = garrisonFor(state, playerId, defSel);
-  const roll: Action = { type: "rollPick", playerId, ...(needsGarrison ? { def: garrisonId } : {}) };
+  const roll: Action = { type: "rollPick", playerId, ...(needsGarrison && garrisonId ? { def: garrisonId } : {}) };
   const confirm: Action = { type: "confirmQuietPick", playerId };
   const switchOk = canActFor(playerId);
   const world = planetOf(state, pk?.zone)?.name;
@@ -129,7 +129,7 @@ export function MyMovePanel({ playerId, isMine, onBack, ...ctx }: Props) {
             {zoneName(state, pk.zone, "")}
           </div>
           {needsGarrison ? (
-            <GarrisonSelect state={state} playerId={playerId} id={`roll-garrison-${playerId}`} value={garrisonId} onChange={setDefSel} />
+            <GarrisonSelect state={state} playerId={playerId} id={`roll-garrison-${playerId}`} value={garrisonId} onChange={setDefSel} disabled={!switchOk} />
           ) : null}
           <div className="row" style={{ marginTop: 8 }}>
             <button type="button" className="btn primary" disabled={!can(roll) || (needsGarrison && !garrisonId)} onClick={() => dispatch(roll)}>
