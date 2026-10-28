@@ -429,6 +429,8 @@ export type Action =
   | { type: "requisitionDeck"; playerId: string }
   | { type: "playCard"; playerId: string; index: number }
   | { type: "discardCard"; playerId: string; index: number }
+  | { type: "organiserAddCard"; playerId: string; title: string }
+  | { type: "organiserRemoveCard"; playerId: string; index: number }
   | { type: "buyReinforcements"; playerId: string }
   | { type: "buyDatasheet"; playerId: string }
   | { type: "adjustStat"; playerId: string; stat: StatKey; delta: number }

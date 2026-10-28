@@ -1,5 +1,5 @@
 // The single entry point for every state change.
-import { drawCard } from "./cards.ts";
+import { drawCard, HAND_LIMIT, poolFor } from "./cards.ts";
 import { FACTIONS } from "./data.ts";
 import { beginRound, fresh, lateArrivalBonus, regen, START_RP } from "./engine.ts";
 import { rememberArmies, setArmyList } from "./army.ts";
@@ -131,6 +131,24 @@ function run(s: CampaignState, a: Action, rng: Rng): boolean {
       const p = getPlayer(s, a.playerId);
       if (!p || !validIndex(p, a.index)) return false;
       p.hand.splice(a.index, 1);
+      return true;
+    }
+
+    // The organiser's corrections: a named card from the player's own pool, or one taken out of the hand.
+    case "organiserAddCard": {
+      const p = getPlayer(s, a.playerId);
+      const card = p && p.hand.length < HAND_LIMIT ? poolFor(p).find((c) => c.t === a.title) : undefined;
+      if (!p || !card) return false;
+      p.hand.push(card);
+      log(s, "The organiser gave ", B(p.name), " a Fate Card.");
+      return true;
+    }
+
+    case "organiserRemoveCard": {
+      const p = getPlayer(s, a.playerId);
+      if (!p || !validIndex(p, a.index)) return false;
+      p.hand.splice(a.index, 1);
+      log(s, "The organiser took a Fate Card from ", B(p.name), ".");
       return true;
     }
 

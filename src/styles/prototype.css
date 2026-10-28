@@ -431,6 +431,12 @@ textarea{width:100%;resize:vertical;min-height:96px}
 .bh-sum{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
 .bh-sum .stat{padding:6px}
 .bh-sum .stat .v{font-size:24px}
+.oc-hand{margin-top:10px}
+.oc-hand .inner .hint{margin:0}
+.oc-list{list-style:none;margin:0;padding:0}
+.oc-list li{display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:44px;border-top:1px solid var(--line)}
+.oc-list li:last-child{border-bottom:1px solid var(--line)}
+.oc-hand .btn.sm,.oc-hand select{min-height:44px}
 .bh-sum .wide{grid-column:span 2}
 .bh-list{list-style:none;margin:0;padding:0;display:grid;gap:6px}
 .bh-entry{border-left:3px solid var(--dim);background:var(--panel);padding:6px 10px;font-size:14.5px;line-height:1.4;min-width:0;overflow-wrap:anywhere}

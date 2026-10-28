@@ -8,6 +8,7 @@ import { DeleteCampaign } from "./account/DeleteCampaign.tsx";
 import { MembersPanel } from "./account/MembersPanel.tsx";
 import { WaitingNote } from "./account/WaitingNote.tsx";
 import { FactionOptions } from "./FactionOptions.tsx";
+import { OrganiserCards } from "./OrganiserCards.tsx";
 import { PlayerNameInput } from "./PlayerNameInput.tsx";
 
 const STAT_LABELS: ReadonlyArray<readonly [StatKey, string]> = [
@@ -184,6 +185,7 @@ function PlayerCard({ player: p, state, color, setup }: CardProps) {
           <i key={i} className={i < p.hand.length ? "on" : ""}></i>
         ))}
       </div>
+      {can({ type: "organiserRemoveCard", playerId: p.id, index: 0 }) ? <OrganiserCards player={p} /> : null}
     </div>
   );
 }

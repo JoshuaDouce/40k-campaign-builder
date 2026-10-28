@@ -139,13 +139,13 @@ entries without refreshing.
 - **The Hollowgate stays open once opened.** The prototype recalculates `hollOpen()` every
   time; a new world would lower the claimed % and could close it again. Add a
   `state.hollOpened` flag, set the first time `hollOpen()` is true, and check it from then on.
-- **Underdog's grit follows the written rule:** after every battle, *any* player now
-  holding the fewest provinces draws 1 Fate Card, not just the two who fought. (The
-  prototype code only checked the combatants.) It doubles as the first catch-up help.
+- **Underdog's grit is scrapped (2026-10-28):** nobody draws a Fate Card for holding the fewest
+  provinces after a battle. (The Underdog +10% points for an attacker is a separate rule and stays.)
+  The organiser can add a named card from a player's pool to their hand, or remove any card, from the Players tab.
 - **Player name** defaults to the user's display name and stays editable (warband name).
 - **Permissions:** only the owner can begin War Round 1 (start the campaign); any member can begin later War Rounds. Turns, cards and RP: that player or
   the owner. Battle results: attacker, defender or owner. Map "Held by" override, stat
-  +/- buttons, remove player, reset campaign, chart a new Reach: owner only.
+  +/- buttons, adding or removing a player's Fate Cards, remove player, reset campaign, chart a new Reach: owner only.
 - **Security is honour-system for MVP:** hidden hands and per-player permissions are
   enforced in the UI only. The log is stored as plain data, never HTML.
 - **No automated tests for now** (decided 2026-10-20). This is a throwaway app for a few

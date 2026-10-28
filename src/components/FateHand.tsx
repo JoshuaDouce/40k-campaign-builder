@@ -77,7 +77,7 @@ export function FateHand({ player: p }: { player: Player }) {
         </div>
       ) : (
         <p className="mono dim" style={{ fontSize: 12 }}>
-          No Fate Cards in hand. You draw them for Refineries, victories, Underdog's grit, Muster, Scout, or Requisition the Deck.
+          No Fate Cards in hand. You draw them for Refineries, victories, Muster, Scout, or Requisition the Deck.
         </p>
       )}
     </div>

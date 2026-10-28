@@ -495,13 +495,6 @@ export function resolvePick(s: CampaignState, playerId: string, res: "a" | "d" |
   }
   delete s.fort[v.id];
   if (rewarded) drawFor(s, rewarded, 1, "victory", rng);
-  // Underdog's grit: every player on the campaign minimum draws, not only the combatants.
-  if (s.players.length > 1) {
-    const min = Math.min(...s.players.map((p) => count(s, p)));
-    s.players.forEach((p) => {
-      if (count(s, p) === min) drawFor(s, p, 1, "Underdog's grit", rng);
-    });
-  }
   a.scout = false;
   const rec: BattleRecord = {
     round: s.round,

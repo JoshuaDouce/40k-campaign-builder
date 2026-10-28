@@ -191,7 +191,6 @@ export function afterReminders(ctx: Ctx, sc: Scenario): string[] {
     "3. Roll for the fallen: each destroyed unit rolls a D6 (Hard to Kill adds 1). On a 1 it gains a Battle Scar; Characters on a 1–2.",
     "4. Battle Scar: roll a D3 on the Battle Scars table and re-roll duplicates. Three scars and the unit is gone.",
     "5. RP and spoils: collect your Requisition and spoils as listed above.",
-    "Underdog's grit: any player now holding the fewest provinces draws 1 Fate Card, which may include you and players who didn't fight.",
   ];
   if (ctx.prov === "shrine") l.push("Shrine: both players' Marked for Glory units also get +1 XP.");
   if (ctx.result === "win" && ctx.action === "conquer" && ctx.prov === "shrine") l.push("You now hold a Shrine: +1 XP to your Marked for Glory unit in any battle fought there.");
@@ -486,7 +485,6 @@ const STEP_LIST: Step[] = [
     side: ["rp"],
     options: [finish("Finish my turn", "end")],
     notes: [
-      { cat: "quirk", text: "In War Round 1 every player holds one province, so after a first battle that changes nothing (a loss, a draw or a Raid) everyone is tied for fewest and everyone draws a Fate Card from Underdog's grit." },
       { cat: "quirk", text: "RP stops at 10 and a hand at 5. Anything gained beyond that is simply lost, so a full hand or bank wastes Muster, Scout, spoils and Recuperate." },
       { cat: "judged", text: "A Raid steals a random Fate Card, but the rules don't say what happens if your hand is already at the limit of 5." },
     ],
