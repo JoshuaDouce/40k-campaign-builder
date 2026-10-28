@@ -123,6 +123,8 @@ select,textarea,input[type=text],input[type=number]{font:inherit;background:var(
 .turn{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:16px;margin-top:12px}
 .turn h4{font-family:var(--f-display);font-size:28px;font-weight:700;margin:0;line-height:1.05}
 .battle{border:1px solid var(--brass);border-radius:3px;padding:14px;margin-top:12px;background:var(--bg)}
+/* Inside a panel the battle card is a section under a brass rule, not a box in a box. */
+.turn .battle{border:0;border-top:1px solid var(--brass);border-radius:0;background:none;padding:12px 0 0}
 .battle .size{font-family:var(--f-display);font-size:46px;line-height:1;color:var(--brass)}
 .twist{border-left:3px solid var(--blood);padding:4px 10px;margin:8px 0}
 .twist b{font-family:var(--f-display);font-size:19px;font-weight:500}
@@ -195,8 +197,15 @@ select,textarea,input[type=text],input[type=number]{font:inherit;background:var(
 .tg-chip:disabled{opacity:.4;cursor:not-allowed}
 .tg-hint{font-size:14px;margin:6px 0 0}
 .tg-why{font-size:13px;margin:8px 0 0;padding-left:18px}
-.tg-branch{margin-top:6px;padding-left:10px;border-left:2px solid var(--line)}
-.tg-via{font-size:11px;color:var(--brass);letter-spacing:.06em}
+/* Steps stack as siblings joined by a short rule; only a fork indents, and only three levels deep. */
+.tg-flow .tg-node{position:relative;margin-top:10px}
+.tg-flow .tg-node::before{content:"";position:absolute;left:18px;top:-11px;height:10px;border-left:2px solid var(--line)}
+.tg-flow > .tg-node:first-child::before{display:none}
+.tg-branch{margin-top:10px;padding-left:10px;border-left:2px solid var(--line)}
+.tg-branch .tg-branch{padding-left:6px}
+.tg-branch .tg-branch .tg-branch{padding-left:0}
+.tg-via{display:block;margin:10px 0 -4px;font-size:11px;color:var(--brass);letter-spacing:.06em}
+.tg-flow .tg-via + .tg-node::before{display:none}
 .tg-stub{font-size:14px;margin:6px 0 0}
 
 /* Roster */
@@ -327,12 +336,13 @@ textarea{width:100%;resize:vertical;min-height:96px}
 .career-sm{font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;color:var(--dim)}
 .pts em{display:block;font-style:normal;color:var(--dim);font-size:11px}
 .title-sub{font-style:italic;color:var(--brass)}
-.more{border:1px solid var(--line);border-radius:3px;background:var(--bg)}
-.more>summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:8px;padding:8px 10px;font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);min-height:44px;align-items:center}
+/* Always inside a card, so a divider row rather than another box. */
+.more{border-top:1px solid var(--line)}
+.more>summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:44px;padding:8px 0;font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
 .more>summary::-webkit-details-marker{display:none}
 .more>summary::after{content:"+";color:var(--brass);font-size:14px;line-height:1}
 .more[open]>summary::after{content:"\2212"}
-.more .inner{padding:0 10px 10px;display:grid;gap:8px}
+.more .inner{padding:0 0 10px;display:grid;gap:8px}
 .story{font-style:italic;border-left:3px solid var(--line);padding:2px 10px;font-size:15px;white-space:pre-line}
 .relics{display:grid;gap:6px}
 .relic{border:1px solid var(--brass);border-style:dashed;border-radius:3px;padding:6px 10px;display:flex;justify-content:space-between;gap:8px;align-items:flex-start;font-size:14.5px}
@@ -415,7 +425,7 @@ textarea{width:100%;resize:vertical;min-height:96px}
 .bh-confirm p{font-size:14.5px;margin:0}
 .bh-hist{margin-top:10px}
 .bh-hist>summary{text-transform:none;letter-spacing:.04em;font-size:13px;color:var(--ink)}
-.bh-rec{padding:8px 10px;min-height:44px;display:flex;align-items:center;font-family:var(--f-mono);font-size:13px;letter-spacing:.04em;color:var(--dim)}
+.bh-rec{padding:8px 0;min-height:44px;display:flex;align-items:center;font-family:var(--f-mono);font-size:13px;letter-spacing:.04em;color:var(--dim)}
 .bh-hist .inner{padding-top:2px}
 .bh-hist .inner .hint{margin:0}
 .bh-sum{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
@@ -694,6 +704,8 @@ h4.rl-h{font-family:var(--f-mono);font-weight:500;font-size:12px;letter-spacing:
 .al-foot{border-top:1px solid var(--line);padding-top:6px;margin-top:2px}
 .al-foot .hint{margin:0}
 .al-limit{font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);margin:10px 0 0}
+.battle .al-line{border:0;border-top:1px solid var(--line);border-radius:0;background:none;margin:0;padding-inline:0}
+.battle .al-line:not(:has(+ .al-line)){border-bottom:1px solid var(--line);margin-bottom:12px}
 .al-line{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;padding:8px 12px;min-height:48px}
 .al-line > .btn{margin-left:auto;min-height:44px}
 .al-line > .ttl{white-space:normal}
