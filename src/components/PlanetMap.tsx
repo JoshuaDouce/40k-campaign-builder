@@ -46,7 +46,7 @@ export function PlanetMap({ state, planet: p, provs: vs, selProv, colors, onSele
               className="terr"
               tabIndex={0}
               role="button"
-              aria-label={`${v.name}, ${VTYPES[v.type].n}, ${sizeOf(state, v)} points${o ? `, held by ${o.name}` : ""}`}
+              aria-label={`${v.name}, ${VTYPES[v.type].n}, ${sizeOf(v)} points${o ? `, held by ${o.name}` : ""}`}
               points={cellPoints(v)}
               fill={o ? (colors[o.id] ?? planetColor) : planetColor}
               fillOpacity={o ? 0.82 : 0.55}
@@ -80,7 +80,7 @@ export function PlanetMap({ state, planet: p, provs: vs, selProv, colors, onSele
         const x = CX + ct[0] * R;
         const y = CY + ct[1] * R;
         const selected = v.id === selProv;
-        const typeLine = `${v.type === "capital" ? "◆ " : ""}${VTYPES[v.type].n.toUpperCase()} ${sizeOf(state, v)}`;
+        const typeLine = `${v.type === "capital" ? "◆ " : ""}${VTYPES[v.type].n.toUpperCase()} ${sizeOf(v)}`;
         // Keep the desktop label inside the viewBox (the .pnum badge stays at the centroid).
         const halfW = Math.max(textWidth(v.name, 15, "display"), textWidth(typeLine, 11.5, "mono")) / 2 + 2;
         const lx = Math.min(Math.max(x, halfW + 4), SIZE - halfW - 4);

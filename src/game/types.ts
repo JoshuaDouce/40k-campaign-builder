@@ -57,7 +57,6 @@ export interface FactionInfo {
 }
 export interface OrbitDef {
   name: string;
-  mult: number;
   twists: number;
   r: number;
 }

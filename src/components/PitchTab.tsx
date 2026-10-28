@@ -7,9 +7,9 @@ const STEPS: ReadonlyArray<readonly [string, string]> = [
   ["Build a 750 pt roster", "Name your warband and start with one Character, your Warlord, and at least 2 Battleline. No Epic Heroes or named characters, ever. Your leaders are nobodies who might become somebody. Start with 0 Requisition Points (RP) and a Capital province on one of the outer worlds. Earn RP from your Capital and by winning battles."],
   ["The War Round", "The campaign is played in War Rounds. At the start of each, everyone collects RP from their Capital and Hive Cities. Then everyone plans in secret and plays at the same time; only players on the same province wait."],
   ["Take a campaign action", "Pick one: Conquer, Raid, Recuperate, Muster, Fortify or Scout. Conquer and Raid start a battle. The others build you up without fighting."],
-  ["Generate the battle", "The province sets the size: an outpost is small, a hive city is big. Worlds closer to the rift multiply it. Then roll a Mission Twist like \"no Toughness 10+\" or \"−1 to hit at range\". Otherwise it's a normal game of 40k."],
+  ["Generate the battle", "The province sets the size: an outpost is small, a hive city is big. Then roll a Mission Twist like \"no Toughness 10+\" or \"−1 to hit at range\", two on the inner worlds closest to the rift. Otherwise it's a normal game of 40k."],
   ["Outcome and rewards", "Units gain XP and risk scars. The winner earns 1 RP and takes the province. The round ends when every pick is done."],
-  ["Grow your empire", "Spread province by province across your world, seize a Spaceport, then jump along warp lanes to the next world. Inner worlds mean bigger games and two twists at once."],
+  ["Grow your empire", "Spread province by province across your world, seize a Spaceport, then jump along warp lanes to the next world. Inner worlds mean two twists at once."],
   ["The Hollowgate", "Once 60% of the Reach is claimed (or by War Round 8), the rift opens: a 2000 pt fight reached from the inner worlds. Whoever holds it at the end of a War Round wins the Reach."],
 ];
 

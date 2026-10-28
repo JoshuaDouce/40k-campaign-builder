@@ -38,15 +38,14 @@ export function provsOf(s: CampaignState, p: Player): Province[] {
 export function count(s: CampaignState, p: Player): number {
   return provsOf(s, p).length + (s.terr.holl === p.id ? 1 : 0);
 }
-export function orbitOf(s: CampaignState, v: Zone): OrbitDef | { name: string; mult: number; twists: number } {
-  if (v.type === "rift") return { name: "The Hollowgate", mult: 1, twists: 2 };
+export function orbitOf(s: CampaignState, v: Zone): OrbitDef | { name: string; twists: number } {
+  if (v.type === "rift") return { name: "The Hollowgate", twists: 2 };
   const pl = getPlanet(s, v.pl);
   return ORBITS[pl ? pl.orbit : "outer"];
 }
-export function sizeOf(s: CampaignState, v: Zone): number {
-  if (v.type === "rift") return 2000;
-  const pl = getPlanet(s, v.pl);
-  return r50(VTYPES[v.type].size * ORBITS[pl ? pl.orbit : "outer"].mult);
+/** A province plays at its type's points on any world; the orbit only sets the number of twists. */
+export function sizeOf(v: Zone): number {
+  return v.type === "rift" ? 2000 : VTYPES[v.type].size;
 }
 export function claimedFrac(s: CampaignState): number {
   const n = s.sys.provs.length;

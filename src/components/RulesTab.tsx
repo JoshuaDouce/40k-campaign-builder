@@ -200,18 +200,20 @@ export function RulesTab() {
 
       <h3>Battle size</h3>
       <ul className="rl">
-        <li>Province base points × the world's orbit multiplier.</li>
+        <li>The province's points, set by its type (see Province types). The world's orbit doesn't change them.</li>
+        <li>The Hollowgate is a fixed 2000 pt war.</li>
         <li>If either player's supply limit is lower, play at the lower number.</li>
         <li><b>Underdog:</b> an attacker with fewer provinces than the defender gets +10% points.</li>
         <li><b>Light Forces:</b> battles of {LIGHT_FORCES_MAX_PTS} pts or fewer. {TWISTS[LIGHT_FORCES_TWIST].e}</li>
+        <li>The world's orbit sets how many Mission Twists you roll:</li>
       </ul>
       <div className="tbl"><table>
-        <thead><tr><th>Orbit</th><th>Multiplier</th><th>Twists</th></tr></thead>
+        <thead><tr><th>Orbit</th><th>Twists</th></tr></thead>
         <tbody>
           {Object.entries(ORBITS).map(([k, o]) => (
-            <tr key={k}><td><b>{o.name}</b></td><td className="n">×{o.mult}</td><td className="n">{o.twists}</td></tr>
+            <tr key={k}><td><b>{o.name}</b></td><td className="n">{o.twists}</td></tr>
           ))}
-          <tr><td><b>The Hollowgate</b></td><td className="n">2000</td><td className="n">2</td></tr>
+          <tr><td><b>The Hollowgate</b></td><td className="n">2</td></tr>
         </tbody>
       </table></div>
       <h4 className="rl-h">Garrison battles (unclaimed provinces)</h4>
