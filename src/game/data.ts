@@ -49,9 +49,9 @@ export const SIDE_HOOK: Record<SideKey, readonly [string, string]> = {
 export const BATTLES: readonly string[] = ["Supply Drop: fight over a crashed lander in the middle of the board.","Night Raid: visibility capped at 18\" in battle round 1 and 2.","Recon: each side's first unit to reach the far table half scores 3 VP.","Ambush: the defender deploys first, the attacker can deep-strike one extra unit.","Last Stand: one side holds a ruin, the other has 5 turns to take it.","Breakthrough: score VP for every unit you move off the far edge."];
 
 export const ORBITS: Record<OrbitKey, OrbitDef> = {
-  outer:{name:"Outer worlds",mult:1,twists:1,r:146},
-  middle:{name:"Middle worlds",mult:1.5,twists:1,r:100},
-  inner:{name:"Inner worlds",mult:2,twists:2,r:56}};
+  outer:{name:"Outer worlds",twists:1,r:146},
+  middle:{name:"Middle worlds",twists:1,r:100},
+  inner:{name:"Inner worlds",twists:2,r:56}};
 export const PTYPES: Record<PlanetType, PlanetTypeDef> = {
   hive:{n:"Hive World",c:"#8a7d6e",trait:"Dense ruins: set up the table with heavy, tall terrain.",fav:"hive"},
   death:{n:"Death World",c:"#4d7744",trait:"Hostile wildlife: at the end of each turn, roll a D6 for each unit not in cover. On a 6 it suffers 1 mortal wound.",fav:"outpost"},

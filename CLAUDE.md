@@ -126,8 +126,8 @@ entries without refreshing.
   world of their own (changed 2026-10-24; the prototype's "one more world than players" rule is
   dropped). Inner and middle counts come from a base of max(3, players + 1): inner is 1 below 6,
   otherwise max(2, round(base / 4)); middle is round((base - inner) / 2). Outer = one world per
-  player (at least the base's remainder). Capitals go only on outer worlds. The orbit tiers and multipliers (outer ×1, middle ×1.5,
-  inner ×2) don't change. When a ring gets crowded, the system view scales up (larger orbit
+  player (at least the base's remainder). Capitals go only on outer worlds. The orbit tiers and twist counts (outer and middle 1,
+  inner 2) don't change. When a ring gets crowded, the system view scales up (larger orbit
   radii and SVG viewBox) instead of overlapping worlds. Player colours beyond the
   prototype's `ALT` list are generated, so every player gets a distinct colour.
 - **Joining mid-campaign is allowed and grows the Reach.** A late joiner gets a **new outer
@@ -142,6 +142,9 @@ entries without refreshing.
 - **Underdog's grit is scrapped (2026-10-28):** nobody draws a Fate Card for holding the fewest
   provinces after a battle. (The Underdog +10% points for an attacker is a separate rule and stays.)
   The organiser can add a named card from a player's pool to their hand, or remove any card, from the Players tab.
+- **No orbit size multiplier (2026-10-28):** a province plays at its type's points on every world; the orbit
+  only sets the number of twists. (The prototype's ×1.5 middle / ×2 inner is dropped; the attacker's ±20% garrison
+  choice on unclaimed provinces already varies the size.)
 - **Player name** defaults to the user's display name and stays editable (warband name).
 - **Permissions:** only the owner can begin War Round 1 (start the campaign); any member can begin later War Rounds. Turns, cards and RP: that player or
   the owner. Battle results: attacker, defender or owner. Map "Held by" override, stat

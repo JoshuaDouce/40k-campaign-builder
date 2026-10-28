@@ -49,7 +49,7 @@ const finish = (label: string, next: string, effects?: StepOption["effects"]): S
 function tierOption(tier: Tier): StepOption {
   const label = { outer: "Outer world", middle: "Middle world", inner: "Inner world", holl: "The Hollowgate" }[tier];
   const hint =
-    tier === "holl" ? "A 2000 pt war with 2 twists." : `Province size ×${ORBITS[tier].mult}, ${ORBITS[tier].twists} twist${ORBITS[tier].twists > 1 ? "s" : ""}.`;
+    tier === "holl" ? "A 2000 pt war with 2 twists." : `${ORBITS[tier].twists} twist${ORBITS[tier].twists > 1 ? "s" : ""}.`;
   return {
     id: tier,
     label,
@@ -135,7 +135,7 @@ function sizeText(env: Env): string {
   const { ctx } = env;
   const s = sizeInfo(env);
   const l: string[] = [];
-  l.push(ctx.tier === "holl" ? "The Hollowgate is a fixed 2000 pt war." : `${VTYPES[ctx.prov ?? "outpost"].n}: ${s.base} pts × ${s.mult} for the orbit.`);
+  l.push(ctx.tier === "holl" ? "The Hollowgate is a fixed 2000 pt war." : `${VTYPES[ctx.prov ?? "outpost"].n}: ${s.base} pts.`);
   ctx.twists.forEach((i) => {
     if (TWISTS[i].m !== 1) l.push(`${TWISTS[i].t}: ×${TWISTS[i].m}.`);
   });
@@ -312,11 +312,11 @@ const STEP_LIST: Step[] = [
     id: "where",
     kind: "decision",
     title: "Which world?",
-    blurb: "The orbit sets the battle size and the number of twists.",
+    blurb: "The orbit sets the number of twists.",
     text: ({ ctx }) =>
       ctx.action === "raid"
-        ? "Raid: which world is the enemy province on? The orbit multiplies the size and sets the number of twists."
-        : "Conquer: which world is the province on? The orbit multiplies the province's size and sets the number of twists.",
+        ? "Raid: which world is the enemy province on? The orbit sets the number of twists."
+        : "Conquer: which world is the province on? The orbit sets the number of twists.",
     options: (["outer", "middle", "inner", "holl"] as const).map(tierOption),
     notes: [
       { cat: "judged", text: "A Raid hits 'an enemy province you could reach', and the rules don't say whether the Hollowgate counts. This guide treats the Hollowgate as Conquer-only, so a Raid can't hit it. The rules also don't say whether an unclaimed Hollowgate is fought as a garrison." },
@@ -422,12 +422,11 @@ const STEP_LIST: Step[] = [
     id: "size",
     kind: "info",
     title: "Battle size",
-    blurb: "Province size × orbit, adjusted by twists and bonuses.",
+    blurb: "Province size, adjusted by twists and bonuses.",
     text: sizeText,
     side: ["rp"],
     options: [finish("Next: Fate Cards", "cards")],
     notes: [
-      { cat: "judged", text: "The rules multiply the province size by the orbit but never say how to round an odd result, such as 750 × 1.5." },
       { cat: "judged", text: "A Raid is 'half size' while battles run from 500 to 2000 pts. A Raid on a small province, or Vanguard Only on a 500 pt outpost, drops below 500 and the rules don't say which wins." },
       { cat: "quirk", text: "The Hollowgate is a 2000 pt war, but each player can only field their supply limit, which starts at 750. It takes many Musters, Reinforcements, Outposts and Ruins before anyone can play it at full size." },
     ],

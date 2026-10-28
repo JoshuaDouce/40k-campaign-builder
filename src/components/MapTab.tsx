@@ -106,7 +106,7 @@ function ProvinceKey({
                 {v.name}
               </span>
               <span className="mono dim t">
-                {VTYPES[v.type].n.toUpperCase()} {sizeOf(state, v)}
+                {VTYPES[v.type].n.toUpperCase()} {sizeOf(v)}
               </span>
               <span
                 className="dot"
@@ -136,11 +136,11 @@ function ProvinceInfo({ provId, planet }: { provId: string; planet: Planet }) {
       <h4>
         {v.name}{" "}
         <span className="mono" style={{ fontSize: 16, color: "var(--brass)" }}>
-          {sizeOf(state, v)} pts
+          {sizeOf(v)} pts
         </span>
       </h4>
       <p className="dim mono" style={{ fontSize: 12 }}>
-        BASE {T.size} × {orbit.mult} · {orbit.twists} TWIST{orbit.twists > 1 ? "S" : ""}
+        {orbit.twists} TWIST{orbit.twists > 1 ? "S" : ""}
         {state.fort[v.id] ? " · FORTIFIED" : ""}
       </p>
       <p>
@@ -191,7 +191,7 @@ function PlanetHead({ planet: p, onBack }: { planet: Planet; onBack(): void }) {
       <div className="row" style={{ justifyContent: "space-between" }}>
         <div>
           <div className="eyebrow">
-            {PTYPES[p.type].n} · {orbit.name} ×{orbit.mult}
+            {PTYPES[p.type].n} · {orbit.name}
           </div>
           <h4 style={{ fontFamily: "var(--f-display)", fontSize: 28, margin: "2px 0 0" }}>{p.name}</h4>
         </div>
@@ -232,7 +232,7 @@ function SystemInfo({ onOpen, colors }: { onOpen(id: string): void; colors: Reco
             </button>
             <b>{p.name}</b>{" "}
             <span className="mono dim" style={{ fontSize: 12 }}>
-              {PTYPES[p.type].n.toUpperCase()} · {orbit.name.toUpperCase()} ×{orbit.mult} · {vs.length} PROVINCES
+              {PTYPES[p.type].n.toUpperCase()} · {orbit.name.toUpperCase()} · {vs.length} PROVINCES
             </span>
             <br />
             <span style={{ fontSize: 14 }}>

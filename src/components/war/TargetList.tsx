@@ -13,9 +13,9 @@ interface Props {
 
 function meta(state: CampaignState, v: Zone): string {
   const holder = ownerOf(state, v.id)?.name ?? "Unclaimed";
-  if (v.type === "rift") return `Warp rift · ${sizeOf(state, v)} pts · ${holder}`;
+  if (v.type === "rift") return `Warp rift · ${sizeOf(v)} pts · ${holder}`;
   const world = planetOf(state, v)?.name ?? "";
-  return `${world} · ${VTYPES[v.type].n} · ${sizeOf(state, v)} pts · ${holder}`;
+  return `${world} · ${VTYPES[v.type].n} · ${sizeOf(v)} pts · ${holder}`;
 }
 
 /** Legal targets as real buttons. Tied-up provinces are disabled and say why. */

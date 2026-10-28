@@ -306,7 +306,7 @@ const isGarrisonNote = (n: string): boolean => n.startsWith("Garrison battle: ")
 /** Points, notes and the rest for a battle, worked out from the state right now. Read-only. */
 function figures(s: CampaignState, a: Player, d: Player, v: Zone, act: ActionId, garrison: boolean, twists: number[], edge: GarrisonEdge) {
   const notes: string[] = [];
-  let pts = sizeOf(s, v);
+  let pts = sizeOf(v);
   twists.forEach((i) => (pts *= TWISTS[i].m));
   if (act === "raid") {
     pts *= 0.5;
