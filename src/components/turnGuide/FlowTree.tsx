@@ -32,57 +32,66 @@ function Node({ node, showNotes, choose }: { node: TreeNode } & ViewProps) {
   const bodyId = `tg-body-${step.id}`;
   const unavailable = node.options.flatMap((o) => (o.available === true ? [] : [{ opt: o.opt, why: o.available }]));
   const selectedHint = node.options.find((o) => o.selected)?.opt.hint;
+  const branches = node.options.flatMap((o) => (o.child ? [{ opt: o.opt, child: o.child }] : []));
+  // The next steps stack below this card, never inside it. Only a real fork (several branches) indents.
+  const via = (b: (typeof branches)[number]) => <span className="tg-via mono">↳ {b.opt.crumb ?? b.opt.label}</span>;
   return (
-    <div className={`tg-node ${step.kind}`}>
-      <button className="tg-head" aria-expanded={open} aria-controls={open ? bodyId : undefined} onClick={() => setOpen(!open)}>
-        <span className="tg-kind">{step.kind === "end" ? "End" : KIND_LABEL[step.kind]}</span>
-        <span className="tg-ntitle">{step.title}</span>
-        {showNotes && <NoteBadge notes={step.notes} />}
-        <span className="tg-blurb">{step.blurb}</span>
-      </button>
-      {open && (
-        <div id={bodyId} className="tg-nbody">
-          <Paras text={stepText(step, env)} />
-          {showNotes && <DesignNotes notes={step.notes} />}
-        </div>
-      )}
-      {chips && (
-        <div className="tg-chips" role="group" aria-label={`Options: ${step.title}`}>
-          {node.options.map((o) => (
-            <button
-              key={o.opt.id}
-              className="chip tg-chip"
-              aria-pressed={o.selected}
-              disabled={o.available !== true}
-              title={o.opt.hint}
-              onClick={() => choose(step.id, o.opt.id)}
-            >
-              {o.opt.label}
-            </button>
-          ))}
-        </div>
-      )}
-      {chips && selectedHint && <p className="tg-hint dim">{selectedHint}</p>}
-      {unavailable.length > 0 && step.kind === "decision" && (
-        <ul className="tg-why dim">
-          {unavailable.map((o) => (
-            <li key={o.opt.id}>
-              <b>{o.opt.label}:</b> {o.why}
-            </li>
-          ))}
-        </ul>
-      )}
+    <>
+      <div className={`tg-node ${step.kind}`}>
+        <button className="tg-head" aria-expanded={open} aria-controls={open ? bodyId : undefined} onClick={() => setOpen(!open)}>
+          <span className="tg-kind">{step.kind === "end" ? "End" : KIND_LABEL[step.kind]}</span>
+          <span className="tg-ntitle">{step.title}</span>
+          {showNotes && <NoteBadge notes={step.notes} />}
+          <span className="tg-blurb">{step.blurb}</span>
+        </button>
+        {open && (
+          <div id={bodyId} className="tg-nbody">
+            <Paras text={stepText(step, env)} />
+            {showNotes && <DesignNotes notes={step.notes} />}
+          </div>
+        )}
+        {chips && (
+          <div className="tg-chips" role="group" aria-label={`Options: ${step.title}`}>
+            {node.options.map((o) => (
+              <button
+                key={o.opt.id}
+                className="chip tg-chip"
+                aria-pressed={o.selected}
+                disabled={o.available !== true}
+                title={o.opt.hint}
+                onClick={() => choose(step.id, o.opt.id)}
+              >
+                {o.opt.label}
+              </button>
+            ))}
+          </div>
+        )}
+        {chips && selectedHint && <p className="tg-hint dim">{selectedHint}</p>}
+        {unavailable.length > 0 && step.kind === "decision" && (
+          <ul className="tg-why dim">
+            {unavailable.map((o) => (
+              <li key={o.opt.id}>
+                <b>{o.opt.label}:</b> {o.why}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
       {node.joined && <Child child={node.joined} showNotes={showNotes} choose={choose} />}
-      {node.options.map(
-        (o) =>
-          o.child && (
-            <div key={o.opt.id} className="tg-branch">
-              <span className="tg-via mono">↳ {o.opt.crumb ?? o.opt.label}</span>
-              <Child child={o.child} showNotes={showNotes} choose={choose} />
-            </div>
-          ),
+      {branches.length === 1 ? (
+        <>
+          {via(branches[0])}
+          <Child child={branches[0].child} showNotes={showNotes} choose={choose} />
+        </>
+      ) : (
+        branches.map((b) => (
+          <div key={b.opt.id} className="tg-branch">
+            {via(b)}
+            <Child child={b.child} showNotes={showNotes} choose={choose} />
+          </div>
+        ))
       )}
-    </div>
+    </>
   );
 }
 
@@ -103,7 +112,9 @@ export function FlowTree({ sc, choices, setChoices, showNotes, onWalk }: Props) 
       </div>
       {showNotes && <NoteSummary />}
       {showAll && <p className="dim" style={{ fontSize: 14 }}>Steps that several branches share are shown once, the first time they appear.</p>}
-      <Child child={tree} showNotes={showNotes} choose={choose} />
+      <div className="tg-flow">
+        <Child child={tree} showNotes={showNotes} choose={choose} />
+      </div>
     </div>
   );
 }
