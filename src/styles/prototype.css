@@ -280,6 +280,7 @@ select,textarea,input[type=text],input[type=number]{font:inherit;background:var(
 .toast{font-family:var(--f-mono);font-size:12px;color:var(--verd);min-height:1em;margin-top:6px}
 .overlay .sheet h4{font-family:var(--f-display);font-size:28px;font-weight:700;margin:0 0 2px;line-height:1.05}
 .overlay .sheet:focus{outline:none}
+.overlay .sheet.wide{max-width:760px}
 .rhead .chip,.opt,.diebtn .btn.sm,.stepper .btn.sm{min-height:44px}
 .diebtn select,.xpprev input{min-height:44px}
 .seg .chip,.chips .chip{min-height:40px}
@@ -693,3 +694,19 @@ h4.rl-h{font-family:var(--f-mono);font-weight:500;font-size:12px;letter-spacing:
 .al-foot{border-top:1px solid var(--line);padding-top:6px;margin-top:2px}
 .al-foot .hint{margin:0}
 .al-limit{font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);margin:10px 0 0}
+.al-line{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;padding:8px 12px;min-height:48px}
+.al-line > .btn{margin-left:auto;min-height:44px}
+.al-line > .ttl{white-space:normal}
+.al-sum{margin:2px 0 8px}
+.sheet .al-body{padding:0}
+
+/* Desktop: a wider page, with cards in columns. Reading text keeps its ch caps, so lines don't stretch. */
+@media (min-width:1000px){
+  .wrap{max-width:1200px}
+  .cols2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:12px;align-items:start}
+  .cols2 > *{margin-block:6px}
+  .cols2 > p{grid-column:1 / -1}
+  .war-cols{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);column-gap:20px;align-items:start}
+  .war-cols > :only-child{grid-column:1 / -1}
+  .mapbox svg{max-height:85vh}
+}

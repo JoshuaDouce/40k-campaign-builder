@@ -276,39 +276,41 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
                 {role ?? "Unassigned"}
                 <span>{slots && row?.slotsIn ? `${units.length} · min ${row.min} · in ${row.slotsIn} slots` : slots && row ? `${row.filled} / ${row.max} slots` : `${units.length} unit${units.length === 1 ? "" : "s"}`}</span>
               </h3>
-              {units.map((u) => (
-                <UnitCard
-                  key={u.id}
-                  unit={u}
-                  editable={editable}
-                  memorial={state.round !== 0}
-                  overLimit={(slots || roleOf(u) === "Character") && fo.overLimitIds.includes(u.id)}
-                  toughOver={setupToughnessBlock(state, u.t)}
-                  toughNineExtra={nineExtraIds.includes(u.id)}
-                  epic={isEpicName(u.datasheet)}
-                  toughStage={stage && overStageCap(u.t)}
-                  warlordNotChar={warlordNotCharacter(state, player, u)}
-                  removable={!unitLocked(state, u)}
-                  onEdit={() => setDialog({ kind: "edit", unit: u })}
-                  onRollRelic={() => setDialog({ kind: "relic", unit: u })}
-                  onRemoveRelic={(relic) => {
-                    dispatch({ type: "removeRelic", playerId: pid, unitId: u.id, relic });
-                    say(`${relic} removed from ${u.name}.`);
-                  }}
-                  onRemove={(cause) => {
-                    dispatch({ type: "removeUnit", playerId: pid, unitId: u.id, cause });
-                    say(u.isCharacter && state.round !== 0 ? `${u.name} moved to the Hall of Heroes.` : "Unit removed.");
-                  }}
-                  onOrganiserDelete={
-                    viewer.isOwner
-                      ? () => {
-                          dispatch({ type: "organiserRemoveUnit", playerId: pid, unitId: u.id });
-                          say(`${u.name} deleted.`);
-                        }
-                      : undefined
-                  }
-                />
-              ))}
+              <div className="cols2">
+                {units.map((u) => (
+                  <UnitCard
+                    key={u.id}
+                    unit={u}
+                    editable={editable}
+                    memorial={state.round !== 0}
+                    overLimit={(slots || roleOf(u) === "Character") && fo.overLimitIds.includes(u.id)}
+                    toughOver={setupToughnessBlock(state, u.t)}
+                    toughNineExtra={nineExtraIds.includes(u.id)}
+                    epic={isEpicName(u.datasheet)}
+                    toughStage={stage && overStageCap(u.t)}
+                    warlordNotChar={warlordNotCharacter(state, player, u)}
+                    removable={!unitLocked(state, u)}
+                    onEdit={() => setDialog({ kind: "edit", unit: u })}
+                    onRollRelic={() => setDialog({ kind: "relic", unit: u })}
+                    onRemoveRelic={(relic) => {
+                      dispatch({ type: "removeRelic", playerId: pid, unitId: u.id, relic });
+                      say(`${relic} removed from ${u.name}.`);
+                    }}
+                    onRemove={(cause) => {
+                      dispatch({ type: "removeUnit", playerId: pid, unitId: u.id, cause });
+                      say(u.isCharacter && state.round !== 0 ? `${u.name} moved to the Hall of Heroes.` : "Unit removed.");
+                    }}
+                    onOrganiserDelete={
+                      viewer.isOwner
+                        ? () => {
+                            dispatch({ type: "organiserRemoveUnit", playerId: pid, unitId: u.id });
+                            say(`${u.name} deleted.`);
+                          }
+                        : undefined
+                    }
+                  />
+                ))}
+              </div>
             </section>
           );
         })

@@ -127,7 +127,7 @@ export function FactionsTab() {
         ))}
       </div>
       <h3>Rivalries</h3>
-      <div>
+      <div className="cols2">
         {pairs.length ? (
           pairs.map(({ a, b, k }, i) => {
             const [lab, txt] = SIDE_HOOK[k];
