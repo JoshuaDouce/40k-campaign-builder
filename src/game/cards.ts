@@ -32,5 +32,5 @@ export function drawFor(s: CampaignState, p: Player, n: number, why: string, rng
   let got = 0;
   for (let i = 0; i < n; i++) if (drawCard(p, rng)) got++;
   if (got) log(s, B(p.name), ` drew ${got > 1 ? got + " Fate Cards" : "a Fate Card"} (${why}).`);
-  else if (why !== "Underdog's grit") log(s, B(p.name), `'s hand is full, no card drawn (${why}).`);
+  else log(s, B(p.name), `'s hand is full, no card drawn (${why}).`);
 }

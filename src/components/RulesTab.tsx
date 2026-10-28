@@ -262,7 +262,6 @@ export function RulesTab() {
         <li><div><b>Roll for the fallen</b>Each destroyed unit rolls a D6 (Hard to Kill adds 1). On a 1 it gains a Battle Scar, Characters on a 1–2. The Warlord never rolls.</div></li>
         <li><div><b>Requisition</b>+1 RP to the winner. Nothing for a loss or a draw. Bank up to 10.</div></li>
         <li><div><b>Spoils</b>The winner draws 1 Fate Card. A Conquer winner takes the province. A Raid winner steals 1 RP and a random Fate Card.</div></li>
-        <li><div><b>Underdog's grit</b>Any player now holding the fewest provinces draws 1 Fate Card.</div></li>
       </ol>
 
       <h3>Ranks</h3>

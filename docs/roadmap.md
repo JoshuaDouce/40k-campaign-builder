@@ -54,7 +54,6 @@ password. On first sign-in you set a display name.
 - Rule, card and twist wording and the look match the prototype.
 - A full War Round can be played: begin, draw, turn order, action, generate battle, result,
   rewards + map update, next player, round end.
-- Underdog's grit: after a battle, *any* player now holding the fewest provinces draws 1 Fate Card.
 - Campaign log entries are plain text, newest first. "Copy pitch for group chat" works on a phone.
 - Players tab shows RP, supply, provinces and stats. Only the owner sees +/- buttons.
 - Factions selection and War Room province/defender dropdowns are local to the viewer until
