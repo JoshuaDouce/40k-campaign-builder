@@ -49,7 +49,7 @@ export function PlayersTab({ colors, onNavigate, onPlay, onDeleted }: TabProps) 
       {state.round >= 1 && (
         <p className="dim">The campaign is under way, so new players get a catch-up bonus: extra supply and a Fate Card.</p>
       )}
-      <div>
+      <div className="cols2">
         {state.players.length ? (
           state.players.map((p) => (
             <PlayerCard key={p.id} player={p} state={state} color={colors[p.id]} setup={setup} />

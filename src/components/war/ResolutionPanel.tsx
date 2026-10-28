@@ -9,7 +9,7 @@ export function ResolutionPanel(ctx: WarCtx) {
   const { state, viewer } = ctx;
   const { mine, mineInRound, actingId, setForId } = useActingPlayer(state, viewer);
   return (
-    <>
+    <div className="war-cols">
       {actingId ? (
         <MyMovePanel
           key={`${state.round}-${actingId}`}
@@ -26,7 +26,9 @@ export function ResolutionPanel(ctx: WarCtx) {
           <DefenderLines {...ctx} playerId={mine.id} isYou name={mine.name} />
         </div>
       ) : null}
-      <OrdersList {...ctx} myId={mine?.id} actingId={actingId} onActFor={setForId} />
-    </>
+      <div>
+        <OrdersList {...ctx} myId={mine?.id} actingId={actingId} onActFor={setForId} />
+      </div>
+    </div>
   );
 }

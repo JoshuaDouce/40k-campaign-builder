@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ARMY_BATTLELINE_MIN, armyLimit, armyLock, armyOf, armyPoints, effectivePoints, fieldedPoints, getPlayer, isBattleline, roleOf, rosterOf } from "../../game/index.ts";
 import type { Action, ArmyList as List, ArmyLock, CampaignState, LiveBattle, Unit } from "../../game/index.ts";
+import { Overlay } from "../roster/Overlay.tsx";
 
 interface Props {
   state: CampaignState;
@@ -45,13 +46,19 @@ function UnitName({ unit }: { unit: Unit }) {
   );
 }
 
-/** One side's army for a rolled battle: tick roster units in or out and field them smaller. Read-only for others. */
+/** One side's army for a rolled battle: a summary line that opens the list in its own sheet. */
 export function ArmyList({ state, dispatch, can, attackerId, side, battle }: Props) {
   const roster = rosterOf(state, side);
   const list = armyOf(state, battle, side);
   const save = (next: List): Action => ({ type: "setArmyList", playerId: attackerId, side, list: next });
   const editable = can(save(list));
   const [editing, setEditing] = useState<string | null>(null);
+  const [open, setOpen] = useState(false);
+  // Blur first so a fielded value still being typed saves (it saves on blur) before the sheet unmounts.
+  const close = () => {
+    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+    setOpen(false);
+  };
 
   const name = getPlayer(state, side)?.name ?? "Unknown";
   const total = armyPoints(list, roster);
@@ -77,100 +84,113 @@ export function ArmyList({ state, dispatch, can, attackerId, side, battle }: Pro
   };
 
   const shown = editable ? roster : roster.filter((u) => list.units.includes(u.id));
+  const count = (
+    <span className={over > 0 ? "state bad" : "state"}>
+      {n} unit{n === 1 ? "" : "s"} · {fmt(total)} / {fmt(limit)} pts
+    </span>
+  );
   return (
-    <details className="fo" open={editable}>
-      <summary>
-        <span className="ttl">{name} · Army list</span>
-        <span className={over > 0 ? "state bad" : "state"}>
-          {n} unit{n === 1 ? "" : "s"} · {fmt(total)} / {fmt(limit)} pts
-        </span>
-        <span className="chev" aria-hidden="true"></span>
-      </summary>
-      <div className="al-body">
-        {!editable && <div className="ro">READ-ONLY: only {name} (or the campaign owner) can change this list.</div>}
-        {limitNote && <div className="al-limit">{limitNote}</div>}
-        {editable && hasUnits && battleline < ARMY_BATTLELINE_MIN && (
-          <div className="al-note">
-            {battleline === 0
-              ? `No Battleline on the roster. Add ${ARMY_BATTLELINE_MIN} on My Warband.`
-              : "Only 1 Battleline on the roster, so it stays fielded. Add another on My Warband to choose."}
-          </div>
-        )}
-        {editable && hasUnits && !roster.some((u) => u.isWarlord) && <div className="al-note">No Warlord on the roster.</div>}
-        {over > 0 && (
-          <div className="overline" role="alert">
-            Over by {fmt(over)} pts. Agree it with your opponent or trim the list.
-          </div>
-        )}
-        {!hasUnits && (
-          <div className="empty" style={{ margin: "10px 0" }}>
-            <b>No units</b>
-            <p className="dim" style={{ fontSize: 14.5 }}>
-              No units on your roster. Add them on My Warband.
-            </p>
-          </div>
-        )}
-        {shown.map((u) => {
-          if (!editable) {
-            return (
-              <div className="al-row ro-row" key={u.id}>
-                <UnitName unit={u} />
-                <div className="al-pts">
-                  <Points list={list} unit={u} />
-                </div>
+    <div className="fo al-line">
+      <span className="ttl">{name} · Army list</span>
+      {count}
+      <button type="button" className={editable ? "btn sm primary" : "btn sm"} onClick={() => setOpen(true)}>
+        {editable ? "Choose force" : "View"}
+      </button>
+      {open && (
+        <Overlay title={`${name} · Army list`} wide onClose={close}>
+          <div className="al-sum">{count}</div>
+          <div className="al-body">
+            {!editable && <div className="ro">READ-ONLY: only {name} (or the campaign owner) can change this list.</div>}
+            {limitNote && <div className="al-limit">{limitNote}</div>}
+            {editable && hasUnits && battleline < ARMY_BATTLELINE_MIN && (
+              <div className="al-note">
+                {battleline === 0
+                  ? `No Battleline on the roster. Add ${ARMY_BATTLELINE_MIN} on My Warband.`
+                  : "Only 1 Battleline on the roster, so it stays fielded. Add another on My Warband to choose."}
               </div>
-            );
-          }
-          const on = list.units.includes(u.id);
-          const lock = armyLock(list, roster, u);
-          const full = effectivePoints(u);
-          const reveal = on && (editing === u.id || list.field?.[u.id] !== undefined);
-          return (
-            <div className={`al-row${on ? "" : " off"}${lock ? " locked" : ""}`} key={u.id}>
-              <button type="button" className="chip al-tick" aria-pressed={on} aria-label={u.name + (lock ? " (locked)" : "")} disabled={!!lock} onClick={() => toggle(u)}>
-                {on ? "In" : "Out"}
-              </button>
-              <UnitName unit={u} />
-              <div className="al-pts">
-                {on ? (
-                  <button type="button" className="al-edit" aria-label={`Edit fielded points for ${u.name}`} onClick={() => setEditing(editing === u.id ? null : u.id)}>
-                    <Points list={list} unit={u} />
+            )}
+            {editable && hasUnits && !roster.some((u) => u.isWarlord) && <div className="al-note">No Warlord on the roster.</div>}
+            {over > 0 && (
+              <div className="overline" role="alert">
+                Over by {fmt(over)} pts. Agree it with your opponent or trim the list.
+              </div>
+            )}
+            {!hasUnits && (
+              <div className="empty" style={{ margin: "10px 0" }}>
+                <b>No units</b>
+                <p className="dim" style={{ fontSize: 14.5 }}>
+                  No units on your roster. Add them on My Warband.
+                </p>
+              </div>
+            )}
+            {shown.map((u) => {
+              if (!editable) {
+                return (
+                  <div className="al-row ro-row" key={u.id}>
+                    <UnitName unit={u} />
+                    <div className="al-pts">
+                      <Points list={list} unit={u} />
+                    </div>
+                  </div>
+                );
+              }
+              const on = list.units.includes(u.id);
+              const lock = armyLock(list, roster, u);
+              const full = effectivePoints(u);
+              const reveal = on && (editing === u.id || list.field?.[u.id] !== undefined);
+              return (
+                <div className={`al-row${on ? "" : " off"}${lock ? " locked" : ""}`} key={u.id}>
+                  <button type="button" className="chip al-tick" aria-pressed={on} aria-label={u.name + (lock ? " (locked)" : "")} disabled={!!lock} onClick={() => toggle(u)}>
+                    {on ? "In" : "Out"}
                   </button>
-                ) : (
-                  <Points list={list} unit={u} />
-                )}
-              </div>
-              {lock && <div className="al-lock">{LOCK_TEXT[lock]}</div>}
-              {reveal && (
-                <div className="al-more">
-                  <label>
-                    Fielded at
-                    <input
-                      key={list.field?.[u.id] ?? "full"}
-                      type="number"
-                      inputMode="numeric"
-                      min={1}
-                      max={full}
-                      step={5}
-                      placeholder={String(full)}
-                      aria-label={`Fielded points for ${u.name}`}
-                      defaultValue={list.field?.[u.id] ?? ""}
-                      onBlur={(e) => (e.target.value = setField(u, e.target.value))}
-                      onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
-                    />
-                    pts
-                  </label>
+                  <UnitName unit={u} />
+                  <div className="al-pts">
+                    {on ? (
+                      <button type="button" className="al-edit" aria-label={`Edit fielded points for ${u.name}`} onClick={() => setEditing(editing === u.id ? null : u.id)}>
+                        <Points list={list} unit={u} />
+                      </button>
+                    ) : (
+                      <Points list={list} unit={u} />
+                    )}
+                  </div>
+                  {lock && <div className="al-lock">{LOCK_TEXT[lock]}</div>}
+                  {reveal && (
+                    <div className="al-more">
+                      <label>
+                        Fielded at
+                        <input
+                          key={list.field?.[u.id] ?? "full"}
+                          type="number"
+                          inputMode="numeric"
+                          min={1}
+                          max={full}
+                          step={5}
+                          placeholder={String(full)}
+                          aria-label={`Fielded points for ${u.name}`}
+                          defaultValue={list.field?.[u.id] ?? ""}
+                          onBlur={(e) => (e.target.value = setField(u, e.target.value))}
+                          onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+                        />
+                        pts
+                      </label>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          );
-        })}
-        {editable && hasUnits && (
-          <div className="al-foot">
-            <p className="hint">Field a unit smaller, never split it. Leave blank for full points.</p>
+              );
+            })}
+            {editable && hasUnits && (
+              <div className="al-foot">
+                <p className="hint">Field a unit smaller, never split it. Leave blank for full points. Changes save as you go.</p>
+              </div>
+            )}
           </div>
-        )}
-      </div>
-    </details>
+          <div className="row sub">
+            <button type="button" className="btn primary" onClick={close}>
+              Done
+            </button>
+          </div>
+        </Overlay>
+      )}
+    </div>
   );
 }

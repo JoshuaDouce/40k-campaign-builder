@@ -3,6 +3,8 @@ import type { ReactNode } from "react";
 
 interface Props {
   title: string;
+  /** A wider sheet on desktop, for lists with names and figures side by side. */
+  wide?: boolean;
   onClose(): void;
   children: ReactNode;
 }
@@ -22,7 +24,7 @@ export function SheetFooter({ label, disabled, danger, onGo, onClose }: { label:
 }
 
 /** A modal sheet: bottom sheet on a phone, centred on wider screens. Escape or a tap on the backdrop closes it. */
-export function Overlay({ title, onClose, children }: Props) {
+export function Overlay({ title, wide, onClose, children }: Props) {
   const sheet = useRef<HTMLDivElement>(null);
   const closeRef = useRef(onClose);
   const titleId = useId();
@@ -46,7 +48,7 @@ export function Overlay({ title, onClose, children }: Props) {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="sheet" role="dialog" aria-modal="true" aria-labelledby={titleId} tabIndex={-1} ref={sheet}>
+      <div className={wide ? "sheet wide" : "sheet"} role="dialog" aria-modal="true" aria-labelledby={titleId} tabIndex={-1} ref={sheet}>
         <h4 id={titleId}>{title}</h4>
         {children}
       </div>
