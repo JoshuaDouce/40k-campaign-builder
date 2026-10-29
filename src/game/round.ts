@@ -19,7 +19,6 @@ import {
   r5,
   r50,
   sizeOf,
-  supplyOf,
   zoneName,
 } from "./selectors.ts";
 import type {
@@ -312,16 +311,8 @@ function figures(s: CampaignState, a: Player, d: Player, v: Zone, act: ActionId,
     pts *= 0.5;
     notes.push("Raid: half size.");
   }
+  // No supply cap: a player below the battle size fields what their roster allows.
   pts = Math.max(500, r50(pts));
-  const cap = garrison ? supplyOf(s, a) : Math.min(supplyOf(s, a), supplyOf(s, d));
-  if (cap < pts) {
-    notes.push(
-      garrison
-        ? `Capped at the attacker's supply limit (${a.name}).`
-        : `Capped at the lower supply limit (${supplyOf(s, a) <= supplyOf(s, d) ? a.name : d.name}).`,
-    );
-    pts = Math.floor(cap / 50) * 50;
-  }
   const underdog = !garrison && count(s, a) < count(s, d);
   const { note, ...gar } = garrison ? garrisonFigures(a, d, pts, edge) : { note: "", attackerPts: underdog ? r5(pts * 1.1) : pts };
   if (garrison) notes.push(note);

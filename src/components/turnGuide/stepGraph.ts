@@ -141,12 +141,11 @@ function sizeText(env: Env): string {
   });
   if (s.raid) l.push("Raid: half size.");
   l.push(`Battle size: ${s.size} pts (this guide rounds to the nearest 50 pts and keeps battles to a 500 pt minimum).`);
-  if (s.capped) l.push(`Your supply limit is ${s.supply}, below that, so you play at ${s.playable} pts. If the defender's limit is lower still, play at the lower number.`);
-  else l.push(`Your supply limit is ${s.supply}. If either player's supply limit is below the battle size, play at the lower number.`);
-  if (s.garrison) l.push(`Garrison fight: choose +20% points for you (${s.yours} pts against ${s.playable}) or -20% points for the garrison (${s.playable} pts against ${s.garrisonLess}), rounded to the nearest 5. Underdog doesn't apply, and only your supply limit caps the size.`);
+  l.push("Supply limits don't change the battle size. If your roster is smaller, you field what you have.");
+  if (s.garrison) l.push(`Garrison fight: choose +20% points for you (${s.yours} pts against ${s.size}) or -20% points for the garrison (${s.size} pts against ${s.garrisonLess}), rounded to the nearest 5. Underdog doesn't apply.`);
   else if (ctx.underdog) l.push(`You are the Underdog: +10% points, which this guide works out as ${s.yours} pts (rounded to the nearest 5).`);
   if (s.light)
-    l.push(`${s.playable} pts is ${LIGHT_FORCES_MAX_PTS} or fewer, so Light Forces applies automatically: ${TWISTS[LIGHT_FORCES_TWIST].e}${s.garrison ? " (It goes by the base size, before the 20%.)" : ""}`);
+    l.push(`${s.size} pts is ${LIGHT_FORCES_MAX_PTS} or fewer, so Light Forces applies automatically: ${TWISTS[LIGHT_FORCES_TWIST].e}${s.garrison ? " (It goes by the base size, before the 20%.)" : ""}`);
   return l.join("\n");
 }
 
@@ -164,7 +163,7 @@ function battleText(env: Env): string {
   const s = sizeInfo(env);
   const l: string[] = [];
   const kind = ctx.action === "raid" ? "Raid" : s.garrison ? "Garrison battle" : "Battle";
-  l.push(`${kind}: ${s.playable} pts${s.garrison ? ` for the garrison and ${s.yours} pts for you, or ${s.garrisonLess} pts for the garrison and ${s.playable} pts for you` : ctx.underdog ? ` (${s.yours} pts for you as the Underdog)` : ""}.`);
+  l.push(`${kind}: ${s.size} pts${s.garrison ? ` for the garrison and ${s.yours} pts for you, or ${s.garrisonLess} pts for the garrison and ${s.size} pts for you` : ctx.underdog ? ` (${s.yours} pts for you as the Underdog)` : ""}.`);
   ctx.twists.forEach((i) => l.push(`Twist (D12 ${i + 1}), ${TWISTS[i].t}: ${TWISTS[i].e}`));
   if (s.light) l.push(`Light Forces: ${TWISTS[LIGHT_FORCES_TWIST].e}`);
   l.push("Every battle on a world also uses that world's trait, on top of any twists.");
@@ -365,7 +364,7 @@ const STEP_LIST: Step[] = [
     kind: "decision",
     title: "Find a garrison player",
     blurb: "Another player plays the defence, as a favour.",
-    text: "Unclaimed ground has a garrison, and another player (never you) must play it. It's a favour: they gain no RP, Fate Cards, wins or supply. You must fight it, with +20% points for you or -20% points for the garrison (your choice), and only your supply limit caps the size.",
+    text: "Unclaimed ground has a garrison, and another player (never you) must play it. It's a favour: they gain no RP, Fate Cards, wins or supply. You must fight it, with +20% points for you or -20% points for the garrison (your choice).",
     options: [
       { id: "volunteer", label: "Someone agrees to play it", crumb: "Garrison: a volunteer", next: "twist1" },
       { id: "nobody", label: "Nobody is free to play it", crumb: "No garrison player", next: "stalled" },
@@ -428,7 +427,7 @@ const STEP_LIST: Step[] = [
     options: [finish("Next: Fate Cards", "cards")],
     notes: [
       { cat: "judged", text: "A Raid is 'half size' while battles run from 500 to 2000 pts. A Raid on a small province, or Vanguard Only on a 500 pt outpost, drops below 500 and the rules don't say which wins." },
-      { cat: "quirk", text: "The Hollowgate is a 2000 pt war, but each player can only field their supply limit, which starts at 750. It takes many Musters, Reinforcements, Outposts and Ruins before anyone can play it at full size." },
+      { cat: "quirk", text: "The Hollowgate is a 2000 pt war, but rosters are capped by supply, which starts at 750. Until a player has grown it through many Musters, Reinforcements, Outposts and Ruins, they field far fewer points than the battle size." },
     ],
   },
   {
