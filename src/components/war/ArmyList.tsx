@@ -2,7 +2,7 @@ import { useState } from "react";
 import { ARMY_BATTLELINE_MIN, armyLimit, armyLock, armyOf, armyPoints, effectivePoints, fieldedPoints, getPlayer, isBattleline, roleOf, rosterOf } from "../../game/index.ts";
 import type { Action, ArmyList as List, ArmyLock, CampaignState, LiveBattle, Unit } from "../../game/index.ts";
 import { Overlay } from "../roster/Overlay.tsx";
-import { YellowscribeExport } from "../roster/YellowscribeExport.tsx";
+import { YellowscribeButton } from "./YellowscribeButton.tsx";
 
 interface Props {
   state: CampaignState;
@@ -55,7 +55,6 @@ export function ArmyList({ state, dispatch, can, attackerId, side, battle }: Pro
   const editable = can(save(list));
   const [editing, setEditing] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
-  const [exporting, setExporting] = useState(false);
   // Blur first so a fielded value still being typed saves (it saves on blur) before the sheet unmounts.
   const close = () => {
     if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
@@ -98,12 +97,7 @@ export function ArmyList({ state, dispatch, can, attackerId, side, battle }: Pro
       <button type="button" className={editable ? "btn sm primary" : "btn sm"} onClick={() => setOpen(true)}>
         {editable ? "Choose force" : "View"}
       </button>
-      {editable && (
-        <button type="button" className="btn sm" onClick={() => setExporting(true)}>
-          Export to TTS
-        </button>
-      )}
-      {exporting && <YellowscribeExport candidates={roster.filter((u) => list.units.includes(u.id))} absentLabel="Fielded but not in this army" onClose={() => setExporting(false)} />}
+      {editable && <YellowscribeButton candidates={roster.filter((u) => list.units.includes(u.id))} />}
       {open && (
         <Overlay title={`${name} · Army list`} wide onClose={close}>
           <div className="al-sum">{count}</div>

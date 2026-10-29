@@ -81,6 +81,8 @@ td.n{font-family:var(--f-mono);color:var(--brass);white-space:nowrap;font-varian
 .chip{display:inline-flex;align-items:center;gap:6px;font-family:var(--f-mono);font-size:12px;padding:4px 9px;border:1px solid var(--line);border-radius:20px;color:var(--dim);background:none;cursor:pointer}
 .chip[aria-pressed="true"]{border-color:var(--brass);color:var(--ink);background:var(--panel2)}
 .chip:disabled{opacity:.4;cursor:not-allowed}
+.chip[aria-pressed="true"]:disabled{opacity:.8;cursor:default}
+.chip[aria-pressed="true"]:disabled::after{content:"\2713";font-size:10px}
 .dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex:none}
 select,textarea,input[type=text],input[type=number]{font:inherit;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:2px;padding:7px 9px;max-width:100%}
 /* cards */
@@ -260,6 +262,8 @@ select,textarea,input[type=text],input[type=number]{font:inherit;background:var(
 .chips .chip{font-size:12.5px}
 .sub{border-top:1px solid var(--line);padding-top:10px;margin-top:12px}
 .tally{border-top:1px solid var(--line);margin-top:12px;padding-top:10px}
+.ys-btn{display:block;width:100%;min-height:48px;margin:10px 0}
+.al-line .ys-btn{display:inline-block;width:auto;margin:0}
 .pbunit{border:1px solid var(--line);background:var(--bg);border-radius:3px;padding:12px;margin:8px 0}
 .pbunit.off{opacity:.6}
 .pbunit .nm{font-family:var(--f-display);font-size:20px;line-height:1.1}
@@ -279,6 +283,14 @@ select,textarea,input[type=text],input[type=number]{font:inherit;background:var(
 .overlay .sheet{background:var(--panel);border:1px solid var(--brass);border-radius:6px 6px 0 0;width:100%;max-width:560px;max-height:92vh;overflow:auto;padding:16px}
 @media (min-width:600px){.overlay{align-items:center;padding:16px}.overlay .sheet{border-radius:4px}}
 .picklist{display:grid;gap:6px;margin:8px 0}
+.tp-confirm{display:grid;gap:6px;border:1px solid var(--brass);border-radius:3px;padding:10px;margin-top:8px}
+.tp-confirm p{margin:0}
+.fxlist{list-style:none;margin:8px 0 0;padding:0 0 0 10px;display:grid;gap:4px;font-size:14px;border-left:2px solid var(--line)}
+.fxlist.hon{border-color:var(--verd)}
+.fxlist.scar{border-color:var(--blood)}
+.fxlist.train{border-color:var(--brass)}
+.badge.tap{cursor:pointer}
+.badge.tap[aria-expanded="true"]{background:var(--panel)}
 .opt{display:flex;gap:10px;align-items:flex-start;text-align:left;width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:3px;padding:10px 12px;color:var(--ink);font:inherit;cursor:pointer}
 .opt[aria-pressed="true"]{border-color:var(--brass);background:var(--bg)}
 .opt:disabled{opacity:.4;cursor:not-allowed}
@@ -530,11 +542,13 @@ input.ac-bad{border-color:var(--blood)}
 .ac-members h3{margin:0}
 .ac-add{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end}
 .ac-mlist{list-style:none;margin:0;padding:0;display:grid}
-.ac-mlist li{display:flex;align-items:center;justify-content:space-between;gap:8px;border-top:1px solid var(--line);padding-block:6px}
+.ac-mlist li{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;border-top:1px solid var(--line);padding-block:6px}
 .ac-mlist .who{min-width:0;display:grid}
 .ac-mlist .em{overflow-wrap:anywhere}
 .ac-mlist .st{font-family:var(--f-mono);font-size:12px;color:var(--dim)}
 .ac-mlist .st.wait{color:var(--brass)}
+.ac-ljoin{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-left:auto}
+.ac-ljoin select{min-height:36px;max-width:100%}
 .ac-wait{border-left:3px solid var(--brass);padding:8px 12px;background:var(--panel);margin:12px 0}
 .ac-wait b{font-family:var(--f-display);font-weight:500;font-size:19px;overflow-wrap:anywhere}
 .ac-danger{border:1px solid var(--blood);border-radius:4px;padding:12px;display:grid;justify-items:start;gap:8px;margin-top:22px}
@@ -768,3 +782,29 @@ h4.rl-h{font-family:var(--f-mono);font-weight:500;font-size:12px;letter-spacing:
 .ys-result{text-align:center;padding:10px 0}
 .ys-big{font-family:var(--f-mono);font-size:clamp(40px,14vw,60px);letter-spacing:.2em;color:var(--brass);line-height:1.1;margin:10px 0;user-select:all;padding-left:.2em}
 .ys-sheet .btn,.ys-sheet select{min-height:44px}
+/* Two-line dropdown: name, then what it does. */
+.esel{margin-top:10px}
+.esel-lbl{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-bottom:4px}
+.esel-btn{width:100%;display:flex;align-items:center;gap:10px;text-align:left;font:inherit;color:var(--ink);background:var(--panel2);border:1px solid var(--line);border-radius:3px;padding:8px 12px;min-height:48px;cursor:pointer}
+.esel-btn[aria-expanded="true"]{border-color:var(--brass);border-radius:3px 3px 0 0}
+.esel-btn:disabled{opacity:.5;cursor:not-allowed}
+.esel-v{flex:1;min-width:0;display:grid}
+.esel-v small,.esel-opt small{color:var(--dim);font-size:13.5px;line-height:1.35}
+.esel-caret{color:var(--brass);font-size:14px}
+.esel-list{list-style:none;margin:0;padding:0;border:1px solid var(--brass);border-top:0;border-radius:0 0 3px 3px;background:var(--bg);max-height:340px;overflow-y:auto;overscroll-behavior:contain}
+.esel-list ul{list-style:none;margin:0;padding:0}
+.esel-group{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--brass);padding:8px 12px 4px;position:sticky;top:0;background:var(--bg)}
+.esel-opt{display:grid;gap:1px;padding:9px 12px;border-top:1px solid var(--line);cursor:pointer}
+.esel-opt.on{background:var(--panel2);box-shadow:inset 3px 0 0 var(--brass)}
+.esel-opt[aria-selected="true"] b::after{content:" \2713";color:var(--brass)}
+.esel-opt.off{cursor:default;opacity:.5}
+.esel-opt em{font-style:normal;font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim)}
+/* What a unit holds, one row each, with an optional Remove. */
+.held{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:6px}
+.held li{display:flex;align-items:flex-start;gap:10px;border:1px solid var(--line);border-left-width:3px;border-radius:3px;padding:8px 10px;background:var(--panel2)}
+.held.hon li{border-left-color:var(--verd)}
+.held.scar li{border-left-color:var(--blood)}
+.held.train li{border-left-color:var(--brass)}
+.held .txt{flex:1;min-width:0;display:grid}
+.held small{color:var(--dim);font-size:13.5px;line-height:1.35}
+.held .lock{font-family:var(--f-mono);font-size:11px;color:var(--dim);white-space:nowrap;padding-top:3px}

@@ -6,11 +6,12 @@ A player builds their list elsewhere (NewRecruit etc.), uploads it at yellowscri
 app. The app fetches the army, adds the campaign's effects, and gives back a new code for the Yellowscribe mod in TTS.
 Nothing in the campaign changes: no dispatch, no log entry, no version bump.
 
-- **Where:** "Export to TTS" on the roster tab (matches against the whole roster) and on each side's battle army list
+- **Where:** "Import/Export YellowScribe · Add buffs/debuffs", a full-width primary button at the top of My Warband (matches against the
+  whole roster), and on each side in the War Room, both on the army list and in the tally once the battle has started
   (matches against the units fielded in that list). That player or the owner. The owner picks the player in the roster
   sheet.
-- **Matching:** each imported unit is matched to a roster unit by datasheet name (case, accents, spaces and punctuation
-  ignored), duplicates in order, never the same roster unit twice. The review lets you change a match or pick "No
+- **Matching:** each imported unit is matched to a roster unit by its datasheet, the real unit name, never the
+  player's custom name (case, accents, spaces and punctuation ignored; a unit with no datasheet is matched by hand), duplicates in order, never the same roster unit twice. The review lets you change a match or pick "No
   match"; unmatched units go through unchanged.
 - **Effects:** Battle Honours, Scars, relics and Battle Training become named abilities with their rule text, and can be
   unticked. The warlord trait and enhancement are always added. A title renames the unit "Name, the Title".

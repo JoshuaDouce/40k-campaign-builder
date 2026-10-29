@@ -7,7 +7,9 @@ import { useCampaign } from "../store/useCampaign.ts";
 export function OrganiserCards({ player: p }: { player: Player }) {
   const { dispatch } = useCampaign();
   // Each title once: generic cards first, then the player's faction cards.
-  const titles = [...new Set(poolFor(p).map((c) => c.t))];
+  const pool = poolFor(p);
+  const titles = [...new Set(pool.map((c) => c.t))];
+  const effectOf = (t: string) => pool.find((c) => c.t === t)?.e;
   const [pick, setPick] = useState(titles[0] ?? "");
   // A faction change swaps the pool; fall back to its first card.
   const chosen = titles.includes(pick) ? pick : (titles[0] ?? "");
@@ -40,7 +42,7 @@ export function OrganiserCards({ player: p }: { player: Player }) {
           <select aria-label={`Card to add to ${p.name}'s hand`} value={chosen} disabled={full} onChange={(e) => setPick(e.target.value)}>
             {titles.map((t) => (
               <option key={t} value={t}>
-                {t}
+                {t} — {effectOf(t)}
               </option>
             ))}
           </select>

@@ -6,12 +6,12 @@ interface Props {
   value: number | undefined;
   label: string;
   onChange(v: number | undefined): void;
-  /** Offer a box to enter the result rolled at the table (off where a pick list already covers it). */
+  /** Offer a box to enter the result rolled at the table. Off by default: honours, scars, relics and training have a pick list. */
   enter?: boolean;
 }
 
 /** Roll a die with the app's RNG, or enter the result rolled at the table. */
-export function DieControl({ faces, value, label, onChange, enter = true }: Props) {
+export function DieControl({ faces, value, label, onChange, enter = false }: Props) {
   const rng = useRng();
   return (
     <span className="diebtn">
@@ -28,7 +28,7 @@ export function DieControl({ faces, value, label, onChange, enter = true }: Prop
           ))}
         </select>
       )}
-      <span className="die">{value ?? "·"}</span>
+      {value !== undefined && <span className="die">{value}</span>}
     </span>
   );
 }

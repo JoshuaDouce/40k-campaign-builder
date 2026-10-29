@@ -18,6 +18,7 @@ import {
   xpToNext,
 } from "../../game/index.ts";
 import type { Unit } from "../../game/index.ts";
+import { EffectList } from "./EffectList.tsx";
 import { FallSheet } from "./FallSheet.tsx";
 
 interface Props {
@@ -51,6 +52,8 @@ export function UnitCard({ unit, editable, memorial, overLimit, toughOver, tough
   const [armed, setArmed] = useState(false);
   const [armedDelete, setArmedDelete] = useState(false);
   const [asking, setAsking] = useState(false);
+  // Honour or scar whose effect is shown under the badges: tap a badge to show it (phones can't hover).
+  const [shownFx, setShownFx] = useState<string | null>(null);
   useEffect(() => {
     if (!armed) return;
     const t = setTimeout(() => setArmed(false), 4000);
@@ -160,20 +163,23 @@ export function UnitCard({ unit, editable, memorial, overLimit, toughOver, tough
       {(unit.honours.length > 0 || unit.scars.length > 0) && (
         <div className="badges">
           {unit.honours.map((h) => (
-            <span key={h} className="badge hon" title={honourEffect(h)}>
+            <button key={h} type="button" className="badge hon tap" aria-expanded={shownFx === h} title={honourEffect(h)} onClick={() => setShownFx(shownFx === h ? null : h)}>
               {h}
-            </span>
+            </button>
           ))}
           {unit.scars.map((s) => {
             const w = scarWeapon(s);
             const effect = scarEffect(s);
             return (
-              <span key={s} className="badge scar" title={w ? `${effect} (Worn Gear: ${w})` : effect}>
+              <button key={s} type="button" className="badge scar tap" aria-expanded={shownFx === s} title={w ? `${effect} (Worn Gear: ${w})` : effect} onClick={() => setShownFx(shownFx === s ? null : s)}>
                 {scarLabel(s)}
-              </span>
+              </button>
             );
           })}
         </div>
+      )}
+      {shownFx && (unit.honours.includes(shownFx) || unit.scars.includes(shownFx)) && (
+        <EffectList items={[{ n: unit.honours.includes(shownFx) ? shownFx : scarLabel(shownFx), e: honourEffect(shownFx) ?? scarEffect(shownFx) }]} tone={unit.honours.includes(shownFx) ? "hon" : "scar"} />
       )}
       {unit.isCharacter && hasDetails && (
         <details className="more">

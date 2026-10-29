@@ -5,6 +5,9 @@ import { fetchArmy, postArmy } from "../../store/yellowscribe.ts";
 import { copyText } from "../copyText.ts";
 import { Overlay } from "./Overlay.tsx";
 
+/** The button that opens this flow, wherever it appears. */
+export const YS_BUTTON_LABEL = "Import/Export YellowScribe · Add buffs/debuffs";
+
 /** Owner-only "Export for" picker. */
 export interface ExportOwner {
   players: readonly { id: string; name: string }[];
@@ -365,7 +368,7 @@ function ReviewCard({
           <option value="">No match</option>
           {candidates.map((c) => (
             <option key={c.id} value={c.id}>
-              {c.name}
+              {c.datasheet && c.datasheet !== c.name ? `${c.datasheet} · ${c.name}` : c.name}
               {used.has(c.id) ? " (matched)" : ""}
             </option>
           ))}

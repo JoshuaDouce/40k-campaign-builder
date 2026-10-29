@@ -1,6 +1,7 @@
 import { GRIEVOUS_WOUND, honourEffect, honourTableFor, rankOf, scarEffect, scarLabel, scarTableFor } from "../../game/index.ts";
 import type { Dispatch, SetStateAction } from "react";
 import { DieControl } from "./DieControl.tsx";
+import { EffectSelect } from "./EffectSelect.tsx";
 import type { Evaluation, Rolls, UnitView } from "./pbLogic.ts";
 
 interface Props {
@@ -117,22 +118,19 @@ function HonourSlots({ v, rolls, put }: { v: UnitView; rolls: Rolls; put: Put })
                 label="honour D6"
                 onChange={(d) => {
                   put("honRoll", s.key, d);
-                  put("honPick", s.key, undefined);
+                  // A roll takes its honour straight away, unless it is already held.
+                  const rolled = d ? table[d - 1]?.n : undefined;
+                  put("honPick", s.key, rolled && !s.held.includes(rolled) ? rolled : undefined);
                 }}
               />
-              <select aria-label="Pick an honour" value={pick ?? ""} onChange={(e) => put("honPick", s.key, e.target.value || undefined)}>
-                <option value="">Pick from list</option>
-                {table.map((h) => {
-                  const held = s.held.includes(h.n);
-                  return (
-                    <option key={h.n} value={h.n} disabled={held}>
-                      {h.n}
-                      {held ? " (held)" : ""}
-                    </option>
-                  );
-                })}
-              </select>
             </div>
+            <EffectSelect
+              label="Or pick an honour"
+              placeholder="Choose an honour…"
+              groups={[{ items: table.map((h) => (s.held.includes(h.n) ? { ...h, note: "Held" } : h)) }]}
+              value={pick ?? ""}
+              onPick={(n) => put("honPick", s.key, n)}
+            />
             {s.dupRoll && (
               <div className="out bad">
                 Rolled {s.roll}: {s.rolledName}, already held. Re-roll, or pick another from the list.
@@ -204,15 +202,14 @@ function Fallen({ v, rolls, put }: { v: UnitView; rolls: Rolls; put: Put }) {
         </div>
         <div className="row" style={{ marginTop: 4 }}>
           <DieControl faces={3} value={f.scarRoll} label="scar D3" onChange={(d) => put("scar", unit.id, d)} />
-          <select aria-label="Pick a scar" value={f.scarRoll ?? ""} onChange={(e) => put("scar", unit.id, e.target.value ? Number(e.target.value) : undefined)}>
-            <option value="">Pick a scar</option>
-            {table.map((t, i) => (
-              <option key={t.n} value={i + 1}>
-                {t.n}
-              </option>
-            ))}
-          </select>
         </div>
+        <EffectSelect
+          label="Or pick a scar"
+          placeholder="Choose a scar…"
+          groups={[{ items: table }]}
+          value={f.scarRoll ? (table[f.scarRoll - 1]?.n ?? "") : ""}
+          onPick={(n) => put("scar", unit.id, table.findIndex((t) => t.n === n) + 1)}
+        />
         {scarOutcome}
         {replaces && f.scarName && !f.scarDup && <div className="out bad">Replaces {replaces}.</div>}
         <div className="mono dim" style={{ fontSize: 11, marginTop: 8 }}>
@@ -230,7 +227,7 @@ function Fallen({ v, rolls, put }: { v: UnitView; rolls: Rolls; put: Put }) {
         {f.mod ? " · HARD TO KILL: +1 TO THE ROLL" : ""} · {scarNote}
       </div>
       <div className="row" style={{ marginTop: 8 }}>
-        <DieControl faces={6} value={f.d6} label="fallen D6" onChange={(d) => put("fallen", unit.id, d)} />
+        <DieControl faces={6} value={f.d6} label="fallen D6" enter onChange={(d) => put("fallen", unit.id, d)} />
       </div>
       {f.d6 !== undefined && (
         <div className={`out${f.scarred ? " bad" : ""}`}>

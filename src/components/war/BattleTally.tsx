@@ -1,5 +1,6 @@
 import { armyOf, getPlayer, rosterOf } from "../../game/index.ts";
 import type { Action, CampaignState, LiveBattle } from "../../game/index.ts";
+import { YellowscribeButton } from "./YellowscribeButton.tsx";
 
 interface Props {
   state: CampaignState;
@@ -29,6 +30,7 @@ export function BattleTally({ state, dispatch, can, attackerId, side, battle }: 
       <div className="eyebrow">
         {name} · {role}
       </div>
+      {editable && <YellowscribeButton candidates={units} />}
       <div className="field">
         <label htmlFor={selId}>Marked for Glory (name it before the game)</label>
         <select id={selId} value={glory ?? ""} disabled={!editable} onChange={(e) => dispatch(setGlory(e.target.value || null))}>
