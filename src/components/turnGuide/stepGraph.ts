@@ -1,6 +1,6 @@
 // The step graph behind both views: what a player decides, rolls and gains during one War Round turn.
 // Every number and rule here comes from the written rules (Rules, Pitch, Fate Deck and War Room wording).
-import { ACTIONS, LIGHT_FORCES_MAX_PTS, LIGHT_FORCES_TWIST, ORBITS, TWISTS, VTYPES } from "../../game/index.ts";
+import { ACTIONS, battleSizeOf, LIGHT_FORCES_MAX_PTS, LIGHT_FORCES_TWIST, ORBITS, TWISTS, VTYPES } from "../../game/index.ts";
 import type { ActionId, ProvinceType } from "../../game/index.ts";
 import { cardLimit, sizeInfo, SUPPLY_SHORTAGE } from "./battleMath.ts";
 import type { Ctx, Effects, Env, Scenario, Step, StepOption, Tier } from "./guideTypes.ts";
@@ -131,6 +131,11 @@ function twistText({ ctx, sc }: Env): string {
   return lines.join("\n");
 }
 
+function sizeLine(pts: number, twists: readonly number[]): string {
+  const b = battleSizeOf(pts, twists);
+  return `${b.n}: ${b.board} board, ${b.dp} detachment points.`;
+}
+
 function sizeText(env: Env): string {
   const { ctx } = env;
   const s = sizeInfo(env);
@@ -141,6 +146,7 @@ function sizeText(env: Env): string {
   });
   if (s.raid) l.push("Raid: half size.");
   l.push(`Battle size: ${s.size} pts (this guide rounds to the nearest 50 pts and keeps battles to a 500 pt minimum).`);
+  l.push(`${sizeLine(s.size, ctx.twists)} Garrison and Underdog bonuses don't change it.`);
   l.push("Supply limits don't change the battle size. If your roster is smaller, you field what you have.");
   if (s.garrison) l.push(`Garrison fight: choose +20% points for you (${s.yours} pts against ${s.size}) or -20% points for the garrison (${s.size} pts against ${s.garrisonLess}), rounded to the nearest 5. Underdog doesn't apply.`);
   else if (ctx.underdog) l.push(`You are the Underdog: +10% points, which this guide works out as ${s.yours} pts (rounded to the nearest 5).`);
@@ -164,6 +170,7 @@ function battleText(env: Env): string {
   const l: string[] = [];
   const kind = ctx.action === "raid" ? "Raid" : s.garrison ? "Garrison battle" : "Battle";
   l.push(`${kind}: ${s.size} pts${s.garrison ? ` for the garrison and ${s.yours} pts for you, or ${s.garrisonLess} pts for the garrison and ${s.size} pts for you` : ctx.underdog ? ` (${s.yours} pts for you as the Underdog)` : ""}.`);
+  l.push(sizeLine(s.size, ctx.twists));
   ctx.twists.forEach((i) => l.push(`Twist (D12 ${i + 1}), ${TWISTS[i].t}: ${TWISTS[i].e}`));
   if (s.light) l.push(`Light Forces: ${TWISTS[LIGHT_FORCES_TWIST].e}`);
   l.push("Every battle on a world also uses that world's trait, on top of any twists.");

@@ -1,4 +1,4 @@
-import { ACTIONS, CHAR_HONOURS, CHAR_SCARS, HONOURS, LIGHT_FORCES_MAX_PTS, LIGHT_FORCES_TWIST, ORBITS, PTYPES, RELICS, SCARS, TRAINING, toggleOn, TOGGLE_KEYS, TOGGLE_NAMES, TWISTS, typeGains, VTYPES } from "../game/index.ts";
+import { ACTIONS, BATTLE_SIZES, CHAR_HONOURS, CHAR_SCARS, HONOURS, LIGHT_FORCES_MAX_PTS, LIGHT_FORCES_TWIST, ORBITS, PTYPES, RELICS, SCARS, TRAINING, toggleOn, TOGGLE_KEYS, TOGGLE_NAMES, TWISTS, typeGains, VTYPES } from "../game/index.ts";
 import type { ProvinceType, ToggleKey } from "../game/index.ts";
 import { useOptionalCampaign } from "../store/useCampaign.ts";
 
@@ -205,6 +205,17 @@ export function RulesTab() {
         <li>Supply limits don't change the battle size. If your roster is smaller, you field what you have.</li>
         <li><b>Underdog:</b> an attacker with fewer provinces than the defender gets +10% points.</li>
         <li><b>Light Forces:</b> battles of {LIGHT_FORCES_MAX_PTS} pts or fewer. {TWISTS[LIGHT_FORCES_TWIST].e}</li>
+        <li>The battle's points set the board and detachment points. Garrison and Underdog bonuses don't change them. The Close Quarters twist still shrinks the board to 44" x 30".</li>
+      </ul>
+      <div className="tbl"><table>
+        <thead><tr><th>Size</th><th>Points</th><th>Board</th><th>Detachment points</th></tr></thead>
+        <tbody>
+          {BATTLE_SIZES.map((b) => (
+            <tr key={b.n}><td><b>{b.n}</b></td><td>{b.pts}</td><td>{b.board}</td><td className="n">{b.dp}</td></tr>
+          ))}
+        </tbody>
+      </table></div>
+      <ul className="rl">
         <li>The world's orbit sets how many Mission Twists you roll:</li>
       </ul>
       <div className="tbl"><table>
