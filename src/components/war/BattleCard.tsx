@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { armySides, battleInfo, LIGHT_FORCES_MAX_PTS, LIGHT_FORCES_TWIST, planetOf, r5, TWISTS, VTYPES } from "../../game/index.ts";
+import { armySides, battleInfo, battleSizeOf, LIGHT_FORCES_MAX_PTS, LIGHT_FORCES_TWIST, planetOf, r5, TWISTS, VTYPES } from "../../game/index.ts";
 import type { Action, CampaignState, GarrisonEdge } from "../../game/index.ts";
 import { ArmyList } from "./ArmyList.tsx";
 
@@ -27,6 +27,7 @@ export function BattleCard({ state, dispatch, can, playerId }: Props) {
   const edge: GarrisonEdge = B.edge ?? "attacker";
   const edgeId = `edgeSel-${playerId}`;
   const setEdge = (e: GarrisonEdge): Action => ({ type: "setGarrisonEdge", playerId, edge: e });
+  const size = battleSizeOf(B.pts, B.twists);
   return (
     <div className="battle">
       <div className="eyebrow">
@@ -34,6 +35,9 @@ export function BattleCard({ state, dispatch, can, playerId }: Props) {
         {B.garrison ? " · Garrison battle" : ""}
       </div>
       <div className="size">{B.pts} pts</div>
+      <p className="mono" style={{ fontSize: 12, color: "var(--brass)" }}>
+        {size.n.toUpperCase()} · {size.board} BOARD · {size.dp} DETACHMENT POINTS
+      </p>
       {B.garrison && (
         <>
           <p className="mono dim" style={{ fontSize: 12 }}>

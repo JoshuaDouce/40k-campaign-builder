@@ -148,6 +148,9 @@ entries without refreshing.
 - **No supply cap on battle size (2026-10-29):** a battle is played at the province's size (after twists and Raid),
   whatever either player's supply limit. Supply only caps your roster; a player who can't field the full size plays short.
   (The prototype's "play at the lower supply limit" and the garrison "only your supply limit caps the size" are dropped.)
+- **Battle sizes (2026-10-29):** a battle's points set its size: up to 750 Combat Patrol (44" x 30", 2 detachment points),
+  800–1450 Incursion (44" x 60", 2 DP), 1500+ Strike Force (44" x 60", 3 DP). Onslaught isn't used. It goes by the
+  battle's own size, before Garrison or Underdog bonuses. Shown on the battle card, the Rules tab and the turn guide.
 - **Export to TTS via Yellowscribe (2026-10-29):** players paste a Yellowscribe code; the app adds campaign effects
   (abilities, plain stat changes, titles) and returns a new code. One Lambda proxies yellowscribe.link (no CORS there).
   The export never changes the campaign. See `docs/features/yellowscribe-export.md`.

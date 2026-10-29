@@ -79,6 +79,15 @@ export interface TwistDef {
   e: string;
   m: number;
 }
+/** A battle size: the board and detachment points for battles up to `max` points. */
+export interface BattleSizeDef {
+  n: string;
+  /** Points range as the rules show it. */
+  pts: string;
+  max: number;
+  board: string;
+  dp: number;
+}
 export interface ActionDef {
   id: ActionId;
   n: string;

@@ -7,7 +7,7 @@ import { B, log } from "./log.ts";
 import { newSeed } from "./rng.ts";
 import type { Rng } from "./rng.ts";
 import { count, getPlanet, getZone, holdsType, hollOpen, laneLinked, provsOf, r50, supplyOf } from "./selectors.ts";
-import type { ActionId, CampaignState, Player, Zone } from "./types.ts";
+import type { ActionId, BattleSizeDef, CampaignState, Player, Zone } from "./types.ts";
 
 /** Every player starts a campaign on this many Requisition Points. */
 export const START_RP = 0;
@@ -114,6 +114,24 @@ export function beginRound(s: CampaignState, rng: Rng): void {
 export const LIGHT_FORCES_TWIST = TWISTS.findIndex((t) => t.t === "Light Forces");
 /** Battles of this many points or fewer automatically use Light Forces. */
 export const LIGHT_FORCES_MAX_PTS = 750;
+
+/** Battle sizes by points, smallest first. Onslaught isn't used. */
+export const BATTLE_SIZES: readonly BattleSizeDef[] = [
+  { n: "Combat Patrol", pts: `Up to ${LIGHT_FORCES_MAX_PTS}`, max: LIGHT_FORCES_MAX_PTS, board: '44" x 30"', dp: 2 },
+  { n: "Incursion", pts: "800–1450", max: 1499, board: '44" x 60"', dp: 2 },
+  { n: "Strike Force", pts: "1500+", max: Infinity, board: '44" x 60"', dp: 3 },
+];
+
+const CLOSE_QUARTERS_TWIST = TWISTS.findIndex((t) => t.t === "Close Quarters");
+
+/**
+ * The battle size for a battle of `pts` points (its own size, before Garrison or Underdog bonuses).
+ * A rolled Close Quarters twist shrinks the board to the Combat Patrol one.
+ */
+export function battleSizeOf(pts: number, twists: readonly number[] = []): BattleSizeDef {
+  const size = BATTLE_SIZES.find((b) => pts <= b.max) ?? BATTLE_SIZES[BATTLE_SIZES.length - 1];
+  return twists.includes(CLOSE_QUARTERS_TWIST) ? { ...size, board: BATTLE_SIZES[0].board } : size;
+}
 
 /**
  * Late-arrival catch-up for a player who joins once the campaign is under way (round 1 or later):
