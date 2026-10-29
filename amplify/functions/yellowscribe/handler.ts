@@ -106,22 +106,27 @@ async function postArmy(payloadRaw: unknown): Promise<{ code: string }> {
   return { code };
 }
 
-/** AppSync direct Lambda resolver event: the field name says which operation was called. */
+/**
+ * The resolver event. Amplify's function resolver puts the field name at the top level; a direct AppSync
+ * Lambda resolver puts it under `info`. Either way it says which operation was called.
+ */
 interface ResolverEvent {
-  info: { fieldName: string };
-  arguments: Record<string, unknown>;
+  fieldName?: string;
+  info?: { fieldName?: string };
+  arguments?: Record<string, unknown>;
 }
 
 /** Both operations return AWSJSON, sent as a JSON string (the client also accepts a plain object). */
 export const handler = async (event: ResolverEvent): Promise<string> => {
-  switch (event.info.fieldName) {
+  const args = event.arguments ?? {};
+  switch (event.fieldName ?? event.info?.fieldName) {
     case "yellowscribeArmy": {
-      const code = event.arguments.code;
+      const code = args.code;
       if (typeof code !== "string") throw new Error("A Yellowscribe code is 8 letters and numbers, like 1a2b3c4d.");
       return JSON.stringify(await getArmy(code));
     }
     case "yellowscribePost":
-      return JSON.stringify(await postArmy(event.arguments.payload));
+      return JSON.stringify(await postArmy(args.payload));
     default:
       throw new Error("Unknown operation.");
   }
