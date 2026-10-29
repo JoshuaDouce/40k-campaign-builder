@@ -7,7 +7,7 @@ import { rollInt } from "./rng.ts";
 import type { Rng } from "./rng.ts";
 import { getPlayer, supplyOf } from "./selectors.ts";
 import { datasheetLimit, datasheetLimitBlock, foldDatasheet, isKnightsExempt, toggleOn, toughStageBlock } from "./toggles.ts";
-import type { CampaignState, FallenCharacter, PostBattleResult, Unit } from "./types.ts";
+import type { CampaignState, EffectRow, FallenCharacter, PostBattleResult, Unit } from "./types.ts";
 
 /** XP at which a unit becomes a Legend of the Reach. */
 export const LEGEND_XP = 25;
@@ -143,25 +143,25 @@ export function isScarred(unit: Pick<Unit, "isCharacter" | "honours">, d6: numbe
 /* ---------- Character tables ---------- */
 
 /** The table a unit rolls honours on: Character table for Characters, generic otherwise. */
-export function honourTableFor(unit: Pick<Unit, "isCharacter">): readonly { n: string; e: string }[] {
+export function honourTableFor(unit: Pick<Unit, "isCharacter">): readonly EffectRow[] {
   return unit.isCharacter ? CHAR_HONOURS : HONOURS;
 }
 /** The table a unit rolls scars on: Character table for Characters, generic otherwise. */
-export function scarTableFor(unit: Pick<Unit, "isCharacter">): readonly { n: string; e: string }[] {
+export function scarTableFor(unit: Pick<Unit, "isCharacter">): readonly EffectRow[] {
   return unit.isCharacter ? CHAR_SCARS : SCARS;
 }
 /** Every honour / scar, Character table first. */
-export const ALL_HONOURS: readonly { n: string; e: string }[] = [...CHAR_HONOURS, ...HONOURS];
-export const ALL_SCARS: readonly { n: string; e: string }[] = [...CHAR_SCARS, ...SCARS];
+export const ALL_HONOURS: readonly EffectRow[] = [...CHAR_HONOURS, ...HONOURS];
+export const ALL_SCARS: readonly EffectRow[] = [...CHAR_SCARS, ...SCARS];
 /** Honours / scars a unit may hold: Characters may hold both tables (legacy generic ones stay valid); others generic only. */
-export function allowedHonours(unit: Pick<Unit, "isCharacter">): readonly { n: string; e: string }[] {
+export function allowedHonours(unit: Pick<Unit, "isCharacter">): readonly EffectRow[] {
   return unit.isCharacter ? ALL_HONOURS : HONOURS;
 }
-export function allowedScars(unit: Pick<Unit, "isCharacter">): readonly { n: string; e: string }[] {
+export function allowedScars(unit: Pick<Unit, "isCharacter">): readonly EffectRow[] {
   return unit.isCharacter ? ALL_SCARS : SCARS;
 }
 
-const effects = (t: readonly { n: string; e: string }[]): Map<string, string> => new Map(t.map((x) => [x.n, x.e]));
+const effects = (t: readonly EffectRow[]): Map<string, string> => new Map(t.map((x) => [x.n, x.e]));
 const HONOUR_FX = effects(ALL_HONOURS);
 const SCAR_FX = effects(ALL_SCARS);
 const RELIC_FX = effects(RELICS);

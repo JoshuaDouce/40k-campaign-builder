@@ -148,6 +148,9 @@ entries without refreshing.
 - **No supply cap on battle size (2026-10-29):** a battle is played at the province's size (after twists and Raid),
   whatever either player's supply limit. Supply only caps your roster; a player who can't field the full size plays short.
   (The prototype's "play at the lower supply limit" and the garrison "only your supply limit caps the size" are dropped.)
+- **Export to TTS via Yellowscribe (2026-10-29):** players paste a Yellowscribe code; the app adds campaign effects
+  (abilities, plain stat changes, titles) and returns a new code. One Lambda proxies yellowscribe.link (no CORS there).
+  The export never changes the campaign. See `docs/features/yellowscribe-export.md`.
 - **Player name** defaults to the user's display name and stays editable (warband name).
 - **Permissions:** only the owner can begin War Round 1 (start the campaign); any member can begin later War Rounds. Turns, cards and RP: that player or
   the owner. Battle results: attacker, defender or owner. Map "Held by" override, stat

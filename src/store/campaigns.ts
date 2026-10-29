@@ -109,8 +109,14 @@ const UPDATE = `mutation UpdateCampaign($input: UpdateCampaignInput!, $condition
   updateCampaign(input: $input, condition: $condition) { ${FIELDS} }
 }`;
 
-interface GraphqlFailure {
+/** The errors on a failed GraphQL call: on the result, or on what the client throws. */
+export interface GraphqlFailure {
   errors?: ReadonlyArray<{ message?: string; errorType?: string }>;
+}
+
+/** The first error message on a failed call (a result or a thrown value), if there is one. */
+export function firstError(e: unknown): string | undefined {
+  return (e as GraphqlFailure | null)?.errors?.[0]?.message || undefined;
 }
 
 const isConditionFailure = (e: unknown): boolean => {
@@ -140,7 +146,7 @@ export async function saveState(id: string, state: CampaignState, expected: numb
   const raw = result.data?.updateCampaign;
   if (!raw) {
     // A conditional failure can come back as a null result without a recognisable error.
-    if (result.errors?.length) throw new Error(result.errors[0].message ?? "Save failed");
+    if (result.errors?.length) throw new Error(firstError(result) ?? "Save failed");
     throw new VersionConflict();
   }
   const rec = toRecord(raw);

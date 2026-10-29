@@ -1,5 +1,6 @@
 import { a, defineData } from "@aws-amplify/backend";
 import type { ClientSchema } from "@aws-amplify/backend";
+import { yellowscribe } from "../functions/yellowscribe/resource.js";
 
 const schema = a.schema({
   /**
@@ -18,6 +19,22 @@ const schema = a.schema({
       allow.group("admins"),
       allow.ownersDefinedIn("members").identityClaim("email").to(["read", "update"]),
     ]),
+
+  /** Fetch an uploaded army from yellowscribe.link by its 8-character code (Tabletop Simulator export). */
+  yellowscribeArmy: a
+    .query()
+    .arguments({ code: a.string().required() })
+    .returns(a.json())
+    .handler(a.handler.function(yellowscribe))
+    .authorization((allow) => [allow.authenticated()]),
+
+  /** Post the edited army (a JSON string) back to yellowscribe.link and return `{ code }` for Tabletop Simulator. */
+  yellowscribePost: a
+    .mutation()
+    .arguments({ payload: a.string().required() })
+    .returns(a.json())
+    .handler(a.handler.function(yellowscribe))
+    .authorization((allow) => [allow.authenticated()]),
 });
 
 export type Schema = ClientSchema<typeof schema>;
