@@ -12,6 +12,7 @@ import { RelicDialog } from "./RelicDialog.tsx";
 import { useIsEpicName } from "./useDatasheets.ts";
 import { UnitCard } from "./UnitCard.tsx";
 import { UnitFormSheet } from "./UnitFormSheet.tsx";
+import { YellowscribeExport } from "./YellowscribeExport.tsx";
 
 type Dialog = { kind: "add" } | { kind: "edit"; unit: Unit } | { kind: "relic"; unit: Unit } | { kind: "surgeon" | "promo" | "recruits" } | { kind: "spend"; spend: QuickSpend } | null;
 
@@ -20,6 +21,7 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
   const [picked, setPicked] = useState<string | null>(null);
   const [dialog, setDialog] = useState<Dialog>(null);
   const [helper, setHelper] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [view, setView] = useState<"roster" | "hall">("roster");
   const [toast, setToast] = useState<{ pid: string; text: string } | null>(null);
 
@@ -262,6 +264,13 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
         ) : (
           <div className="ro">READ-ONLY: you're viewing {player.name}'s roster. Only they (or the campaign owner) can change it.</div>
         )}
+        {editable && (
+          <div className="row" style={{ marginTop: 8 }}>
+            <button type="button" className="btn sm" onClick={() => setExporting(true)}>
+              Export to TTS
+            </button>
+          </div>
+        )}
         <div className="toast" role="status">
           {toast && toast.pid === pid ? toast.text : ""}
         </div>
@@ -337,6 +346,14 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
         </>
       )}
 
+      {editable && exporting && (
+        <YellowscribeExport
+          candidates={roster}
+          absentLabel="On your roster but not in this army"
+          owner={viewer.isOwner ? { players: state.players, playerId: pid, onPlayer: setPicked } : undefined}
+          onClose={() => setExporting(false)}
+        />
+      )}
       {editable && dialog?.kind === "relic" && <RelicDialog playerId={pid} unit={dialog.unit} onDone={done} onClose={closeDialog} />}
       {editable && dialog?.kind === "add" && (
         <UnitFormSheet

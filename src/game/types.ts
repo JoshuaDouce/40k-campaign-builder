@@ -86,6 +86,24 @@ export interface ActionDef {
   d: string;
 }
 
+/** A structured stat change, for the Tabletop Simulator export. Values are read from the imported unit, so only the direction is stored. */
+export type StatChange =
+  | { stat: "M" | "OC" | "W"; delta: number }
+  | { stat: "BS"; delta: number; scope: "ranged" }
+  | { stat: "S"; delta: number; scope: "melee" }
+  | { stat: "InSv"; best: number }
+  /** Worsen BS (ranged) or WS (melee) by 1 on the one named weapon (Worn Gear). The weapon comes from the stored scar. */
+  | { stat: "WeaponSkill"; weapon?: string };
+
+/** A Battle Honour, Battle Scar, Training or Relic table row: name, effect text, and any stat change it makes. */
+export interface EffectRow {
+  n: string;
+  e: string;
+  fx?: StatChange;
+  /** Heals after the unit's next battle (Grievous Wound). */
+  temporary?: boolean;
+}
+
 /** A Fate Card in a hand. `fac` is set for faction cards. */
 export interface Card {
   t: string;

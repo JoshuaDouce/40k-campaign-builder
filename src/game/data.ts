@@ -1,5 +1,5 @@
 // Static game data, copied verbatim from reference/index.html (rule, card, twist and faction wording must not drift).
-import type { ActionDef, Card, FactionInfo, FactionName, Hollowgate, OrbitDef, OrbitKey, PlanetType, PlanetTypeDef, ProvinceType, ProvinceTypeDef, Side, SideKey, TwistDef } from "./types.ts";
+import type { ActionDef, Card, EffectRow, FactionInfo, FactionName, Hollowgate, OrbitDef, OrbitKey, PlanetType, PlanetTypeDef, ProvinceType, ProvinceTypeDef, Side, SideKey, TwistDef } from "./types.ts";
 
 export const FACTIONS: Record<FactionName, FactionInfo> = {
   "Space Marines":{c:"#4f7fc4",side:"imp",want:"to hold the Hollowgate until the fleet arrives",open:"A lone strike squad, cut off after their drop pod scattered."},
@@ -141,22 +141,22 @@ export const RANKS: readonly { n: string; xp: number; slots: number }[] = [
   { n: "Legend of the Reach", xp: 25, slots: 4 },
 ];
 /** Battle Honours, in D6 order (index 0 = a roll of 1). */
-export const HONOURS: readonly { n: string; e: string }[] = [
+export const HONOURS: readonly EffectRow[] = [
   { n: "Steady Aim", e: "Re-roll hit rolls of 1 with ranged attacks." },
   { n: "Brawlers", e: "Re-roll wound rolls of 1 in melee." },
   { n: "Grizzled", e: "+1 to Battle-shock and Leadership tests." },
-  { n: "Fleet", e: '+1" to Move.' },
+  { n: "Fleet", e: '+1" to Move.', fx: { stat: "M", delta: 1 } },
   { n: "Hard to Kill", e: "+1 to its roll for the fallen after battle." },
-  { n: "Objective Hunters", e: "+1 OC." },
+  { n: "Objective Hunters", e: "+1 OC.", fx: { stat: "OC", delta: 1 } },
 ];
 /** Battle Scars, in D3 order (index 0 = a roll of 1). */
-export const SCARS: readonly { n: string; e: string }[] = [
+export const SCARS: readonly EffectRow[] = [
   { n: "Shaken", e: "−1 to Battle-shock tests." },
-  { n: "Crippled", e: '−1" Move, cannot Advance and charge.' },
-  { n: "Worn Gear", e: "Worsen BS or WS of one weapon by 1." },
+  { n: "Crippled", e: '−1" Move, cannot Advance and charge.', fx: { stat: "M", delta: -1 } },
+  { n: "Worn Gear", e: "Worsen BS or WS of one weapon by 1.", fx: { stat: "WeaponSkill" } },
 ];
 /** Character Battle Honours, in D6 order (index 0 = a roll of 1). Characters use these; other units use `HONOURS`. */
-export const CHAR_HONOURS: readonly { n: string; e: string }[] = [
+export const CHAR_HONOURS: readonly EffectRow[] = [
   { n: "Tactical Genius", e: "Once per battle, gain 1 CP." },
   { n: "Duellist", e: "+1 to hit rolls in melee against Characters." },
   { n: "Fearful Reputation", e: 'Enemy units within 6" subtract 1 from their Battle-shock tests.' },
@@ -165,16 +165,16 @@ export const CHAR_HONOURS: readonly { n: string; e: string }[] = [
   { n: "Voice of Command", e: 'Friendly units within 6" re-roll their charge rolls.' },
 ];
 /** Character Battle Scars, in D3 order (index 0 = a roll of 1). Grievous Wound is the only temporary scar. */
-export const CHAR_SCARS: readonly { n: string; e: string }[] = [
-  { n: "Grievous Wound", e: "Starts its next battle with 1 fewer Wound. After that battle, the scar heals and is removed." },
-  { n: "Lost an Eye", e: "−1 BS on its ranged weapons." },
-  { n: "Withered Arm", e: "−1 Strength on its melee weapons." },
+export const CHAR_SCARS: readonly EffectRow[] = [
+  { n: "Grievous Wound", e: "Starts its next battle with 1 fewer Wound. After that battle, the scar heals and is removed.", fx: { stat: "W", delta: -1 }, temporary: true },
+  { n: "Lost an Eye", e: "−1 BS on its ranged weapons.", fx: { stat: "BS", delta: -1, scope: "ranged" } },
+  { n: "Withered Arm", e: "−1 Strength on its melee weapons.", fx: { stat: "S", delta: -1, scope: "melee" } },
 ];
 /** Battle Training, bought with Promotion, in D12 order (index 0 = a roll of 1). Characters only. */
-export const TRAINING: readonly { n: string; e: string }[] = [
+export const TRAINING: readonly EffectRow[] = [
   { n: "Blade Drills", e: "Re-roll hit rolls of 1 for this model's melee attacks." },
   { n: "Firing-Range Drills", e: "Re-roll hit rolls of 1 for this model's ranged attacks." },
-  { n: "Forced Marches", e: "+1\" to this model's Move." },
+  { n: "Forced Marches", e: "+1\" to this model's Move.", fx: { stat: "M", delta: 1 } },
   { n: "Iron Discipline", e: "This model's unit re-rolls failed Battle-shock tests." },
   { n: "Assault Training", e: "+1 to charge rolls for this model's unit." },
   { n: "Breaching Drills", e: "Improve the AP of one of this model's melee weapons by 1." },
@@ -182,12 +182,12 @@ export const TRAINING: readonly { n: string; e: string }[] = [
   { n: "Pathfinder Training", e: "Once per battle, after both sides have deployed, this model's unit can make a Normal move of up to 3\"." },
   { n: "Staff College", e: "Once per battle, use a Stratagem on this model's unit for 1 CP less." },
   { n: "Overwatch Drills", e: "Once per battle, this model's unit can use Fire Overwatch for 0 CP." },
-  { n: "Endurance Conditioning", e: "+1 Wounds." },
-  { n: "Objective Drills", e: "+2 OC for this model." },
+  { n: "Endurance Conditioning", e: "+1 Wounds.", fx: { stat: "W", delta: 1 } },
+  { n: "Objective Drills", e: "+2 OC for this model.", fx: { stat: "OC", delta: 2 } },
 ];
 /** Relics, in D6 order (index 0 = a roll of 1). */
-export const RELICS: readonly { n: string; e: string }[] = [
-  { n: "Orrin's Ward", e: "The bearer gains a 5+ invulnerable save, or improves an existing one by 1 (best 4+)." },
+export const RELICS: readonly EffectRow[] = [
+  { n: "Orrin's Ward", e: "The bearer gains a 5+ invulnerable save, or improves an existing one by 1 (best 4+).", fx: { stat: "InSv", best: 4 } },
   { n: "Tomb-Shard of Kell", e: "Once per battle, the bearer may re-roll one hit, wound or damage roll." },
   { n: "Thessaly Blade", e: "One of the bearer's melee weapons gains +1 Damage." },
   { n: "Lantern of Cinderfall", e: "The bearer's ranged attacks ignore the benefit of cover." },

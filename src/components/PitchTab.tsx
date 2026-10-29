@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useOptionalCampaign } from "../store/useCampaign.ts";
 import type { TabId } from "../store/useDevicePrefs.ts";
+import { copyText } from "./copyText.ts";
 
 const STEPS: ReadonlyArray<readonly [string, string]> = [
   ["The setting", "Three years ago the Hollowgate rift tore open at the heart of the Varkesh Reach. The Imperium's grip collapsed. The system is a scatter of worlds, each split into provinces, and every faction has its own reason for being here. The more players, the more worlds."],
@@ -24,37 +25,12 @@ function pitchText(): string {
   return lines.join("\n");
 }
 
-/** Old-browser fallback: select text in an off-screen textarea and use execCommand. */
-function legacyCopy(text: string): boolean {
-  const ta = document.createElement("textarea");
-  ta.value = text;
-  ta.setAttribute("aria-hidden", "true");
-  ta.tabIndex = -1;
-  ta.style.position = "absolute";
-  ta.style.left = "-9999px";
-  document.body.appendChild(ta);
-  ta.select();
-  try {
-    return document.execCommand("copy");
-  } catch {
-    return false;
-  } finally {
-    ta.remove();
-  }
-}
-
 export function PitchTab({ onNavigate }: { onNavigate: (tab: TabId) => void }) {
   const campaign = useOptionalCampaign();
   const [copyMsg, setCopyMsg] = useState("");
 
   const copy = () => {
-    const txt = pitchText();
-    const fallback = () => setCopyMsg(legacyCopy(txt) ? "Copied" : "Select and copy the text manually");
-    if (navigator.clipboard?.writeText) {
-      navigator.clipboard.writeText(txt).then(() => setCopyMsg("Copied"), fallback);
-    } else {
-      fallback();
-    }
+    void copyText(pitchText()).then((ok) => setCopyMsg(ok ? "Copied" : "Select and copy the text manually"));
   };
 
   return (
