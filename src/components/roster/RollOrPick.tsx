@@ -33,7 +33,8 @@ export function RollOrPick({ rows, held, label, roll, pick, onRoll, onPick }: Pr
         label={`Or pick ${label}`}
         placeholder="Choose from the list…"
         groups={[{ items: rows.map((r) => (held.includes(r.n) ? { ...r, note: "Held" } : r)) }]}
-        value={pick}
+        // A roll selects its row, unless it is already held.
+        value={pick || (rolled && !held.includes(rolled.n) ? rolled.n : "")}
         onPick={onPick}
       />
     </>

@@ -118,7 +118,9 @@ function HonourSlots({ v, rolls, put }: { v: UnitView; rolls: Rolls; put: Put })
                 label="honour D6"
                 onChange={(d) => {
                   put("honRoll", s.key, d);
-                  put("honPick", s.key, undefined);
+                  // A roll takes its honour straight away, unless it is already held.
+                  const rolled = d ? table[d - 1]?.n : undefined;
+                  put("honPick", s.key, rolled && !s.held.includes(rolled) ? rolled : undefined);
                 }}
               />
             </div>
