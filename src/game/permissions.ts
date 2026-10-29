@@ -37,8 +37,11 @@ export function canPerform(state: CampaignState, action: Action, ctx: Permission
       return controls(state, action.playerId, userId);
 
     case "setArmyList":
+    case "tallyUnit":
+    case "markGlory":
       return controls(state, action.side, userId);
 
+    case "setBattleStarted":
     case "resolvePick": {
       const b = state.picks[action.playerId]?.battle;
       return controls(state, action.playerId, userId) || (!!b && controls(state, b.def, userId));

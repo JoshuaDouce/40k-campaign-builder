@@ -259,6 +259,7 @@ select,textarea,input[type=text],input[type=number]{font:inherit;background:var(
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .chips .chip{font-size:12.5px}
 .sub{border-top:1px solid var(--line);padding-top:10px;margin-top:12px}
+.tally{border-top:1px solid var(--line);margin-top:12px;padding-top:10px}
 .pbunit{border:1px solid var(--line);background:var(--bg);border-radius:3px;padding:12px;margin:8px 0}
 .pbunit.off{opacity:.6}
 .pbunit .nm{font-family:var(--f-display);font-size:20px;line-height:1.1}

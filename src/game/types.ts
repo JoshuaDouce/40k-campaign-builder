@@ -311,6 +311,21 @@ export interface LiveBattle {
   lightForces: boolean;
   /** Army lists by player id (the attacker, and the defender unless a garrison). Missing = not changed from the default. */
   lists?: Record<string, ArmyList>;
+  /** The battle is being played: lists and twists are locked and the tally is open. */
+  started?: true;
+  /** In-game tallies by player id. Kept when the battle goes back to army lists. */
+  tally?: Record<string, BattleTally>;
+}
+
+/** One side's in-game tally: the campaign numbers only, handed to the post-battle helper. */
+export interface BattleTally {
+  units: Record<string, UnitTally>;
+  /** The unit Marked for Glory, named before the game. */
+  glory?: string;
+}
+export interface UnitTally {
+  destroyed?: true;
+  kills?: number;
 }
 
 /** One side's army for a battle: the roster units it fields, in roster order. */
@@ -374,7 +389,7 @@ export interface BattleRecord {
 /** The parts of the campaign a battle result can change. Restored by Undo. */
 export type UndoSnapshot = Pick<
   CampaignState,
-  "round" | "phase" | "order" | "picks" | "log" | "won" | "fort" | "terr" | "players" | "hollOpened" | "lastArmy"
+  "round" | "phase" | "order" | "picks" | "log" | "won" | "fort" | "terr" | "players" | "hollOpened" | "lastArmy" | "lastTally"
 >;
 
 /** The open Undo window for the latest battle result. Present only while Undo is still possible. */
@@ -414,6 +429,8 @@ export interface CampaignState {
   rosters?: Record<string, Unit[]>;
   /** Unit ids each player fielded in their latest recorded battle, to preselect the post-battle helper. */
   lastArmy?: Record<string, string[]>;
+  /** Each player's tally from their latest battle, if it was started, for the post-battle helper. */
+  lastTally?: Record<string, BattleTally>;
   /** Hall of Heroes memorial, oldest first (show newest first). Missing on old saves = none. */
   fallen?: FallenCharacter[];
   /** Round-0 setup: players who ticked Ready. Missing = nobody ready. */
@@ -448,6 +465,10 @@ export type Action =
   | { type: "setGarrisonEdge"; playerId: string; edge: GarrisonEdge }
   /** `playerId` is the attacker whose battle it is; `side` is the player whose list this is. */
   | { type: "setArmyList"; playerId: string; side: string; list: ArmyList }
+  /** `playerId` is the attacker. `on: false` goes back to army lists and keeps the tally. */
+  | { type: "setBattleStarted"; playerId: string; on: boolean }
+  | { type: "tallyUnit"; playerId: string; side: string; unitId: string; destroyed: boolean; kills: number }
+  | { type: "markGlory"; playerId: string; side: string; unitId: string | null }
   | { type: "resolvePick"; playerId: string; result: "a" | "d" | "x"; decisive?: boolean }
   | { type: "confirmQuietPick"; playerId: string }
   | { type: "switchPick"; playerId: string; act: ActionId; zone?: string }

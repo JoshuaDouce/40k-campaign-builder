@@ -2,6 +2,7 @@ import { useState } from "react";
 import { armySides, battleInfo, battleSizeOf, LIGHT_FORCES_MAX_PTS, LIGHT_FORCES_TWIST, planetOf, r5, TWISTS, VTYPES } from "../../game/index.ts";
 import type { Action, CampaignState, GarrisonEdge } from "../../game/index.ts";
 import { ArmyList } from "./ArmyList.tsx";
+import { BattleTally } from "./BattleTally.tsx";
 
 interface Props {
   state: CampaignState;
@@ -28,6 +29,9 @@ export function BattleCard({ state, dispatch, can, playerId }: Props) {
   const edgeId = `edgeSel-${playerId}`;
   const setEdge = (e: GarrisonEdge): Action => ({ type: "setGarrisonEdge", playerId, edge: e });
   const size = battleSizeOf(B.pts, B.twists);
+  const started = !!B.started;
+  const startAct = (on: boolean): Action => ({ type: "setBattleStarted", playerId, on });
+  const sides = armySides({ def: B.d.id, garrison: B.garrison }, playerId);
   return (
     <div className="battle">
       <div className="eyebrow">
@@ -46,7 +50,7 @@ export function BattleCard({ state, dispatch, can, playerId }: Props) {
           </p>
           <div className="field">
             <label htmlFor={edgeId}>Garrison handicap ({B.a.name} chooses)</label>
-            <select id={edgeId} value={edge} disabled={!can(setEdge(edge))} onChange={(e) => dispatch(setEdge(e.target.value as GarrisonEdge))}>
+            <select id={edgeId} value={edge} disabled={started || !can(setEdge(edge))} onChange={(e) => dispatch(setEdge(e.target.value as GarrisonEdge))}>
               <option value="attacker">
                 {B.a.name} +20% ({r5(B.pts * 1.2)} pts vs {B.pts})
               </option>
@@ -92,10 +96,34 @@ export function BattleCard({ state, dispatch, can, playerId }: Props) {
           {n}
         </p>
       ))}
-      <p className="hint">Points and notes are fixed now. Re-roll works them out again.</p>
-      {armySides({ def: B.d.id, garrison: B.garrison }, playerId).map((side) => (
-        <ArmyList key={side} state={state} dispatch={dispatch} can={can} attackerId={playerId} side={side} battle={B} />
-      ))}
+      <p className="hint">{started ? "Points and notes are fixed for this battle." : "Points and notes are fixed now. Re-roll works them out again."}</p>
+      {started ? (
+        <>
+          <p className="mono" style={{ fontSize: 12, color: "var(--verd)", marginTop: 12 }}>
+            ◆ BATTLE IN PROGRESS · ARMY LISTS AND TWISTS LOCKED
+          </p>
+          {sides.map((side) => (
+            <BattleTally key={side} state={state} dispatch={dispatch} can={can} attackerId={playerId} side={side} battle={B} />
+          ))}
+          <div className="row">
+            <button type="button" className="btn sm" disabled={!can(startAct(false))} onClick={() => dispatch(startAct(false))}>
+              Back to army lists
+            </button>
+          </div>
+        </>
+      ) : (
+        <>
+          {sides.map((side) => (
+            <ArmyList key={side} state={state} dispatch={dispatch} can={can} attackerId={playerId} side={side} battle={B} />
+          ))}
+          <div className="row" style={{ marginTop: 10 }}>
+            <button type="button" className="btn primary" disabled={!can(startAct(true))} onClick={() => dispatch(startAct(true))}>
+              Battle started
+            </button>
+          </div>
+          <p className="hint">Locks the army lists and twists. Track losses, kills and Marked for Glory as you play; the post-battle helper starts from them.</p>
+        </>
+      )}
       <p className="mono" style={{ fontSize: 12, color: "var(--brass)", marginTop: 12 }}>
         PLAY THE BATTLE WITH NORMAL FORCE RULES, THEN RECORD THE RESULT
       </p>
@@ -122,7 +150,7 @@ export function BattleCard({ state, dispatch, can, playerId }: Props) {
             </button>
           );
         })}
-        <button type="button" className="btn sm" disabled={!can(reroll)} onClick={() => dispatch(reroll)}>
+        <button type="button" className="btn sm" disabled={started || !can(reroll)} onClick={() => dispatch(reroll)}>
           Re-roll twists
         </button>
       </div>

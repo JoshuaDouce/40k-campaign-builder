@@ -1,7 +1,7 @@
 // Battle army lists: which roster units each side fields in a rolled battle, and at what points.
 import { roleOf, ROLES } from "./forceOrg.ts";
 import { effectivePoints, rosterOf } from "./roster.ts";
-import type { ArmyList, CampaignState, LiveBattle, Unit } from "./types.ts";
+import type { ArmyList, BattleTally, CampaignState, LiveBattle, Unit } from "./types.ts";
 
 /** Battleline units a list must field (fewer only when the roster has fewer). */
 export const ARMY_BATTLELINE_MIN = ROLES.find((r) => r.role === "Battleline")?.min ?? 2;
@@ -81,13 +81,69 @@ function isArmyList(v: unknown): v is ArmyList {
 export function setArmyList(s: CampaignState, attackerId: string, side: string, list: unknown): boolean {
   const pk = s.picks[attackerId];
   const b = pk?.battle;
-  if (!b || pk.done || !armySides(b, attackerId).includes(side) || !isArmyList(list)) return false;
+  if (!b || pk.done || b.started || !armySides(b, attackerId).includes(side) || !isArmyList(list)) return false;
   (b.lists ??= {})[side] = fixArmy(list, rosterOf(s, side));
   return true;
 }
 
-/** Remember each side's fielded units when a result is recorded, for the post-battle helper (mutates `s`). */
+/** Start a rolled battle, or go back to army lists keeping the tally (mutates `s`). */
+export function setBattleStarted(s: CampaignState, attackerId: string, on: boolean): boolean {
+  const pk = s.picks[attackerId];
+  const b = pk?.battle;
+  if (!b || pk.done || typeof on !== "boolean") return false;
+  if (on) b.started = true;
+  else delete b.started;
+  return true;
+}
+
+/** A side's tally in a started battle, if `unitId` is in its list. */
+function tallyFor(s: CampaignState, attackerId: string, side: string, unitId: string): BattleTally | null {
+  const pk = s.picks[attackerId];
+  const b = pk?.battle;
+  if (!b?.started || pk.done || !armySides(b, attackerId).includes(side)) return null;
+  if (!armyOf(s, b, side).units.includes(unitId)) return null;
+  return ((b.tally ??= {})[side] ??= { units: {} });
+}
+
+/** Set a fielded unit's losses and kills in a started battle (mutates `s`). Values are absolute, so a retry is safe. */
+export function tallyUnit(s: CampaignState, attackerId: string, side: string, unitId: string, destroyed: boolean, kills: number): boolean {
+  if (typeof destroyed !== "boolean" || !Number.isInteger(kills) || kills < 0 || kills > 99) return false;
+  const t = tallyFor(s, attackerId, side, unitId);
+  if (!t) return false;
+  if (destroyed || kills > 0) t.units[unitId] = { ...(destroyed && { destroyed: true }), ...(kills > 0 && { kills }) };
+  else delete t.units[unitId];
+  return true;
+}
+
+/** Name a side's unit Marked for Glory in a started battle, or clear it with null (mutates `s`). */
+export function markGlory(s: CampaignState, attackerId: string, side: string, unitId: string | null): boolean {
+  if (unitId === null) {
+    const pk = s.picks[attackerId];
+    const b = pk?.battle;
+    if (!b?.started || pk.done || !armySides(b, attackerId).includes(side)) return false;
+    const t = b.tally?.[side];
+    if (t) delete t.glory;
+    return true;
+  }
+  const t = tallyFor(s, attackerId, side, unitId);
+  if (!t) return false;
+  t.glory = unitId;
+  return true;
+}
+
+/**
+ * Remember each side's fielded units and any tally (even after going back to army lists) when a result is
+ * recorded, for the post-battle helper (mutates `s`). Tallies keep only units still in the list.
+ */
 export function rememberArmies(s: CampaignState, attackerId: string, b: LiveBattle): void {
   const last = (s.lastArmy ??= {});
-  for (const side of armySides(b, attackerId)) last[side] = armyOf(s, b, side).units;
+  for (const side of armySides(b, attackerId)) {
+    const units = armyOf(s, b, side).units;
+    last[side] = units;
+    const t = b.tally?.[side];
+    if (t) {
+      const kept = Object.fromEntries(Object.entries(t.units).filter(([id]) => units.includes(id)));
+      (s.lastTally ??= {})[side] = { units: kept, ...(t.glory && units.includes(t.glory) && { glory: t.glory }) };
+    } else if (s.lastTally) delete s.lastTally[side];
+  }
 }

@@ -391,11 +391,11 @@ export function rollPick(s: CampaignState, playerId: string, defArg: string | un
 /** Roll the twists again for a battle that is In battle, and work its figures out again from the state now. */
 export function rerollPick(s: CampaignState, playerId: string, rng: Rng): boolean {
   const pk = s.picks[playerId];
-  if (!pk?.battle || pk.done || !pk.zone || !pk.act) return false;
+  if (!pk?.battle || pk.done || pk.battle.started || !pk.zone || !pk.act) return false;
   const b = pk.battle;
   const battle = makeBattle(s, { attackerId: playerId, act: pk.act, zone: pk.zone, def: b.def, garrison: b.garrison, edge: b.edge, rng });
   if (!battle) return false;
-  pk.battle = { ...battle, ...(b.lists && { lists: b.lists }) };
+  pk.battle = { ...battle, ...(b.lists && { lists: b.lists }), ...(b.tally && { tally: b.tally }) };
   return true;
 }
 
@@ -405,7 +405,7 @@ export function setGarrisonEdge(s: CampaignState, playerId: string, edge: Garris
   const b = pk?.battle;
   const a = getPlayer(s, playerId);
   const d = getPlayer(s, b?.def);
-  if (!b?.garrison || pk.done || !a || !d || (edge !== "attacker" && edge !== "defender")) return false;
+  if (!b?.garrison || pk.done || b.started || !a || !d || (edge !== "attacker" && edge !== "defender")) return false;
   const { note, ...gar } = garrisonFigures(a, d, b.pts, edge);
   const { defenderPts: _d, edge: _e, ...rest } = b;
   pk.battle = { ...rest, ...gar, notes: b.notes.map((n) => (isGarrisonNote(n) ? note : n)) };
@@ -525,6 +525,7 @@ export function takeSnapshot(s: CampaignState): UndoSnapshot {
     players: s.players,
     hollOpened: s.hollOpened,
     lastArmy: s.lastArmy,
+    lastTally: s.lastTally,
   });
 }
 
@@ -550,6 +551,8 @@ export function undoBattle(s: CampaignState, attacker: string): boolean {
   s.history = (s.history ?? []).slice(0, -1);
   if (b.lastArmy) s.lastArmy = b.lastArmy;
   else delete s.lastArmy;
+  if (b.lastTally) s.lastTally = b.lastTally;
+  else delete s.lastTally;
   delete s.undo;
   return true;
 }

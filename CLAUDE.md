@@ -151,6 +151,10 @@ entries without refreshing.
 - **Battle sizes (2026-10-29):** a battle's points set its size: up to 750 Combat Patrol (44" x 30", 2 detachment points),
   800–1450 Incursion (44" x 60", 2 DP), 1500+ Strike Force (44" x 60", 3 DP). Onslaught isn't used. It goes by the
   battle's own size, before Garrison or Underdog bonuses. Shown on the battle card, the Rules tab and the turn guide.
+- **Live battle tally (2026-10-29):** "Battle started" on a rolled battle locks its army lists, twists and garrison
+  handicap, and opens a per-side tally (Destroyed, kills, Marked for Glory: campaign numbers only, no VP or CP). It is
+  shared campaign state. "Back to army lists" unlocks and keeps the tally. Recording the result copies it to
+  `lastTally`, which pre-fills that player's post-battle helper.
 - **Export to TTS via Yellowscribe (2026-10-29):** players paste a Yellowscribe code; the app adds campaign effects
   (abilities, plain stat changes, titles) and returns a new code. One Lambda proxies yellowscribe.link (no CORS there).
   The export never changes the campaign. See `docs/features/yellowscribe-export.md`.
