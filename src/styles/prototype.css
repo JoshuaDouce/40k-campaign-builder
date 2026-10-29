@@ -636,6 +636,9 @@ a:focus-visible,.ac-lnk:focus-visible,.ac-back:focus-visible,.ac-fac:focus-visib
 ul.rl{list-style:none;padding:0;margin:8px 0 14px;display:grid;gap:6px}
 ul.rl li{position:relative;padding-left:20px;font-size:15.5px;line-height:1.4;max-width:68ch}
 ul.rl li::before{content:"";position:absolute;left:4px;top:.55em;width:6px;height:6px;background:var(--blood);transform:rotate(45deg)}
+.rw h3{scroll-margin-top:calc(64px + env(safe-area-inset-top,0px))}
+.rw-pointer{border-left:2px solid var(--brass);padding-left:10px}
+.rw-pointer button.lnk,.rw button.lnk{color:var(--brass);font:inherit;background:none;border:0;padding:0;text-decoration:underline;cursor:pointer}
 h4.rl-h{font-family:var(--f-mono);font-weight:500;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin:16px 0 0}
 .rt-trait{border:1px solid var(--line);border-radius:3px;background:var(--bg);padding:8px 12px;margin-top:10px}
 .rt-trait p{margin:2px 0 0;font-size:14.5px;max-width:none}

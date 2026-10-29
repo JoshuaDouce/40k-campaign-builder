@@ -1,6 +1,7 @@
-import { ACTIONS, BATTLE_SIZES, CHAR_HONOURS, CHAR_SCARS, HONOURS, LIGHT_FORCES_MAX_PTS, LIGHT_FORCES_TWIST, ORBITS, PTYPES, RELICS, SCARS, TRAINING, toggleOn, TOGGLE_KEYS, TOGGLE_NAMES, TWISTS, typeGains, VTYPES } from "../game/index.ts";
+import { ACTIONS, BATTLE_SIZES, LIGHT_FORCES_MAX_PTS, LIGHT_FORCES_TWIST, ORBITS, PTYPES, toggleOn, TOGGLE_KEYS, TOGGLE_NAMES, TWISTS, typeGains, VTYPES } from "../game/index.ts";
 import type { ProvinceType, ToggleKey } from "../game/index.ts";
 import { useOptionalCampaign } from "../store/useCampaign.ts";
+import type { TabId } from "../store/useDevicePrefs.ts";
 
 const TOGGLE_DESC: Record<ToggleKey, string> = {
   forceOrg: "Role slots, minimums and over-limit warnings. Can't be on with the Datasheet limit.",
@@ -35,21 +36,7 @@ function CampaignRules() {
   );
 }
 
-/** A D6/D3 table of named results: honours, scars, relics. */
-function RollTable({ die, label, rows }: { die: string; label: string; rows: readonly { n: string; e: string }[] }) {
-  return (
-    <div className="tbl"><table>
-      <thead><tr><th>{die}</th><th>{label}</th><th>Effect</th></tr></thead>
-      <tbody>
-        {rows.map((r, i) => (
-          <tr key={r.n}><td className="n">{i + 1}</td><td>{r.n}</td><td>{r.e}</td></tr>
-        ))}
-      </tbody>
-    </table></div>
-  );
-}
-
-export function RulesTab() {
+export function RulesTab({ onNavigate }: { onNavigate: (tab: TabId) => void }) {
   const campaign = useOptionalCampaign();
   const toggled = campaign ? (k: ToggleKey) => toggleOn(campaign.state, k) : (k: ToggleKey) => toggleOn({}, k);
   const slots = toggled("forceOrg");
@@ -277,28 +264,20 @@ export function RulesTab() {
         <li><div><b>Spoils</b>The winner draws 1 Fate Card. A Conquer winner takes the province. A Raid winner steals 1 RP and a random Fate Card.</div></li>
       </ol>
 
+      <p className="rw-pointer">
+        The rank, honour, scar, relic and training tables are on the{" "}
+        <button type="button" className="lnk" onClick={() => onNavigate("rewards")}>Rewards</button> page.
+      </p>
+
       <h3>Ranks</h3>
-      <div className="tbl"><table>
-        <thead><tr><th>Rank</th><th>XP</th><th>Battle Honours</th></tr></thead>
-        <tbody>
-          <tr><td>Green</td><td className="n">0</td><td>—</td></tr>
-          <tr><td>Blooded</td><td className="n">3</td><td>1</td></tr>
-          <tr><td>Veteran</td><td className="n">8</td><td>2</td></tr>
-          <tr><td>Elite</td><td className="n">15</td><td>3</td></tr>
-          <tr><td>Legend of the Reach</td><td className="n">25</td><td>4, and the unit gets a name in the campaign log</td></tr>
-        </tbody>
-      </table></div>
       <ul className="rl">
+        <li>Green 0 XP, Blooded 3, Veteran 8, Elite 15, Legend of the Reach 25 (the unit gets a name in the campaign log).</li>
         <li>Each rank gained: roll or pick 1 Battle Honour, straight after the battle.</li>
         <li>No duplicate honours: re-roll or pick another.</li>
         <li>Each Battle Honour adds 10% of the unit's base points (on the total, rounded to the nearest 5).</li>
       </ul>
 
-      <h3>Battle Honours (roll D6 or pick)</h3>
-      <RollTable die="D6" label="Honour" rows={HONOURS} />
-
       <h3>Battle Scars (roll D3)</h3>
-      <RollTable die="D3" label="Scar" rows={SCARS} />
       <ul className="rl">
         <li>No duplicate scars: re-roll.</li>
         <li>Worn Gear: choose the weapon when the scar is gained.</li>
@@ -308,14 +287,12 @@ export function RulesTab() {
       <p className="dim">My Warband tracks XP, ranks, honours, scars and relics, with a post-battle helper for the rolls.</p>
 
       <h3>Character Battle Honours (roll D6 or pick)</h3>
-      <RollTable die="D6" label="Honour" rows={CHAR_HONOURS} />
       <ul className="rl">
-        <li>Characters use this table, other units the one above.</li>
+        <li>Characters use their own table, other units the Battle Honours table.</li>
         <li>No duplicates across both tables.</li>
       </ul>
 
       <h3>Character Battle Scars (roll D3)</h3>
-      <RollTable die="D3" label="Scar" rows={CHAR_SCARS} />
       <ul className="rl">
         <li>Grievous Wound is temporary: it counts toward the three-scar limit until it heals after the unit's next battle.</li>
       </ul>
@@ -332,7 +309,6 @@ export function RulesTab() {
         <li>Up to 3 per Character, no duplicates: re-roll or pick another.</li>
         <li>+10 pts each, added after Battle Honours.</li>
       </ul>
-      <RollTable die="D6" label="Relic" rows={RELICS} />
 
       <h3>Battle Training (roll D12 or pick)</h3>
       <ul className="rl">
@@ -340,7 +316,6 @@ export function RulesTab() {
         <li>Not a detachment Enhancement: those are still paid in points when you muster.</li>
         <li>Up to 3 per Character, no duplicates. +10 pts each.</li>
       </ul>
-      <RollTable die="D12" label="Training" rows={TRAINING} />
 
       <h3>Spending Requisition</h3>
       <p>Spend RP at any time outside a battle.</p>
