@@ -2,7 +2,7 @@
 import { drawCard, HAND_LIMIT, poolFor } from "./cards.ts";
 import { FACTIONS } from "./data.ts";
 import { beginRound, fresh, lateArrivalBonus, regen, START_RP } from "./engine.ts";
-import { rememberArmies, setArmyList } from "./army.ts";
+import { markGlory, rememberArmies, setArmyList, setBattleStarted, tallyUnit } from "./army.ts";
 import { B, log } from "./log.ts";
 import { addWorld } from "./map.ts";
 import type { Rng } from "./rng.ts";
@@ -98,6 +98,15 @@ function run(s: CampaignState, a: Action, rng: Rng): boolean {
     case "setArmyList":
       return setArmyList(s, a.playerId, a.side, a.list);
 
+    case "setBattleStarted":
+      return setBattleStarted(s, a.playerId, a.on);
+
+    case "tallyUnit":
+      return tallyUnit(s, a.playerId, a.side, a.unitId, a.destroyed, a.kills);
+
+    case "markGlory":
+      return markGlory(s, a.playerId, a.side, a.unitId);
+
     case "resolvePick": {
       if (a.result !== "a" && a.result !== "d" && a.result !== "x") return false;
       if (a.decisive !== undefined && typeof a.decisive !== "boolean") return false;
@@ -187,6 +196,7 @@ function run(s: CampaignState, a: Action, rng: Rng): boolean {
     case "applyPostBattle":
       if (!applyPostBattleTo(s, a.playerId, a.results)) return false;
       if (s.lastArmy) delete s.lastArmy[a.playerId];
+      if (s.lastTally) delete s.lastTally[a.playerId];
       return true;
     case "addExamples":
       return addExamplesTo(s, a.playerId, rng);
@@ -254,6 +264,7 @@ function run(s: CampaignState, a: Action, rng: Rng): boolean {
       removePlayerRoster(s, a.playerId);
       if (s.ready) delete s.ready[a.playerId];
       if (s.lastArmy) delete s.lastArmy[a.playerId];
+      if (s.lastTally) delete s.lastTally[a.playerId];
       if (s.won === a.playerId) s.won = null;
       dropPlayerPicks(s, a.playerId, gone.name);
       return true;
@@ -285,6 +296,8 @@ function run(s: CampaignState, a: Action, rng: Rng): boolean {
     case "reset": {
       const keep = s.players.map((p) => ({ ...p, rp: START_RP, battles: 0, wins: 0, sup: 0, scout: false, hand: [] }));
       Object.assign(s, fresh(keep, rng));
+      delete s.lastArmy;
+      delete s.lastTally;
       return true;
     }
   }

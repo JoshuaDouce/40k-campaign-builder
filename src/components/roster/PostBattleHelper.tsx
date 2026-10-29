@@ -16,10 +16,13 @@ interface Props {
 export function PostBattleHelper({ playerId, roster, onClose }: Props) {
   const { state, dispatch } = useCampaign();
   const [step, setStep] = useState<1 | 2>(1);
-  // Units on the player's latest army list start as fought.
+  // Units on the player's latest army list start as fought, with losses, kills and Glory from the battle tally.
   const [preset] = useState(() => (state.lastArmy?.[playerId] ?? []).filter((id) => roster.some((u) => u.id === id)));
-  const [rows, setRows] = useState<Record<string, Row | undefined>>(() => Object.fromEntries(preset.map((id) => [id, { ...BLANK_ROW, fought: true }])));
-  const [glory, setGlory] = useState<string | null>(null);
+  const [tally] = useState(() => state.lastTally?.[playerId]);
+  const [rows, setRows] = useState<Record<string, Row | undefined>>(() =>
+    Object.fromEntries(preset.map((id) => [id, { ...BLANK_ROW, fought: true, destroyed: !!tally?.units[id]?.destroyed, kills: tally?.units[id]?.kills ?? 0 }])),
+  );
+  const [glory, setGlory] = useState<string | null>(() => (tally?.glory && preset.includes(tally.glory) ? tally.glory : null));
   const [rolls, setRolls] = useState<Rolls>(NO_ROLLS);
 
   const row = (id: string): Row => rows[id] ?? BLANK_ROW;
@@ -43,7 +46,7 @@ export function PostBattleHelper({ playerId, roster, onClose }: Props) {
       <p className="dim">Step 1 of 2. Who fought? Award XP the way the rules say: +1 to every unit that fought and survived, +1 per enemy unit destroyed (at most {XP_ROUND_CAP} XP a War Round from these), +1 to the one unit Marked for Glory.</p>
       {preset.length > 0 && (
         <p className="hint" style={{ margin: "0 0 8px" }}>
-          Preselected from your army list.
+          {tally ? "Filled in from the battle tracker. Check it, then carry on." : "Preselected from your army list."}
         </p>
       )}
       {roster.map((u) => {
