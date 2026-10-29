@@ -145,6 +145,9 @@ entries without refreshing.
 - **No orbit size multiplier (2026-10-28):** a province plays at its type's points on every world; the orbit
   only sets the number of twists. (The prototype's ×1.5 middle / ×2 inner is dropped; the attacker's ±20% garrison
   choice on unclaimed provinces already varies the size.)
+- **No supply cap on battle size (2026-10-29):** a battle is played at the province's size (after twists and Raid),
+  whatever either player's supply limit. Supply only caps your roster; a player who can't field the full size plays short.
+  (The prototype's "play at the lower supply limit" and the garrison "only your supply limit caps the size" are dropped.)
 - **Player name** defaults to the user's display name and stays editable (warband name).
 - **Permissions:** only the owner can begin War Round 1 (start the campaign); any member can begin later War Rounds. Turns, cards and RP: that player or
   the owner. Battle results: attacker, defender or owner. Map "Held by" override, stat

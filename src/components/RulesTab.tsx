@@ -202,7 +202,7 @@ export function RulesTab() {
       <ul className="rl">
         <li>The province's points, set by its type (see Province types). The world's orbit doesn't change them.</li>
         <li>The Hollowgate is a fixed 2000 pt war.</li>
-        <li>If either player's supply limit is lower, play at the lower number.</li>
+        <li>Supply limits don't change the battle size. If your roster is smaller, you field what you have.</li>
         <li><b>Underdog:</b> an attacker with fewer provinces than the defender gets +10% points.</li>
         <li><b>Light Forces:</b> battles of {LIGHT_FORCES_MAX_PTS} pts or fewer. {TWISTS[LIGHT_FORCES_TWIST].e}</li>
         <li>The world's orbit sets how many Mission Twists you roll:</li>
@@ -220,7 +220,7 @@ export function RulesTab() {
       <ul className="rl">
         <li>Another player (never the attacker) plays the garrison. You must fight it.</li>
         <li>The garrison player is chosen once picks are revealed, before the battle is rolled.</li>
-        <li>Only your supply limit caps the size. No Underdog bonus.</li>
+        <li>No Underdog bonus.</li>
         <li>Choose your edge: +20% points for you, or −20% for the garrison.</li>
         <li>Light Forces and Fate Cards go by the base size, before the 20%.</li>
         <li>The garrison player gains nothing: no RP, Fate Cards, wins or supply.</li>
