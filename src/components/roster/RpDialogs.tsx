@@ -157,7 +157,6 @@ export function PromotionDialog({ playerId, roster, rp, onDone, onClose }: Props
               faces={12}
               value={roll}
               label="Battle Training D12"
-              enter={false}
               onChange={(v) => {
                 setRoll(v);
                 setPick("");

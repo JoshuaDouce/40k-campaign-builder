@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { normaliseEmail } from "../../store/campaigns.ts";
+import { localMode } from "../../store/localMode.ts";
 import { useCampaign } from "../../store/useCampaign.ts";
+import { LocalJoinFor } from "./LocalJoinFor.tsx";
 
 /** Organiser only: who may open this campaign, and whether each has picked a faction yet. */
 export function MembersPanel() {
@@ -95,6 +97,7 @@ export function MembersPanel() {
                 <span className="em">{m}</span>
                 <span className={`st${player ? "" : " wait"}`}>{player ? `Playing as ${player.name}` : "Choosing a faction"}</span>
               </div>
+              {localMode && !player ? <LocalJoinFor email={m} /> : null}
               {armed === m ? (
                 <button className="btn sm danger" disabled={busy} onBlur={() => setArmed(null)} onClick={() => remove(m)}>
                   Confirm remove

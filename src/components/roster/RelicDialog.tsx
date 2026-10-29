@@ -3,6 +3,7 @@ import { capProblem, MAX_RELICS, RELIC_PTS, RELICS, relicEffect, rosterOf, withU
 import type { Unit } from "../../game/index.ts";
 import { useCampaign } from "../../store/useCampaign.ts";
 import { DieControl } from "./DieControl.tsx";
+import { EffectSelect } from "./EffectSelect.tsx";
 import { Overlay, SheetFooter } from "./Overlay.tsx";
 
 interface Props {
@@ -65,19 +66,17 @@ export function RelicDialog({ playerId, unit, onDone, onClose }: Props) {
             setPick("");
           }}
         />
-        <select aria-label="Pick a relic" value={pick} onChange={(e) => setPick(e.target.value)}>
-          <option value="">Pick from list</option>
-          {RELICS.map((r) => {
-            const isHeld = held.includes(r.n);
-            return (
-              <option key={r.n} value={r.n} disabled={isHeld}>
-                {r.n}
-                {isHeld ? " (held)" : ""}
-              </option>
-            );
-          })}
-        </select>
       </div>
+      <EffectSelect
+        label="Or pick a relic"
+        placeholder="Choose a relic…"
+        groups={[{ items: RELICS.map((r) => (held.includes(r.n) ? { ...r, note: "Held" } : r)) }]}
+        value={pick}
+        onPick={(n) => {
+          setPick(n);
+          setRoll(undefined);
+        }}
+      />
       {dupRoll && (
         <div className="out bad">
           Rolled {roll}: {rolledName}, already held. Re-roll, or pick another from the list.

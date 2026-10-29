@@ -12,7 +12,7 @@ import { RelicDialog } from "./RelicDialog.tsx";
 import { useIsEpicName } from "./useDatasheets.ts";
 import { UnitCard } from "./UnitCard.tsx";
 import { UnitFormSheet } from "./UnitFormSheet.tsx";
-import { YellowscribeExport } from "./YellowscribeExport.tsx";
+import { YS_BUTTON_LABEL, YellowscribeExport } from "./YellowscribeExport.tsx";
 
 type Dialog = { kind: "add" } | { kind: "edit"; unit: Unit } | { kind: "relic"; unit: Unit } | { kind: "surgeon" | "promo" | "recruits" } | { kind: "spend"; spend: QuickSpend } | null;
 
@@ -128,6 +128,11 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
         <div className="mono dim" style={{ fontSize: 12 }}>
           {player.faction.toUpperCase()} · {provinces} PROVINCE{provinces === 1 ? "" : "S"} · {player.battles} BATTLE{player.battles === 1 ? "" : "S"} · {player.wins} WIN{player.wins === 1 ? "" : "S"}
         </div>
+        {editable && (
+          <button type="button" className="btn primary ys-btn" onClick={() => setExporting(true)}>
+            {YS_BUTTON_LABEL}
+          </button>
+        )}
         <div className="totals">
           <div className="stat">
             <div className="l">Total points</div>
@@ -264,13 +269,6 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
         ) : (
           <div className="ro">READ-ONLY: you're viewing {player.name}'s roster. Only they (or the campaign owner) can change it.</div>
         )}
-        {editable && (
-          <div className="row" style={{ marginTop: 8 }}>
-            <button type="button" className="btn sm" onClick={() => setExporting(true)}>
-              Export to TTS
-            </button>
-          </div>
-        )}
         <div className="toast" role="status">
           {toast && toast.pid === pid ? toast.text : ""}
         </div>
@@ -374,7 +372,8 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
           mode="edit"
           playerId={pid}
           faction={player.faction}
-          existing={dialog.unit}
+          // The live unit, so Battle Training bought inside the dialog is kept when it saves.
+          existing={roster.find((u) => u.id === dialog.unit.id) ?? dialog.unit}
           roster={roster}
           fo={fo}
           onClose={closeDialog}

@@ -1,4 +1,5 @@
 // Who may send which action. Honour-system for the MVP: this is enforced in the UI only.
+import { droppedEarned, rosterOf } from "./roster.ts";
 import { getPlayer } from "./selectors.ts";
 import type { Action, CampaignState } from "./types.ts";
 
@@ -52,13 +53,18 @@ export function canPerform(state: CampaignState, action: Action, ctx: Permission
       return !!u && !u.reportFiled && u.attacker === action.attacker && (controls(state, u.attacker, userId) || (u.defender !== undefined && controls(state, u.defender, userId)));
     }
 
+    case "updateUnit": {
+      // Earned Battle Honours and Battle Training stay: only the owner can take one off.
+      const old = rosterOf(state, action.playerId).find((u) => u.id === action.unit.id);
+      return controls(state, action.playerId, userId) && !(old && droppedEarned(old, action.unit).length);
+    }
+
     case "requisitionDeck":
     case "playCard":
     case "discardCard":
     case "buyReinforcements":
     case "buyDatasheet":
     case "addUnit":
-    case "updateUnit":
     case "removeUnit":
     case "addRelic":
     case "removeRelic":

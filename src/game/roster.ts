@@ -285,7 +285,7 @@ function cleanUnit(u: Unit): Unit | null {
   }
   const out: Unit = {
     id: u.id,
-    name: u.name.trim() || "Unnamed squad",
+    name: u.name.trim() || u.datasheet.trim() || "Unnamed squad",
     datasheet: u.datasheet.trim(),
     points: u.points,
     xp: u.xp,
@@ -453,6 +453,12 @@ export function unitLocked(s: Pick<CampaignState, "round">, u: Pick<Unit, "ex">)
 /** Lowest base points an edit may save: the current points once the unit is locked (size only goes up), else 0. */
 export function minPointsFor(s: Pick<CampaignState, "round">, u: Pick<Unit, "ex" | "points"> | undefined): number {
   return u && unitLocked(s, u) ? u.points : 0;
+}
+
+/** Battle Honours and Battle Training on `old` that `next` no longer has. Players can't remove these; the owner can. */
+export function droppedEarned(old: Pick<Unit, "honours" | "training">, next: Pick<Unit, "honours" | "training">): string[] {
+  const keep = new Set([...next.honours, ...(next.training ?? [])]);
+  return [...old.honours, ...(old.training ?? [])].filter((n) => !keep.has(n));
 }
 
 export function updateUnitIn(s: CampaignState, playerId: string, unit: Unit): boolean {

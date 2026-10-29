@@ -3,8 +3,10 @@ import {
   BACKSTORY_MAX,
   capProblem,
   withUnit,
-  allowedHonours,
-  allowedScars,
+  CHAR_HONOURS,
+  CHAR_SCARS,
+  HONOURS,
+  SCARS,
   effectivePoints,
   honourSlots,
   makeScar,
@@ -25,6 +27,9 @@ import {
   minPointsFor,
   datasheetLimitBlock,
   distinctDatasheets,
+  droppedEarned,
+  honourEffect,
+  scarEffect,
   isKnightsExempt,
   STAGE_MAX_TOUGHNESS,
   STAGE_SUPPLY,
@@ -40,6 +45,9 @@ import { useCampaign } from "../../store/useCampaign.ts";
 import { DatasheetPicker } from "./DatasheetPicker.tsx";
 import { useIsEpicName } from "./useDatasheets.ts";
 import { Overlay } from "./Overlay.tsx";
+import { EffectSelect } from "./EffectSelect.tsx";
+import { HeldList } from "./HeldList.tsx";
+import { TrainingPicker } from "./TrainingPicker.tsx";
 import { useRng } from "./useRng.ts";
 
 export type FormMode = "add" | "edit" | "recruits";
@@ -124,8 +132,6 @@ function initial(existing: Unit | undefined, mode: FormMode): Draft {
   };
 }
 
-const toggle = (list: string[], v: string): string[] => (list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
-
 /** Empty counts as valid (the field is left unset); otherwise a whole number, 0 or more. */
 const wholeOrEmpty = (v: string): boolean => v.trim() === "" || (Number.isInteger(Number(v)) && Number(v) >= 0);
 
@@ -137,8 +143,11 @@ const COPY: Record<FormMode, { title: string; cta: string }> = {
 
 export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, rp, onSave, onClose }: Props) {
   const rng = useRng();
-  const { state } = useCampaign();
+  const { state, viewer } = useCampaign();
   const [d, setD] = useState<Draft>(() => initial(existing, mode));
+  // Players can't take off an earned Battle Honour or Battle Training; the owner can, to correct a mistake.
+  const lockEarned = !viewer.isOwner;
+  const earnedHonours = lockEarned ? (existing?.honours ?? []) : [];
   const set = (patch: Partial<Draft>) => setD((prev) => ({ ...prev, ...patch }));
   const recruits = mode === "recruits";
   // Kills give XP one for one: a whole-number change to Kills moves XP by the same amount (never below 0).
@@ -167,8 +176,9 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, r
   const slots = toggleOn(state, "forceOrg");
   const relics = d.isCharacter ? (existing?.relics ?? []) : [];
   const training = d.isCharacter ? (existing?.training ?? []) : [];
-  const honourList = allowedHonours(d);
-  const scarList = allowedScars(d);
+  // Characters may hold either table (legacy generic ones stay valid); their own table is listed first.
+  const honourGroups = d.isCharacter ? [{ label: "Character honours", items: CHAR_HONOURS }, { label: "Unit honours", items: HONOURS }] : [{ items: HONOURS }];
+  const scarGroups = d.isCharacter ? [{ label: "Character scars", items: CHAR_SCARS }, { label: "Unit scars", items: SCARS }] : [{ items: SCARS }];
   const clearChar = { isCharacter: false, isWarlord: false, enhancement: "", warlordTrait: "" } as const;
   // Leaving the Character role clears Warlord too, except a non-Character Warlord, which stays one.
   const keepSoft = d.isWarlord && !d.isCharacter;
@@ -226,6 +236,10 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, r
   else if (!wholeOrEmpty(d.kills)) problem = "Kills must be a whole number, 0 or more.";
   else if (hasWorn && !d.weapon.trim()) problem = "Worn Gear needs a weapon.";
   else if (recruits && d.honours.length !== 1) problem = "Pick exactly one Battle Honour.";
+  else if (lockEarned && existing) {
+    const dropped = droppedEarned(existing, { honours: d.honours, training });
+    if (dropped.length) problem = `${dropped.join(", ")} can't be removed once earned. Keep this unit a Character, or ask the campaign owner.`;
+  }
 
   /** The unit as the form would save it, under `id`. */
   const build = (id: string): Unit => {
@@ -233,7 +247,8 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, r
     const unit: Unit = {
       ...existing,
       id,
-      name: d.name.trim() || (recruits ? "Seasoned recruits" : "Unnamed squad"),
+      // A blank name takes the datasheet's name.
+      name: d.name.trim() || d.datasheet.trim() || (recruits ? "Seasoned recruits" : "Unnamed squad"),
       datasheet: d.datasheet.trim(),
       points,
       xp,
@@ -275,7 +290,7 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, r
     onSave(build(existing?.id ?? newUnitId(rng, roster)));
   };
 
-  const shownName = (d.name.trim() || "Unnamed squad").toUpperCase();
+  const shownName = (d.name.trim() || d.datasheet.trim() || "Unnamed squad").toUpperCase();
 
   return (
     <Overlay title={COPY[mode].title} onClose={onClose}>
@@ -287,7 +302,7 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, r
       <div className="formgrid">
         <div className="field">
           <label htmlFor="f_name">Unit name</label>
-          <input type="text" id="f_name" value={d.name} placeholder="e.g. Anvil Squad" onChange={(e) => set({ name: e.target.value })} />
+          <input type="text" id="f_name" value={d.name} placeholder={d.datasheet.trim() || "e.g. Anvil Squad"} onChange={(e) => set({ name: e.target.value })} />
         </div>
         <DatasheetPicker
           id="f_ds"
@@ -488,15 +503,23 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, r
         <div className="lbl">
           Battle Honours · {d.honours.length} of {allowed} for this rank
         </div>
-        <div className="chips" style={{ marginTop: 6 }}>
-          {honourList.map((h) => (
-            <button key={h.n} type="button" className="chip" aria-pressed={d.honours.includes(h.n)} title={h.e} onClick={() => set({ honours: toggle(d.honours, h.n) })}>
-              {h.n}
-            </button>
-          ))}
-        </div>
+        <HeldList
+          items={d.honours.map((n) => ({ n, e: honourEffect(n), locked: earnedHonours.includes(n) }))}
+          tone="hon"
+          onRemove={(n) => set({ honours: d.honours.filter((x) => x !== n) })}
+        />
+        <EffectSelect
+          label="Add a Battle Honour"
+          placeholder="Choose an honour…"
+          groups={honourGroups.map((g) => ({ ...g, items: g.items.map((h) => (d.honours.includes(h.n) ? { ...h, note: "Held" } : h)) }))}
+          value=""
+          onPick={(n) => set({ honours: [...d.honours, n] })}
+        />
+        {earnedHonours.length > 0 && <div className="hint">Earned honours are locked. Only the campaign owner can remove one.</div>}
         {d.honours.length > allowed && <div className="overline">More honours than this rank earns. Allowed, just check it's right.</div>}
       </div>
+
+      {existing?.isCharacter && d.isCharacter && <TrainingPicker playerId={playerId} unitId={existing.id} />}
 
       {!recruits && (
         <div className="sub">
@@ -505,13 +528,14 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, r
               ? `Battle Scars · ${d.scars.length} (the Warlord is never removed; at three, a new scar replaces the oldest)`
               : `Battle Scars · ${d.scars.length} of 2 (a third removes the unit)`}
           </div>
-          <div className="chips" style={{ marginTop: 6 }}>
-            {scarList.map((s) => (
-              <button key={s.n} type="button" className="chip" aria-pressed={d.scars.includes(s.n)} title={s.e} onClick={() => set({ scars: toggle(d.scars, s.n) })}>
-                {s.n}
-              </button>
-            ))}
-          </div>
+          <HeldList items={d.scars.map((n) => ({ n, e: scarEffect(n) }))} tone="scar" onRemove={(n) => set({ scars: d.scars.filter((x) => x !== n) })} />
+          <EffectSelect
+            label="Add a Battle Scar"
+            placeholder="Choose a scar…"
+            groups={scarGroups.map((g) => ({ ...g, items: g.items.map((x) => (d.scars.includes(x.n) ? { ...x, note: "Held" } : x)) }))}
+            value=""
+            onPick={(n) => set({ scars: [...d.scars, n] })}
+          />
           {hasWorn && (
             <div className="field" style={{ marginTop: 10 }}>
               <label htmlFor="f_wgw">Worn Gear: which weapon?</label>

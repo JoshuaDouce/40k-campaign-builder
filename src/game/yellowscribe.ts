@@ -101,13 +101,17 @@ export function importedUnits(f: Pick<YsFetched, "order" | "units">): ImportedUn
 /** Army key -> roster Unit.id, or null when nothing matched. */
 export type UnitMatches = Record<string, string | null>;
 
-/** Match by datasheet name (case, spaces and punctuation ignored). Duplicates are assigned in order; a roster unit is never reused. */
+/**
+ * Match by the roster unit's datasheet, its real name, never the player's own name for it (case, spaces and punctuation
+ * ignored). A unit with no datasheet is left for the player to match by hand. Duplicates are assigned in order; a
+ * roster unit is never reused.
+ */
 export function matchUnits(imported: readonly ImportedUnit[], candidates: readonly Unit[]): UnitMatches {
   const used = new Set<string>();
   const matches: UnitMatches = {};
   for (const imp of imported) {
     const n = fold(imp.name);
-    const hit = n ? candidates.find((c) => !used.has(c.id) && fold(c.datasheet || c.name) === n) : undefined;
+    const hit = n ? candidates.find((c) => !used.has(c.id) && fold(c.datasheet) === n) : undefined;
     matches[imp.key] = hit ? hit.id : null;
     if (hit) used.add(hit.id);
   }
