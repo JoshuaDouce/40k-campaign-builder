@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { capProblem, MAX_RELICS, RELIC_PTS, RELICS, relicEffect, rosterOf, withUnit } from "../../game/index.ts";
+import { capProblem, MAX_RELICS, RELIC_PTS, RELICS, rosterOf, withUnit } from "../../game/index.ts";
 import type { Unit } from "../../game/index.ts";
 import { useCampaign } from "../../store/useCampaign.ts";
-import { DieControl } from "./DieControl.tsx";
+import { RollOrPick } from "./RollOrPick.tsx";
 import { Overlay, SheetFooter } from "./Overlay.tsx";
 
 interface Props {
@@ -21,7 +21,6 @@ export function RelicDialog({ playerId, unit, onDone, onClose }: Props) {
   const [pick, setPick] = useState("");
   const held = unit.relics ?? [];
   const rolledName = roll ? RELICS[roll - 1]?.n : undefined;
-  const dupRoll = !!rolledName && held.includes(rolledName) && !pick;
   const candidate = pick || rolledName;
   const chosen = candidate && !held.includes(candidate) ? candidate : undefined;
   const capBlock = chosen ? capProblem(state, playerId, withUnit(rosterOf(state, playerId), { ...unit, relics: [...held, chosen] })) : null;
@@ -55,39 +54,21 @@ export function RelicDialog({ playerId, unit, onDone, onClose }: Props) {
       <div className="lbl" style={{ marginTop: 12 }}>
         2. Roll or pick
       </div>
-      <div className="row" style={{ marginTop: 8 }}>
-        <DieControl
-          faces={6}
-          value={roll}
-          label="relic D6"
-          onChange={(v) => {
-            setRoll(v);
-            setPick("");
-          }}
-        />
-        <select aria-label="Pick a relic" value={pick} onChange={(e) => setPick(e.target.value)}>
-          <option value="">Pick from list</option>
-          {RELICS.map((r) => {
-            const isHeld = held.includes(r.n);
-            return (
-              <option key={r.n} value={r.n} disabled={isHeld}>
-                {r.n}
-                {isHeld ? " (held)" : ""}
-              </option>
-            );
-          })}
-        </select>
-      </div>
-      {dupRoll && (
-        <div className="out bad">
-          Rolled {roll}: {rolledName}, already held. Re-roll, or pick another from the list.
-        </div>
-      )}
-      {chosen && (
-        <div className="out">
-          {pick ? "Picked" : `Rolled ${roll}`}: <b>{chosen}</b>. {relicEffect(chosen)}
-        </div>
-      )}
+      <RollOrPick
+        rows={RELICS}
+        held={held}
+        label="Relic"
+        roll={roll}
+        pick={pick}
+        onRoll={(v) => {
+          setRoll(v);
+          setPick("");
+        }}
+        onPick={(n) => {
+          setPick(n);
+          setRoll(undefined);
+        }}
+      />
       {capBlock && (
         <div className="hint bad" role="alert">
           ! {capBlock}
