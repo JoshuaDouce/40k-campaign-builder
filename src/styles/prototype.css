@@ -239,6 +239,7 @@ select,textarea,input[type=text],input[type=number]{font:inherit;background:var(
 .badge.war{background:var(--brass);color:var(--bg);border-color:var(--brass)}
 .badge.hon{border-color:var(--verd);color:var(--verd)}
 .badge.scar{border-color:var(--blood);color:var(--blood)}
+.badge.train{border-color:var(--brass);color:var(--brass)}
 .badge.legend{background:var(--brass);color:var(--bg);border-color:var(--brass)}
 .badge.warn{background:var(--blood);color:var(--ink);border-color:var(--blood)}
 .xp{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;font-family:var(--f-mono);font-size:12px}

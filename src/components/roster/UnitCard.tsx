@@ -4,7 +4,6 @@ import {
   extrasPoints,
   honourPoints,
   MAX_RELICS,
-  MAX_TRAINING,
   rankIndex,
   RANKS,
   RELIC_PTS,
@@ -76,6 +75,16 @@ export function UnitCard({ unit, editable, memorial, overLimit, toughOver, tough
   const pct = next ? Math.round(((unit.xp - rank.xp) / (next.xp - rank.xp)) * 100) : 100;
   const relics = unit.relics ?? [];
   const training = unit.isCharacter ? (unit.training ?? []) : [];
+  // The tapped badge's name and effect, while it is still on the unit.
+  const shown = !shownFx
+    ? null
+    : unit.honours.includes(shownFx)
+      ? { n: shownFx, e: honourEffect(shownFx), tone: "hon" as const }
+      : unit.scars.includes(shownFx)
+        ? { n: scarLabel(shownFx), e: scarEffect(shownFx), tone: "scar" as const }
+        : training.includes(shownFx)
+          ? { n: shownFx, e: trainingEffect(shownFx), tone: "train" as const }
+          : null;
   const hp = honourPoints(unit);
   const honourDelta = hp - unit.points;
   const eff = hp + extrasPoints(unit);
@@ -160,7 +169,7 @@ export function UnitCard({ unit, editable, memorial, overLimit, toughOver, tough
           {next ? toNext === 1 ? <b style={{ color: "var(--verd)" }}>1 XP to {next.n}</b> : `${toNext} to ${next.n}` : "Max rank"}
         </span>
       </div>
-      {(unit.honours.length > 0 || unit.scars.length > 0) && (
+      {(unit.honours.length > 0 || unit.scars.length > 0 || training.length > 0) && (
         <div className="badges">
           {unit.honours.map((h) => (
             <button key={h} type="button" className="badge hon tap" aria-expanded={shownFx === h} title={honourEffect(h)} onClick={() => setShownFx(shownFx === h ? null : h)}>
@@ -176,11 +185,14 @@ export function UnitCard({ unit, editable, memorial, overLimit, toughOver, tough
               </button>
             );
           })}
+          {training.map((t) => (
+            <button key={t} type="button" className="badge train tap" aria-expanded={shownFx === t} title={trainingEffect(t)} onClick={() => setShownFx(shownFx === t ? null : t)}>
+              {t}
+            </button>
+          ))}
         </div>
       )}
-      {shownFx && (unit.honours.includes(shownFx) || unit.scars.includes(shownFx)) && (
-        <EffectList items={[{ n: unit.honours.includes(shownFx) ? shownFx : scarLabel(shownFx), e: honourEffect(shownFx) ?? scarEffect(shownFx) }]} tone={unit.honours.includes(shownFx) ? "hon" : "scar"} />
-      )}
+      {shown && <EffectList items={[shown]} tone={shown.tone} />}
       {unit.isCharacter && hasDetails && (
         <details className="more">
           <summary>
@@ -218,16 +230,6 @@ export function UnitCard({ unit, editable, memorial, overLimit, toughOver, tough
         <div className="enh">
           <span>Enhancement</span>
           {unit.enhancement}
-        </div>
-      )}
-      {training.length > 0 && (
-        <div className="enh">
-          <span>Battle Training · {training.length} of {MAX_TRAINING}</span>
-          {training.map((t) => (
-            <div key={t}>
-              <b>{t}</b> {trainingEffect(t)}
-            </div>
-          ))}
         </div>
       )}
       {unit.isCharacter && (relics.length > 0 || editable) && (
