@@ -157,27 +157,46 @@ export function PromotionDialog({ playerId, roster, rp, onDone, onClose }: Props
               faces={12}
               value={roll}
               label="Battle Training D12"
+              enter={false}
               onChange={(v) => {
                 setRoll(v);
                 setPick("");
               }}
             />
-            <select aria-label="Pick Battle Training" value={pick} onChange={(e) => setPick(e.target.value)}>
-              <option value="">Pick from list</option>
-              {TRAINING.map((t) => (
-                <option key={t.n} value={t.n} disabled={held.includes(t.n)}>
-                  {t.n}
-                  {held.includes(t.n) ? " (held)" : ""}
-                </option>
-              ))}
-            </select>
+            <span className="dim">or pick one below</span>
           </div>
-          {dupRoll && <div className="out bad">Rolled {roll}: {rolledName}, already held. Re-roll, or pick another from the list.</div>}
-          {training && (
+          {dupRoll && <div className="out bad">Rolled {roll}: {rolledName}, already held. Re-roll, or pick another below.</div>}
+          {training && !pick && (
             <div className="out">
-              {pick ? "Picked" : `Rolled ${roll}`}: <b>{training}</b>. {trainingEffect(training)}
+              Rolled {roll}: <b>{training}</b>. {trainingEffect(training)}
             </div>
           )}
+          <div className="picklist" role="group" aria-label="Pick Battle Training">
+            {TRAINING.map((t, i) => {
+              const isHeld = held.includes(t.n);
+              return (
+                <button
+                  key={t.n}
+                  type="button"
+                  className="opt"
+                  aria-pressed={candidate === t.n}
+                  disabled={isHeld}
+                  onClick={() => {
+                    setPick(t.n);
+                    setRoll(undefined);
+                  }}
+                >
+                  <div>
+                    <b>
+                      {i + 1}. {t.n}
+                      {isHeld ? " (held)" : ""}
+                    </b>
+                    <small>{t.e}</small>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
         </>
       )}
       {mode === "vet" && uid && (
