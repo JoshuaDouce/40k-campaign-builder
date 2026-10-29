@@ -3,7 +3,7 @@ import { useCallback, useState } from "react";
 import { FACTIONS } from "../game/index.ts";
 import type { FactionName } from "../game/index.ts";
 
-export const TAB_IDS = ["pitch", "war", "map", "roster", "rules", "turn", "cards", "factions", "tracker", "setup", "reference"] as const;
+export const TAB_IDS = ["pitch", "war", "map", "roster", "rules", "rewards", "turn", "cards", "factions", "tracker", "setup", "reference"] as const;
 export type TabId = (typeof TAB_IDS)[number];
 
 const TAB_KEY = "varkesh-tab";
@@ -30,7 +30,7 @@ export function isTabId(v: string | null | undefined): v is TabId {
   return !!v && (TAB_IDS as readonly string[]).includes(v);
 }
 
-export const PUBLIC_TAB_IDS = ["pitch", "rules", "turn", "cards", "factions"] as const satisfies readonly TabId[];
+export const PUBLIC_TAB_IDS = ["pitch", "rules", "rewards", "turn", "cards", "factions"] as const satisfies readonly TabId[];
 export type PublicTabId = (typeof PUBLIC_TAB_IDS)[number];
 
 export function isPublicTab(v: string | null | undefined): v is PublicTabId {
@@ -38,7 +38,7 @@ export function isPublicTab(v: string | null | undefined): v is PublicTabId {
 }
 
 /** The pages grouped under the campaign's Reference tab, in sub-row order. */
-export const REFERENCE_PAGE_IDS = ["rules", "turn", "cards", "factions", "pitch"] as const satisfies readonly TabId[];
+export const REFERENCE_PAGE_IDS = ["rules", "rewards", "turn", "cards", "factions", "pitch"] as const satisfies readonly TabId[];
 export type ReferencePageId = (typeof REFERENCE_PAGE_IDS)[number];
 
 export function isReferencePage(v: string | null | undefined): v is ReferencePageId {

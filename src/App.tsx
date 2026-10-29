@@ -16,6 +16,7 @@ import { MapTab } from "./components/MapTab.tsx";
 import type { MapViewState } from "./components/MapTab.tsx";
 import { PitchTab } from "./components/PitchTab.tsx";
 import { PlayersTab } from "./components/PlayersTab.tsx";
+import { RewardsTab } from "./components/RewardsTab.tsx";
 import { RosterTab } from "./components/roster/RosterTab.tsx";
 import { SetupTab } from "./components/SetupTab.tsx";
 import { RulesTab } from "./components/RulesTab.tsx";
@@ -35,6 +36,7 @@ const TABS: ReadonlyArray<{ id: TabId; label: string }> = [
   { id: "map", label: "Map" },
   { id: "roster", label: "My Warband" },
   { id: "rules", label: "Rules" },
+  { id: "rewards", label: "Rewards" },
   { id: "turn", label: "Turn Guide" },
   { id: "cards", label: "Fate Deck" },
   { id: "factions", label: "Factions" },
@@ -84,7 +86,7 @@ function TabBar({ tabs, current, label, onSelect, className = "tabs" }: { tabs: 
   );
 }
 
-/** The five public tabs: general content, no campaign data. Reached signed out, or from the campaign list. */
+/** The public tabs: general content, no campaign data. Reached signed out, or from the campaign list. */
 function PublicShell({ header }: { header: ReactNode }) {
   const [tab, setTab] = useState<PublicTabId>(readPublicStartTab);
 
@@ -109,7 +111,8 @@ function PublicShell({ header }: { header: ReactNode }) {
       {HERO}
       <TabBar tabs={PUBLIC_TABS} current={tab} label="Sections" onSelect={show} />
       {tab === "pitch" && <PitchTab onNavigate={show} />}
-      {tab === "rules" && <RulesTab />}
+      {tab === "rules" && <RulesTab onNavigate={show} />}
+      {tab === "rewards" && <RewardsTab onNavigate={show} />}
       {tab === "turn" && <TurnGuideTab />}
       {tab === "cards" && <DeckTab />}
       {tab === "factions" && <FactionsTab />}
@@ -173,7 +176,8 @@ function CampaignTabs({ onPlay, onDeleted }: { onPlay: () => void; onDeleted: ()
       {current === "war" && <WarRoomTab colors={colors} onNavigate={show} />}
       {current === "map" && <MapTab colors={colors} map={map} />}
       {current === "roster" && <RosterTab colors={colors} />}
-      {current === "rules" && <RulesTab />}
+      {current === "rules" && <RulesTab onNavigate={show} />}
+      {current === "rewards" && <RewardsTab onNavigate={show} />}
       {current === "turn" && <TurnGuideTab />}
       {current === "cards" && <DeckTab />}
       {current === "factions" && <FactionsTab />}
