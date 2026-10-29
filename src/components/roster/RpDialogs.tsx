@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { capProblem, forceOrgFor, promoted, withUnit, MAX_TRAINING, TRAINING, TRAINING_PTS, trainingEffect, PROMOTION_COST, PROMOTION_MIN_XP, rankOf, RECRUITS_COST, scarEffect, SURGEON_COST, scarLabel, scarName } from "../../game/index.ts";
+import { capProblem, forceOrgFor, promoted, withUnit, MAX_TRAINING, TRAINING, TRAINING_PTS, PROMOTION_COST, PROMOTION_MIN_XP, rankOf, RECRUITS_COST, scarEffect, SURGEON_COST, scarLabel, scarName } from "../../game/index.ts";
 import type { Action, Unit } from "../../game/index.ts";
 import { useCampaign } from "../../store/useCampaign.ts";
-import { DieControl } from "./DieControl.tsx";
+import { RollOrPick } from "./RollOrPick.tsx";
 import { Overlay, SheetFooter } from "./Overlay.tsx";
 import { UnitFormSheet } from "./UnitFormSheet.tsx";
 
@@ -99,7 +99,6 @@ export function PromotionDialog({ playerId, roster, rp, onDone, onClose }: Props
   // Battle Training: roll a D12 or pick; a name the Character already holds can't be taken again.
   const held = unit?.training ?? [];
   const rolledName = roll ? TRAINING[roll - 1]?.n : undefined;
-  const dupRoll = !!rolledName && held.includes(rolledName) && !pick;
   const candidate = pick || rolledName;
   const training = candidate && !held.includes(candidate) ? candidate : undefined;
   const capBlock = unit && (mode === "vet" || training) ? capProblem(state, playerId, withUnit(roster, promoted(unit, training))) : null;
@@ -152,51 +151,21 @@ export function PromotionDialog({ playerId, roster, rp, onDone, onClose }: Props
       </div>
       {mode === "char" && uid && (
         <>
-          <div className="row" style={{ marginTop: 8 }}>
-            <DieControl
-              faces={12}
-              value={roll}
-              label="Battle Training D12"
-              enter={false}
-              onChange={(v) => {
-                setRoll(v);
-                setPick("");
-              }}
-            />
-            <span className="dim">or pick one below</span>
-          </div>
-          {dupRoll && <div className="out bad">Rolled {roll}: {rolledName}, already held. Re-roll, or pick another below.</div>}
-          {training && !pick && (
-            <div className="out">
-              Rolled {roll}: <b>{training}</b>. {trainingEffect(training)}
-            </div>
-          )}
-          <div className="picklist" role="group" aria-label="Pick Battle Training">
-            {TRAINING.map((t, i) => {
-              const isHeld = held.includes(t.n);
-              return (
-                <button
-                  key={t.n}
-                  type="button"
-                  className="opt"
-                  aria-pressed={candidate === t.n}
-                  disabled={isHeld}
-                  onClick={() => {
-                    setPick(t.n);
-                    setRoll(undefined);
-                  }}
-                >
-                  <div>
-                    <b>
-                      {i + 1}. {t.n}
-                      {isHeld ? " (held)" : ""}
-                    </b>
-                    <small>{t.e}</small>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
+          <RollOrPick
+            rows={TRAINING}
+            held={held}
+            label="Battle Training"
+            roll={roll}
+            pick={pick}
+            onRoll={(v) => {
+              setRoll(v);
+              setPick("");
+            }}
+            onPick={(n) => {
+              setPick(n);
+              setRoll(undefined);
+            }}
+          />
         </>
       )}
       {mode === "vet" && uid && (
