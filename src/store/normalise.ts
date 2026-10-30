@@ -1,5 +1,5 @@
 // Shape check for a campaign loaded from the backend. Tolerates fields added since a save was made.
-import { applyStartRp, migrateLegacy, repriceMusters, type CampaignState, type LegacyState } from "../game/index.ts";
+import { applyStartRp, backfillPlayerLog, migrateLegacy, repriceMusters, type CampaignState, type LegacyState } from "../game/index.ts";
 
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
 
@@ -25,7 +25,8 @@ export function normaliseState(v: unknown): CampaignState | null {
   if (!ok) return null;
   // Converts a save made before simultaneous turns, if it is one (see migrateLegacy).
   const s = migrateLegacy(v as unknown as LegacyState);
-  return repriceMusters(applyStartRp({
+  // The backfill runs first, so its older lines sit below anything the Muster repricing adds.
+  return repriceMusters(backfillPlayerLog(applyStartRp({
     ...s,
     hollOpened: s.hollOpened === true,
     rosters: isObject(s.rosters) ? s.rosters : {},
@@ -33,5 +34,5 @@ export function normaliseState(v: unknown): CampaignState | null {
     ready: isObject(s.ready) ? s.ready : {},
     history: Array.isArray(s.history) ? s.history : [],
     undo: isObject(s.undo) && isObject(s.undo.before) ? s.undo : undefined,
-  }));
+  })));
 }

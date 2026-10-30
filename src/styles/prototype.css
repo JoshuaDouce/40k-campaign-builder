@@ -805,6 +805,7 @@ h4.rl-h{font-family:var(--f-mono);font-weight:500;font-size:12px;letter-spacing:
 .pl-e.org{border-left-color:var(--blood)}
 .pl-e.game{border-left-color:var(--brass)}
 .pl-e.start{border-left-style:dashed}
+.pl-e.old{border-left-style:dotted}
 .pl-top{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;justify-content:space-between;margin-bottom:2px}
 .pl-r{font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--brass)}
 .pl-txt{color:var(--dim)}

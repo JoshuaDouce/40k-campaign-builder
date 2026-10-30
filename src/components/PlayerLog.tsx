@@ -16,10 +16,10 @@ const LABELS: Record<(typeof FIGURE_KEYS)[number], string> = { rp: "RP", sup: "S
 function Entry({ e }: { e: PlayerLogEntry }) {
   const tag = e.by ? TAGS[e.by] : undefined;
   return (
-    <li className={`pl-e${tag?.[2] ?? ""}${e.start ? " start" : ""}`}>
+    <li className={`pl-e${tag?.[2] ?? ""}${e.start ? " start" : ""}${e.old ? " old" : ""}`}>
       <div className="pl-top">
         <span className="pl-r">{e.r ? `War Round ${e.r}` : "Setup"}</span>
-        {tag ? <span className={`badge${tag[1]}`}>{tag[0]}</span> : null}
+        {tag ? <span className={`badge${tag[1]}`}>{tag[0]}</span> : e.old ? <span className="badge">Campaign log</span> : null}
       </div>
       <div className="pl-txt">
         <LogSegs segs={e.segs} />
@@ -76,6 +76,7 @@ export function PlayerLog({ colors }: { colors: Record<string, string> }) {
       )}
       <div className="pl-foot">
         <p>Supply limit is the player&apos;s full limit (base + provinces + Reinforcements), not just the Reinforcements part.</p>
+        <p>Entries marked Campaign log were copied from the campaign log from before the Player log began, so they have no before and after figures.</p>
         <p>Keeps the latest {playerLogCap(state.players.length)} entries per player. Read-only.</p>
       </div>
     </div>

@@ -212,6 +212,8 @@ export interface PlayerLogEntry {
   sup?: [number, number];
   hand?: [number, number];
   start?: true;
+  /** Copied from the campaign log from before the Player log began: text only, no figures. */
+  old?: true;
 }
 
 /**
@@ -453,6 +455,8 @@ export interface CampaignState {
   rpStartZero?: boolean;
   /** Set once Musters taken under 1.1 have been repriced for 1.2 (by the upgrade, or on load for a campaign already on 1.2). */
   musterRepriced?: boolean;
+  /** Set once the campaign log from before the Player log began has been copied into it (on load, once). */
+  plogBackfilled?: boolean;
   /** Battle history, oldest first. Missing on old saves = empty. */
   history?: BattleRecord[];
   /** Undo window for the latest battle result. Missing = nothing to undo. */

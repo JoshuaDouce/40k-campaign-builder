@@ -1,7 +1,7 @@
 // The organiser's Player log: why each player's RP, supply limit or Fate Card count changed. Recorded in apply().
 import { controls, OWNER_ONLY } from "./permissions.ts";
 import { supplyOf } from "./selectors.ts";
-import type { Action, ActionType, CampaignState, LogSeg, PlayerLogEntry } from "./types.ts";
+import type { Action, ActionType, CampaignState, LogEntry, LogSeg, PlayerLogEntry } from "./types.ts";
 
 /** Most entries kept per player (newest first). */
 const PLAYER_LOG_MAX = 200;
@@ -85,11 +85,8 @@ function textFor(added: Array<{ segs: LogSeg[] }>, name: string, a: Action): Log
   return lines.flatMap((l, i) => (i ? [{ t: " " }, ...l.segs] : l.segs));
 }
 
-/**
- * Put `entry` on top of player `id`'s log, keeping it within the cap (mutates `s`). A player with no log yet first gets
- * the opening entry, from their figures now (so call it before changing them).
- */
-export function pushPlayerLog(s: CampaignState, id: string, entry: PlayerLogEntry): void {
+/** Player `id`'s log, started with an opening entry from their figures now if they have none yet (mutates `s`). */
+function openPlayerLog(s: CampaignState, id: string): PlayerLogEntry[] {
   const plog = (s.plog ??= {});
   const list = plog[id] ?? [];
   const at = figuresOf(s)[id];
@@ -98,9 +95,51 @@ export function pushPlayerLog(s: CampaignState, id: string, entry: PlayerLogEntr
     for (const k of FIGURE_KEYS) start[k] = [at[k], at[k]];
     list.unshift(start);
   }
+  plog[id] = list;
+  return list;
+}
+
+/**
+ * Put `entry` on top of player `id`'s log, keeping it within the cap (mutates `s`). A player with no log yet first gets
+ * the opening entry, from their figures now (so call it before changing them).
+ */
+export function pushPlayerLog(s: CampaignState, id: string, entry: PlayerLogEntry): void {
+  const list = openPlayerLog(s, id);
   list.unshift(entry);
   list.length = Math.min(list.length, playerLogCap(s.players.length));
-  plog[id] = list;
+}
+
+/**
+ * One-time load migration: the campaign log lines from before the Player log began (the log keeps only the latest 60)
+ * are copied under each named player's opening entry, as text only (`old`), since the log never held the figures.
+ * A line counts as earlier when it is older than every line the Player log has already picked up. Pure.
+ */
+export function backfillPlayerLog(state: CampaignState): CampaignState {
+  if (state.plogBackfilled) return state;
+  const s = structuredClone(state);
+  s.plogBackfilled = true;
+  // Player log entries reuse campaign log segments, so a line it has picked up appears inside an entry's segments.
+  const seen = Object.values(s.plog ?? {}).flatMap((list) => list.map((e) => JSON.stringify(e.segs)));
+  const picked = (l: LogEntry) => {
+    const inner = JSON.stringify(l.segs).slice(1, -1);
+    return seen.some((t) => t.includes(inner));
+  };
+  let oldestPicked = -1;
+  s.log.forEach((l, i) => {
+    if (picked(l)) oldestPicked = i;
+  });
+  const earlier = s.log.slice(oldestPicked + 1);
+  const cap = playerLogCap(s.players.length);
+  for (const p of s.players) {
+    const mine = earlier.filter((l) => l.segs.some((g) => g.b && g.t === p.name));
+    if (!mine.length) continue;
+    const list = openPlayerLog(s, p.id);
+    const start = list.find((e) => e.start && e.segs[0]?.t.startsWith("History begins"));
+    if (start) start.segs = [{ t: `History begins ${atRound(start.r)}. Earlier lines are from the campaign log, without figures.` }];
+    list.push(...mine.map((l): PlayerLogEntry => ({ r: l.r, segs: l.segs, old: true })));
+    list.length = Math.min(list.length, cap);
+  }
+  return s;
 }
 
 /**
