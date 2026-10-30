@@ -795,3 +795,24 @@ h4.rl-h{font-family:var(--f-mono);font-weight:500;font-size:12px;letter-spacing:
 .held .txt{flex:1;min-width:0;display:grid}
 .held small{color:var(--dim);font-size:13.5px;line-height:1.35}
 .held .lock{font-family:var(--f-mono);font-size:11px;color:var(--dim);white-space:nowrap;padding-top:3px}
+
+/* Player log: organiser-only panel on the Players tab. Reuses .chip, .dot, .hint, .empty and the :root tokens. */
+.pl-head{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:baseline;justify-content:space-between}
+.pl-head h3{margin:0}
+.pl .pick .chip{min-height:44px;color:var(--ink)}
+.pl-list{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:6px}
+.pl-e{border-left:3px solid var(--dim);background:var(--bg);padding:8px 10px;font-size:14.5px;line-height:1.4;min-width:0}
+.pl-e.org{border-left-color:var(--blood)}
+.pl-e.game{border-left-color:var(--brass)}
+.pl-e.start{border-left-style:dashed}
+.pl-top{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;justify-content:space-between;margin-bottom:2px}
+.pl-r{font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--brass)}
+.pl-txt{color:var(--dim)}
+.pl-txt b{color:var(--ink);font-weight:500}
+.pl-diffs{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:4px;font-family:var(--f-mono);font-size:12px;letter-spacing:.03em}
+.pl-diffs .k{color:var(--dim);text-transform:uppercase;font-size:11px;letter-spacing:.08em;margin-right:4px}
+.pl-diffs .up{color:var(--verd)}
+.pl-diffs .dn{color:var(--blood)}
+.pl-diffs .same{color:var(--ink)}
+.pl-foot{margin:12px 0 0;border-top:1px solid var(--line);padding-top:8px}
+.pl-foot p{font-family:var(--f-mono);font-size:12px;color:var(--dim);line-height:1.4;margin:0 0 4px}

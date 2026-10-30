@@ -3,6 +3,7 @@ import type { Action } from "../game/index.ts";
 import { useCampaign } from "../store/useCampaign.ts";
 import { PlanPanel } from "./war/PlanPanel.tsx";
 import { ResolutionPanel } from "./war/ResolutionPanel.tsx";
+import { LogSegs } from "./LogSegs.tsx";
 import { UndoBattle } from "./UndoBattle.tsx";
 import type { WarCtx } from "./war/warTypes.ts";
 import type { TabId } from "../store/useDevicePrefs.ts";
@@ -44,7 +45,7 @@ export function WarRoomTab({ colors, onNavigate }: Props) {
           state.log.slice(0, 25).map((l, i) => (
             <li key={`${state.log.length - i}`}>
               <span className="r">R{l.r}</span>
-              {l.segs.map((seg, j) => (seg.b ? <b key={j}>{seg.t}</b> : <span key={j}>{seg.t}</span>))}
+              <LogSegs segs={l.segs} />
             </li>
           ))
         ) : (
