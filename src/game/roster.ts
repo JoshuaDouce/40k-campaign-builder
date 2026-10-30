@@ -19,7 +19,9 @@ export const RECRUITS_COST = 2;
 export const RECRUITS_XP = 3;
 /** Minimum XP (Veteran) for a non-Character to be promoted to Character. */
 export const PROMOTION_MIN_XP = 8;
-/** Relics a Character can hold, and the points each adds (flat, after honours). */
+/** Points each Battle Honour adds (flat, like relics and Battle Training). */
+export const HONOUR_PTS = 10;
+/** Relics a Character can hold, and the points each adds. */
 export const MAX_RELICS = 3;
 export const RELIC_PTS = 10;
 export const MAX_TRAINING = 3;
@@ -62,20 +64,19 @@ export function xpToNext(xp: number): number | null {
 export function honoursOwed(unit: Pick<Unit, "honours">, newXp: number): number {
   return Math.max(0, honourSlots(newXp) - unit.honours.length);
 }
-/** Base points plus 10% per honour, rounded to the nearest 5 (no relics). */
-export function honourPoints(unit: Pick<Unit, "points" | "honours">): number {
-  return Math.round((unit.points * (1 + 0.1 * unit.honours.length)) / 5) * 5;
+/** Points added by buffs: 10 per Battle Honour, relic and Battle Training. */
+export function buffPoints(unit: Pick<Unit, "honours" | "relics" | "training">): number {
+  return HONOUR_PTS * unit.honours.length + RELIC_PTS * (unit.relics?.length ?? 0) + TRAINING_PTS * (unit.training?.length ?? 0);
 }
-/** Points added by relics and Battle Training (10 each). */
-export function extrasPoints(unit: Pick<Unit, "relics" | "training">): number {
-  return RELIC_PTS * (unit.relics?.length ?? 0) + TRAINING_PTS * (unit.training?.length ?? 0);
-}
-/** Honour-adjusted points (rounded to 5) plus 10 per relic and per Battle Training. */
+/** Base points plus buffs. */
 export function effectivePoints(unit: Pick<Unit, "points" | "honours" | "relics" | "training">): number {
-  return honourPoints(unit) + extrasPoints(unit);
+  return unit.points + buffPoints(unit);
 }
 export function totalEffective(units: readonly Unit[]): number {
   return units.reduce((a, u) => a + effectivePoints(u), 0);
+}
+export function totalBuffs(units: readonly Unit[]): number {
+  return units.reduce((a, u) => a + buffPoints(u), 0);
 }
 /** Most XP a unit earns in one War Round from surviving and kills. Marked for Glory is on top. */
 export const XP_ROUND_CAP = 2;

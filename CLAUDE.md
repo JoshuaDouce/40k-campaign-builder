@@ -155,6 +155,9 @@ entries without refreshing.
   handicap, and opens a per-side tally (Destroyed, kills, Marked for Glory: campaign numbers only, no VP or CP). It is
   shared campaign state. "Back to army lists" unlocks and keeps the tally. Recording the result copies it to
   `lastTally`, which pre-fills that player's post-battle helper.
+- **Flat buff points (2026-10-30):** every Battle Honour, relic and Battle Training adds a flat 10 pts (honours were
+  10% of base points rounded to 5). The army list and My Warband show the base points and the buff points separately,
+  for checking against an outside list builder.
 - **Export to TTS via Yellowscribe (2026-10-29):** players paste a Yellowscribe code; the app adds campaign effects
   (abilities, plain stat changes, titles) and returns a new code. One Lambda proxies yellowscribe.link (no CORS there).
   The export never changes the campaign. See `docs/features/yellowscribe-export.md`.

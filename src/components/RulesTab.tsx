@@ -1,4 +1,4 @@
-import { ACTIONS, BATTLE_SIZES, LIGHT_FORCES_MAX_PTS, LIGHT_FORCES_TWIST, ORBITS, PTYPES, toggleOn, TOGGLE_KEYS, TOGGLE_NAMES, TWISTS, typeGains, VTYPES } from "../game/index.ts";
+import { ACTIONS, BATTLE_SIZES, HONOUR_PTS, LIGHT_FORCES_MAX_PTS, LIGHT_FORCES_TWIST, ORBITS, PTYPES, toggleOn, TOGGLE_KEYS, TOGGLE_NAMES, TWISTS, typeGains, VTYPES } from "../game/index.ts";
 import type { ProvinceType, ToggleKey } from "../game/index.ts";
 import { useOptionalCampaign } from "../store/useCampaign.ts";
 import type { TabId } from "../store/useDevicePrefs.ts";
@@ -274,7 +274,7 @@ export function RulesTab({ onNavigate }: { onNavigate: (tab: TabId) => void }) {
         <li>Green 0 XP, Blooded 3, Veteran 8, Elite 15, Legend of the Reach 25 (the unit gets a name in the campaign log).</li>
         <li>Each rank gained: roll or pick 1 Battle Honour, straight after the battle.</li>
         <li>No duplicate honours: re-roll or pick another.</li>
-        <li>Each Battle Honour adds 10% of the unit's base points (on the total, rounded to the nearest 5).</li>
+        <li>Each Battle Honour adds {HONOUR_PTS} pts to the unit.</li>
       </ul>
 
       <h3>Battle Scars (roll D3)</h3>
