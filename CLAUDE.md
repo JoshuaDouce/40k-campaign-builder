@@ -179,6 +179,9 @@ entries without refreshing.
   Monster or Other. Units keep a role. Two role rules stay in every campaign: Character slots (1, +1 per Shrine held, up
   to +3; held at 1 in Setup) and a 2 Battleline minimum. The Datasheet limit switch is now on by default. Can be added
   back from git history (`src/game/forceOrg.ts`, `ForceOrgChart.tsx`) if wanted.
+- **Mission Twists switch (2026-10-30):** an owner-only campaign rule, on by default. Off: battles roll no twists (and the
+  Scout swap note is dropped). Battles of 750 pts or fewer always use Light Forces and Close Quarters, on top of any
+  rolled twists and whether the switch is on or off.
 - **`main` deploys straight to live** and committing to `main` is fine (friends-only app).
 
 ## Not in the MVP

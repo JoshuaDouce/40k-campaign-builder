@@ -308,7 +308,6 @@ export interface LiveBattle {
   edge?: GarrisonEdge;
   notes: string[];
   cards: number;
-  lightForces: boolean;
   /** Army lists by player id (the attacker, and the defender unless a garrison). Missing = not changed from the default. */
   lists?: Record<string, ArmyList>;
   /** The battle is being played: lists and twists are locked and the tally is open. */
@@ -441,11 +440,11 @@ export interface CampaignState {
   history?: BattleRecord[];
   /** Undo window for the latest battle result. Missing = nothing to undo. */
   undo?: UndoInfo;
-  /** Owner-switched campaign rules. Missing object or key = default (Datasheet limit on, the rest off). */
+  /** Owner-switched campaign rules. Missing object or key = default (Mission Twists and Datasheet limit on, the rest off). */
   toggles?: Partial<Record<ToggleKey, boolean>>;
 }
 
-export type ToggleKey = "datasheetLimit" | "toughnessStages" | "knights";
+export type ToggleKey = "twists" | "datasheetLimit" | "toughnessStages" | "knights";
 
 /** A rolled battle with its zone and both players looked up (`d` stands in for `def`). */
 export type BattleInfo = Omit<LiveBattle, "def"> & {

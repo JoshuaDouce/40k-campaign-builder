@@ -112,7 +112,7 @@ export function beginRound(s: CampaignState, rng: Rng): void {
 
 /** Index of the Light Forces Mission Twist in TWISTS. */
 export const LIGHT_FORCES_TWIST = TWISTS.findIndex((t) => t.t === "Light Forces");
-/** Battles of this many points or fewer automatically use Light Forces. */
+/** Battles of this many points or fewer automatically use Light Forces and Close Quarters. */
 export const LIGHT_FORCES_MAX_PTS = 750;
 
 /** Battle sizes by points, smallest first. Onslaught isn't used. */
@@ -122,7 +122,14 @@ export const BATTLE_SIZES: readonly BattleSizeDef[] = [
   { n: "Strike Force", pts: "1500+", max: Infinity, board: '44" x 60"', dp: 3 },
 ];
 
-const CLOSE_QUARTERS_TWIST = TWISTS.findIndex((t) => t.t === "Close Quarters");
+export const CLOSE_QUARTERS_TWIST = TWISTS.findIndex((t) => t.t === "Close Quarters");
+/** Twists every battle of LIGHT_FORCES_MAX_PTS or fewer uses, whether or not Mission Twists are on. */
+export const SMALL_GAME_TWISTS: readonly number[] = [LIGHT_FORCES_TWIST, CLOSE_QUARTERS_TWIST];
+
+/** The small-game twists a battle of `pts` gets on top of the ones it rolled (none above LIGHT_FORCES_MAX_PTS). */
+export function autoTwists(pts: number, twists: readonly number[]): number[] {
+  return pts <= LIGHT_FORCES_MAX_PTS ? SMALL_GAME_TWISTS.filter((i) => !twists.includes(i)) : [];
+}
 
 /**
  * The battle size for a battle of `pts` points (its own size, before Garrison or Underdog bonuses).

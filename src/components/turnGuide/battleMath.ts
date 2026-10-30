@@ -1,5 +1,5 @@
 // Battle size arithmetic as a player does it at the table. Pure.
-import { LIGHT_FORCES_MAX_PTS, LIGHT_FORCES_TWIST, r5, r50, TWISTS, VTYPES } from "../../game/index.ts";
+import { autoTwists, r5, r50, TWISTS, VTYPES } from "../../game/index.ts";
 import type { Env } from "./guideTypes.ts";
 
 export const RP_CAP = 10;
@@ -16,7 +16,8 @@ interface SizeInfo {
   yours: number;
   /** The garrison's points if you take -20% off them instead of +20% for you. */
   garrisonLess: number;
-  light: boolean;
+  /** Small-game twists (Light Forces, Close Quarters) this size uses on top of the rolled ones. */
+  auto: number[];
 }
 
 export function sizeInfo(env: Env): SizeInfo {
@@ -28,8 +29,7 @@ export function sizeInfo(env: Env): SizeInfo {
   const size = Math.max(500, r50(base * twistMult * (raid ? 0.5 : 1)));
   const garrison = ctx.holder === "unclaimed" && ctx.action === "conquer";
   const yours = garrison ? r5(size * 1.2) : ctx.underdog ? r5(size * 1.1) : size;
-  const hasLightTwist = ctx.twists.includes(LIGHT_FORCES_TWIST);
-  return { base, raid, garrison, size, yours, garrisonLess: r5(size * 0.8), light: size <= LIGHT_FORCES_MAX_PTS && !hasLightTwist };
+  return { base, raid, garrison, size, yours, garrisonLess: r5(size * 0.8), auto: autoTwists(size, ctx.twists) };
 }
 
 /** Fate Cards each side may play: 1 per 500 pts, minimum 1; Supply Shortage allows only 1. */
