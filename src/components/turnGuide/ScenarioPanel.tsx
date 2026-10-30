@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { HAND_LIMIT } from "../../game/index.ts";
-import { RP_CAP } from "./battleMath.ts";
+import { HAND_LIMIT, rpCap } from "../../game/index.ts";
 import { DEFAULT_SCENARIO } from "./stepGraph.ts";
 import type { Scenario } from "./guideTypes.ts";
 
@@ -96,7 +95,7 @@ export function ScenarioPanel({ sc, onChange }: Props) {
           </p>
           <div className="row">
             {num("players", "Players", 2, 12)}
-            {num("rp", "Your RP (max 10)", 0, RP_CAP)}
+            {num("rp", `Your RP (max ${rpCap(sc)})`, 0, rpCap(sc))}
             {num("hand", "Fate Cards in hand (max 5)", 0, HAND_LIMIT)}
             {num("supply", "Your supply limit (pts)", 500, 3000, 50)}
           </div>

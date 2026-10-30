@@ -640,6 +640,9 @@ ul.rl li::before{content:"";position:absolute;left:4px;top:.55em;width:6px;heigh
 h4.rl-h{font-family:var(--f-mono);font-weight:500;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin:16px 0 0}
 .rt-trait{border:1px solid var(--line);border-radius:3px;background:var(--bg);padding:8px 12px;margin-top:10px}
 .rt-trait p{margin:2px 0 0;font-size:14.5px;max-width:none}
+.rt-up{border-top:1px solid var(--line);padding-top:10px;margin-top:4px}
+.rt-up .rl{margin:6px 0}
+.rt-up-n input{width:72px}
 .su-rules-line{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;justify-content:space-between;border:1px solid var(--line);border-radius:3px;background:var(--bg);padding:6px 6px 6px 12px}
 .su-rules-line span{font-size:14.5px;min-width:0}
 

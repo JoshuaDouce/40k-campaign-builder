@@ -1,5 +1,4 @@
-import { HAND_LIMIT as HAND_CAP } from "../../game/index.ts";
-import { RP_CAP } from "./battleMath.ts";
+import { HAND_LIMIT as HAND_CAP, rpCap } from "../../game/index.ts";
 import type { Env } from "./guideTypes.ts";
 
 const signed = (n: number) => (n > 0 ? `+${n}` : `${n}`);
@@ -15,6 +14,7 @@ export function Tally({ env }: { env: Env }) {
   ];
   const rp = sc.rp + t.rp;
   const hand = sc.hand + t.cards;
+  const RP_CAP = rpCap(sc);
   const warn: string[] = [];
   if (rp > RP_CAP) warn.push(`${rp - RP_CAP} RP over the cap of ${RP_CAP} is wasted.`);
   if (hand > HAND_CAP) warn.push(`${hand - HAND_CAP} card${hand - HAND_CAP > 1 ? "s" : ""} over the hand limit of ${HAND_CAP} would be lost.`);

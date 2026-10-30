@@ -91,6 +91,7 @@ export function canPerform(state: CampaignState, action: Action, ctx: Permission
     case "organiserRemoveCard":
     case "deleteFallen":
     case "setToggle":
+    case "upgradeRules":
     case "regen":
     case "reset":
       return false;

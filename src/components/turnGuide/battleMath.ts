@@ -2,7 +2,6 @@
 import { autoTwists, r5, r50, TWISTS, VTYPES } from "../../game/index.ts";
 import type { Env } from "./guideTypes.ts";
 
-export const RP_CAP = 10;
 const HOLLOWGATE_PTS = 2000;
 export const SUPPLY_SHORTAGE = TWISTS.findIndex((t) => t.t === "Supply Shortage");
 
