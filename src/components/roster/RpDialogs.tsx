@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { capProblem, forceOrgFor, promoted, withUnit, MAX_TRAINING, TRAINING, TRAINING_PTS, PROMOTION_COST, PROMOTION_MIN_XP, rankOf, RECRUITS_COST, scarEffect, SURGEON_COST, scarLabel, scarName } from "../../game/index.ts";
+import { capProblem, promoted, withUnit, MAX_TRAINING, TRAINING, TRAINING_PTS, PROMOTION_COST, PROMOTION_MIN_XP, rankOf, RECRUITS_COST, scarEffect, SURGEON_COST, scarLabel, scarName } from "../../game/index.ts";
 import type { Action, Unit } from "../../game/index.ts";
 import { useCampaign } from "../../store/useCampaign.ts";
 import { RollOrPick } from "./RollOrPick.tsx";
@@ -191,7 +191,6 @@ export function SeasonedRecruitsDialog({ playerId, roster, rp, onDone, onClose }
       playerId={playerId}
       faction={state.players.find((p) => p.id === playerId)?.faction}
       roster={roster}
-      fo={forceOrgFor(state, playerId)}
       rp={rp}
       onClose={onClose}
       onSave={(unit) => {

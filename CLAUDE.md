@@ -171,10 +171,14 @@ entries without refreshing.
   friends; the user tests manually in the browser. Verification = `npm run build` (type-check)
   and `npm run lint`. Add testing back (Vitest for `src/game/` first) only if the project
   grows beyond the friends group.
-- **Roster caps are hard (2026-10-27):** a roster change that would raise the total over supply, or grow a slot row past
-  its limit (Character always; other roles with Force Organisation slots on), is refused. A roster already over may stay
+- **Roster caps are hard (2026-10-27):** a roster change that would raise the total over supply, or add a Character past
+  the Character slots, is refused. A roster already over may stay
   level or shrink. Battle Honours from the post-battle helper always apply. The owner can delete any unit, even one
   locked since War Round 1, with no Hall of Heroes entry.
+- **Force Organisation slots removed (2026-10-30):** no slot chart and no slots for Non-Monster / Vehicle, Vehicle /
+  Monster or Other. Units keep a role. Two role rules stay in every campaign: Character slots (1, +1 per Shrine held, up
+  to +3; held at 1 in Setup) and a 2 Battleline minimum. The Datasheet limit switch is now on by default. Can be added
+  back from git history (`src/game/forceOrg.ts`, `ForceOrgChart.tsx`) if wanted.
 - **`main` deploys straight to live** and committing to `main` is fine (friends-only app).
 
 ## Not in the MVP

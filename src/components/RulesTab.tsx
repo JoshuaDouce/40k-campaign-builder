@@ -4,8 +4,7 @@ import { useOptionalCampaign } from "../store/useCampaign.ts";
 import type { TabId } from "../store/useDevicePrefs.ts";
 
 const TOGGLE_DESC: Record<ToggleKey, string> = {
-  forceOrg: "Role slots, minimums and over-limit warnings. Can't be on with the Datasheet limit.",
-  datasheetLimit: "5 datasheets, +1 for each Extra Datasheet bought with RP. Replaces Force Organisation slots.",
+  datasheetLimit: "5 datasheets, +1 for each Extra Datasheet bought with RP.",
   toughnessStages: "No unit above T11 in War Rounds 1–2, until supply reaches 1250.",
   knights: "Armigers and War Dogs count as Battleline; one may be the Setup Warlord.",
 };
@@ -39,7 +38,6 @@ function CampaignRules() {
 export function RulesTab({ onNavigate }: { onNavigate: (tab: TabId) => void }) {
   const campaign = useOptionalCampaign();
   const toggled = campaign ? (k: ToggleKey) => toggleOn(campaign.state, k) : (k: ToggleKey) => toggleOn({}, k);
-  const slots = toggled("forceOrg");
   return (
     <section className="tab" id="rules">
       <h2>Rules</h2>
@@ -92,30 +90,12 @@ export function RulesTab({ onNavigate }: { onNavigate: (tab: TabId) => void }) {
         <li>Allies, Agents and Psykers take the role their own datasheet gives them.</li>
       </ul>
 
-      {slots ? (
-        <>
-          <h4 className="rl-h">Force Organisation slots</h4>
-          <ul className="rl">
-            <li>Start with 1 Character, 6 Non-Monster / Vehicle, 1 Vehicle / Monster and 2 Other slots.</li>
-            <li>Each unit fills one slot, whatever its size.</li>
-            <li>Battleline fills Non-Monster / Vehicle slots.</li>
-            <li>A Character always fills a Character slot, even a Monster or Vehicle.</li>
-            <li>+1 slot per holding: Shrine = Character. Fortress, Hive City or Settlement = Non-Monster / Vehicle. Forge or Refinery = Vehicle / Monster. Spaceport = Other.</li>
-            <li>Up to +3 per role (+6 for Non-Monster / Vehicle). Lose the province, lose the slot.</li>
-            <li>The Character slot is held at 1 in Setup.</li>
-            <li>Slots are guidance: your group decides how strictly to hold to them.</li>
-          </ul>
-        </>
-      ) : (
-        <>
-          <h4 className="rl-h">Character slots</h4>
-          <ul className="rl">
-            <li>1 Character slot, +1 per Shrine held (up to +3).</li>
-            <li>Held at 1 in Setup.</li>
-            <li>No slots for other roles.</li>
-          </ul>
-        </>
-      )}
+      <h4 className="rl-h">Character slots</h4>
+      <ul className="rl">
+        <li>1 Character slot, +1 per Shrine held (up to +3).</li>
+        <li>Held at 1 in Setup.</li>
+        <li>No slots for other roles.</li>
+      </ul>
 
       {toggled("datasheetLimit") && (
         <>
@@ -230,7 +210,7 @@ export function RulesTab({ onNavigate }: { onNavigate: (tab: TabId) => void }) {
         <thead><tr><th>Type</th><th>Base pts</th><th>Holder's bonus</th></tr></thead>
         <tbody>
           {Object.entries(VTYPES).map(([k, t]) => (
-            <tr key={k}><td><b>{t.n}</b></td><td className="n">{t.size}</td><td>{typeGains(k as ProvinceType, slots)}</td></tr>
+            <tr key={k}><td><b>{t.n}</b></td><td className="n">{t.size}</td><td>{typeGains(k as ProvinceType)}</td></tr>
           ))}
         </tbody>
       </table></div>

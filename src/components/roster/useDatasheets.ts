@@ -11,7 +11,7 @@ export interface Datasheet {
   t?: number;
   /** An Epic Hero: hidden from the picker and not allowed on a roster. */
   epic?: boolean;
-  /** Force Organisation role from the datasheet's keywords, if known. */
+  /** Unit role from the datasheet's keywords, if known. */
   role?: Role;
   /** Name with case, accents and apostrophes folded away, for matching. */
   folded: string;
