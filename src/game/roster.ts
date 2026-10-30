@@ -534,7 +534,7 @@ export function organiserRemoveUnitFrom(s: CampaignState, playerId: string, unit
 export function addRelicTo(s: CampaignState, playerId: string, unitId: string, relic: string, source: "shrine" | "fate"): boolean {
   const p = getPlayer(s, playerId);
   const u = rosterFor(s, playerId).find((x) => x.id === unitId);
-  if (!p || !u || !u.isCharacter || !isRelic(relic) || (source !== "shrine" && source !== "fate")) return false;
+  if (!p || !u || !u.isCharacter || !toggleOn(s, "relics") || !isRelic(relic) || (source !== "shrine" && source !== "fate")) return false;
   const held = u.relics ?? [];
   if (held.length >= MAX_RELICS || held.includes(relic)) return false;
   if (capProblem(s, playerId, withUnit(rosterFor(s, playerId), { ...u, relics: [...held, relic] }))) return false;
@@ -720,7 +720,7 @@ export function promoteUnit(s: CampaignState, playerId: string, unitId: string, 
   if (capProblem(s, playerId, withUnit(rosterFor(s, playerId), promoted(u, training)))) return false;
   if (u.isCharacter) {
     const held = u.training ?? [];
-    if (!isTraining(training) || held.includes(training) || held.length >= MAX_TRAINING) return false;
+    if (!toggleOn(s, "training") || !isTraining(training) || held.includes(training) || held.length >= MAX_TRAINING) return false;
     spendRp(s, playerId, PROMOTION_COST);
     u.training = [...held, training];
     log(s, B(p.name), ` spends ${PROMOTION_COST} RP on a Promotion: `, B(u.name), ` completes Battle Training: ${training}.`);
@@ -731,6 +731,18 @@ export function promoteUnit(s: CampaignState, playerId: string, unitId: string, 
     u.role = "Character";
     log(s, B(p.name), ` spends ${PROMOTION_COST} RP on a Promotion: `, B(u.name), " is now a Character.");
   }
+  return true;
+}
+
+/** Owner: take a Battle Training off a unit and give back the Promotion's RP (no cap: it returns what was spent). */
+export function refundTrainingFrom(s: CampaignState, playerId: string, unitId: string, training: string): boolean {
+  const p = getPlayer(s, playerId);
+  const u = rosterFor(s, playerId).find((x) => x.id === unitId);
+  if (!p || !u?.training?.includes(training)) return false;
+  u.training = u.training.filter((t) => t !== training);
+  if (!u.training.length) delete u.training;
+  p.rp += PROMOTION_COST;
+  log(s, B(u.name), ` of `, B(p.name), ` loses Battle Training: ${training}. ${PROMOTION_COST} RP refunded.`);
   return true;
 }
 

@@ -182,6 +182,10 @@ entries without refreshing.
 - **Mission Twists switch (2026-10-30):** an owner-only campaign rule, on by default. Off: battles roll no twists (and the
   Scout swap note is dropped). Battles of 750 pts or fewer always use Light Forces and Close Quarters, on top of any
   rolled twists and whether the switch is on or off.
+- **Battle Training and Relics switches (2026-10-30):** owner-only campaign rules, both on by default. Training off: no
+  training can be bought (a Promotion can still make a Veteran a Character; Battle Honours are earned as normal). Relics
+  off: no new relics. Held training and relics stay and keep their points. The organiser can remove a Battle Training at
+  any time and refund its 1 RP (logged, not capped at 10).
 - **`main` deploys straight to live** and committing to `main` is fine (friends-only app).
 
 ## Not in the MVP

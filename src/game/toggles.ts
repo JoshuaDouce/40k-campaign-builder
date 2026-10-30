@@ -1,13 +1,15 @@
-// Campaign rule toggles: four owner-switched rules, plus the datasheet / Toughness-stage / Knights helpers.
+// Campaign rule toggles: six owner-switched rules, plus the datasheet / Toughness-stage / Knights helpers.
 // Pure and read-only. Roster saves in roster.ts call the block checks; the UI uses them for messages.
 import { getPlayer, supplyOf } from "./selectors.ts";
 import type { CampaignState, Player, ToggleKey, Unit } from "./types.ts";
 
-export const TOGGLE_KEYS: readonly ToggleKey[] = ["twists", "datasheetLimit", "toughnessStages", "knights"];
+export const TOGGLE_KEYS: readonly ToggleKey[] = ["twists", "training", "relics", "datasheetLimit", "toughnessStages", "knights"];
 
 /** Names used in the Rules tab and the log. */
 export const TOGGLE_NAMES: Readonly<Record<ToggleKey, string>> = {
   twists: "Mission Twists",
+  training: "Battle Training",
+  relics: "Relics",
   datasheetLimit: "Datasheet limit",
   toughnessStages: "Toughness stages",
   knights: "Knights exemption",
@@ -16,6 +18,8 @@ export const TOGGLE_NAMES: Readonly<Record<ToggleKey, string>> = {
 /** Defaults when the campaign has no toggle data: today's rules. */
 export const TOGGLE_DEFAULTS: Readonly<Record<ToggleKey, boolean>> = {
   twists: true,
+  training: true,
+  relics: true,
   datasheetLimit: true,
   toughnessStages: false,
   knights: false,

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { capProblem, getPlayer, MAX_TRAINING, PROMOTION_COST, promoted, rosterOf, TRAINING, TRAINING_PTS, trainingEffect, withUnit } from "../../game/index.ts";
+import { capProblem, getPlayer, MAX_TRAINING, PROMOTION_COST, promoted, rosterOf, toggleOn, TRAINING, TRAINING_PTS, trainingEffect, withUnit } from "../../game/index.ts";
 import { useCampaign } from "../../store/useCampaign.ts";
 import { EffectSelect } from "./EffectSelect.tsx";
 import { HeldList } from "./HeldList.tsx";
@@ -17,8 +17,9 @@ export function TrainingPicker({ playerId, unitId }: { playerId: string; unitId:
   const rp = getPlayer(state, playerId)?.rp ?? 0;
   if (!unit?.isCharacter) return null;
   const held = unit.training ?? [];
-  const block =
-    held.length >= MAX_TRAINING ? `This Character has the most Battle Training it can hold (${MAX_TRAINING}).` : rp < PROMOTION_COST ? `Adding Battle Training costs ${PROMOTION_COST} RP. You have ${rp}.` : null;
+  const block = !toggleOn(state, "training")
+    ? "Battle Training is off in this campaign: none can be bought."
+    : held.length >= MAX_TRAINING ? `This Character has the most Battle Training it can hold (${MAX_TRAINING}).` : rp < PROMOTION_COST ? `Adding Battle Training costs ${PROMOTION_COST} RP. You have ${rp}.` : null;
   const capBlock = pick && !block ? capProblem(state, playerId, withUnit(roster, promoted(unit, pick))) : null;
 
   const buy = () => {
@@ -53,7 +54,7 @@ export function TrainingPicker({ playerId, unitId }: { playerId: string; unitId:
               {capBlock ? (
                 <p className="hint bad">! {capBlock}</p>
               ) : (
-                <p className="hint">You'll have {rp - PROMOTION_COST} RP left. It can't be removed later.</p>
+                <p className="hint">You'll have {rp - PROMOTION_COST} RP left. Only the organiser can remove it, refunding the RP.</p>
               )}
               <div className="row">
                 <button type="button" className="btn sm primary" disabled={!!capBlock || sync.saving || sync.offline} onClick={buy}>

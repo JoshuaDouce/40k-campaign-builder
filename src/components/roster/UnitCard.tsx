@@ -5,6 +5,7 @@ import {
   HONOUR_PTS,
   MAX_RELICS,
   MAX_TRAINING,
+  PROMOTION_COST,
   rankIndex,
   RANKS,
   RELIC_PTS,
@@ -44,13 +45,18 @@ interface Props {
   onRemove(cause?: string): void;
   /** The organiser's delete for a locked unit (owner only): removes it outright, no Hall of Heroes. */
   onOrganiserDelete?(): void;
+  /** Organiser only: take a Battle Training off and refund its RP. */
+  onRefundTraining?(training: string): void;
+  /** The Relics rule is on: relics can be earned (held ones always show). */
+  relicsOn: boolean;
   onRollRelic(): void;
   onRemoveRelic(relic: string): void;
 }
 
-export function UnitCard({ unit, editable, memorial, overLimit, toughOver, toughNineExtra, epic, toughStage, warlordNotChar, removable, onEdit, onRemove, onOrganiserDelete, onRollRelic, onRemoveRelic }: Props) {
+export function UnitCard({ unit, editable, memorial, overLimit, toughOver, toughNineExtra, epic, toughStage, warlordNotChar, removable, onEdit, onRemove, onOrganiserDelete, onRefundTraining, relicsOn, onRollRelic, onRemoveRelic }: Props) {
   const [armed, setArmed] = useState(false);
   const [armedDelete, setArmedDelete] = useState(false);
+  const [armedRefund, setArmedRefund] = useState<string | null>(null);
   const [asking, setAsking] = useState(false);
   // Honour or scar whose effect is shown under the badges: tap a badge to show it (phones can't hover).
   const [shownFx, setShownFx] = useState<string | null>(null);
@@ -225,11 +231,27 @@ export function UnitCard({ unit, editable, memorial, overLimit, toughOver, tough
           {training.map((t) => (
             <div key={t}>
               <b>{t}</b> {trainingEffect(t)}
+              {onRefundTraining && (
+                <button
+                  type="button"
+                  className="btn sm danger"
+                  style={{ marginLeft: 8 }}
+                  aria-label={armedRefund === t ? `Confirm refund of ${t}` : `Remove ${t} and refund ${PROMOTION_COST} RP`}
+                  onClick={() => {
+                    if (armedRefund === t) {
+                      onRefundTraining(t);
+                      setArmedRefund(null);
+                    } else setArmedRefund(t);
+                  }}
+                >
+                  {armedRefund === t ? "Confirm refund" : `Refund ${PROMOTION_COST} RP (organiser)`}
+                </button>
+              )}
             </div>
           ))}
         </div>
       )}
-      {unit.isCharacter && (relics.length > 0 || editable) && (
+      {unit.isCharacter && (relics.length > 0 || (editable && relicsOn)) && (
         <>
           <div className="lbl">
             Relics · {relics.length} of {MAX_RELICS}
@@ -251,7 +273,7 @@ export function UnitCard({ unit, editable, memorial, overLimit, toughOver, tough
               ))}
             </div>
           )}
-          {editable && (
+          {editable && relicsOn && (
             <div className="relicbar">
               <button type="button" className="btn sm primary" disabled={relics.length >= MAX_RELICS} onClick={onRollRelic}>
                 Roll a relic
