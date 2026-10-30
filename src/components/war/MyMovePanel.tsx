@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ACTIONS, actionDesc, defenderOf, toggleOn, getPlayer, pickStatus, planetOf, zoneName } from "../../game/index.ts";
+import { ACTIONS, actionDesc, defenderOf, isV12, toggleOn, getPlayer, pickStatus, planetOf, zoneName } from "../../game/index.ts";
 import type { Action } from "../../game/index.ts";
 import { BattleCard } from "./BattleCard.tsx";
 import { DefenderLines } from "./DefenderLines.tsx";
@@ -45,7 +45,7 @@ export function MyMovePanel({ playerId, isMine, onBack, ...ctx }: Props) {
       greyTiedUp
       submitLabel="Switch"
       allowed={switchOk}
-      hint={kind === "fell" ? "Free provinces and quiet actions are offered. Provinces tied up by another pick are greyed." : "Scout, Muster and Recuperate are always available and need no target."}
+      hint={kind === "fell" ? "Free provinces and quiet actions are offered. Provinces tied up by another pick are greyed." : `${isV12(state) ? "Muster" : "Scout, Muster"} and Recuperate are always available and need no target.`}
       onSubmit={(c) => {
         dispatch({ type: "switchPick", playerId, ...c });
         setSwitching(false);

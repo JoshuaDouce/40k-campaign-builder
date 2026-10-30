@@ -57,7 +57,8 @@ export interface Env {
 export type NoteCat = "dead" | "nochoice" | "nodown" | "judged" | "quirk";
 export interface DesignNoteData {
   cat: NoteCat;
-  text: string;
+  /** A function when the text differs by rules version. */
+  text: string | ((sc: Scenario) => string);
 }
 
 export type SideGroup = "rp" | "battle";
@@ -68,6 +69,8 @@ export interface StepOption {
   /** Breadcrumb text. Defaults to the label; null leaves this choice out of the trail. */
   crumb?: string | null;
   hint?: string;
+  /** The hint under the scenario's rules, when it differs by version. Defaults to `hint`. */
+  hintFor?: (sc: Scenario) => string;
   next: string | ((ctx: Ctx) => string);
   /** true when playable, otherwise the gameplay reason it is not. */
   available?: (env: Env) => true | string;

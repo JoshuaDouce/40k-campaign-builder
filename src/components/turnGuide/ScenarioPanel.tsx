@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { HAND_LIMIT, rpCap } from "../../game/index.ts";
+import { HAND_LIMIT, isV12, rpCap } from "../../game/index.ts";
 import { DEFAULT_SCENARIO } from "./stepGraph.ts";
 import type { Scenario } from "./guideTypes.ts";
 
@@ -113,7 +113,7 @@ export function ScenarioPanel({ sc, onChange }: Props) {
             )}
             {check("forge", "I hold a Forge")}
             {check("hollowOpen", "The Hollowgate is open")}
-            {check("scouted", "I scouted last turn")}
+            {!isV12(sc) && check("scouted", "I scouted last turn")}
           </div>
           <button className="btn sm tg-tap" onClick={() => onChange(DEFAULT_SCENARIO)}>
             Reset to defaults

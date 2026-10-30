@@ -8,7 +8,7 @@ import { B, log } from "./log.ts";
 import { toggleOn } from "./toggles.ts";
 import { rollInt } from "./rng.ts";
 import type { Rng } from "./rng.ts";
-import { rpCap } from "./version.ts";
+import { isV12, musterGain, rpCap } from "./version.ts";
 import {
   count,
   getPlayer,
@@ -231,6 +231,7 @@ export function pickZones(s: CampaignState, p: Player, act: ActionId): Zone[] {
 
 /** True if the action can be picked at all: a battle needs an opponent and a target, Fortify a province to fortify. */
 export function actionAvailable(s: CampaignState, p: Player, act: ActionId, zones: Zone[] = pickZones(s, p, act)): boolean {
+  if (act === "scout" && isV12(s)) return false; // Scout is gone in 1.2 (a pick made before the upgrade still resolves)
   if (isBattleAct(act)) return s.players.length > 1 && zones.length > 0;
   return act === "fortify" ? zones.length > 0 : true;
 }
@@ -573,7 +574,7 @@ export function confirmQuietPick(s: CampaignState, playerId: string, rng: Rng): 
     log(s, B(p.name), " recuperates: +1 RP, removes up to 2 Battle Scars.");
   }
   if (act === "muster") {
-    const n = 250 + 150 * Math.min(1, holdsType(s, p, "forge"));
+    const n = musterGain(s, holdsType(s, p, "forge") > 0);
     p.sup = (p.sup || 0) + n;
     log(s, B(p.name), ` musters: +${n} supply.`);
     drawFor(s, p, 1, "Muster", rng);

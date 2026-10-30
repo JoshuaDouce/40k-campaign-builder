@@ -1,4 +1,4 @@
-import { ACTIONS, actionDesc, BATTLE_SIZES, HONOUR_PTS, isV12, LATEST_RULES, LIGHT_FORCES_MAX_PTS, ORBITS, reinforceCost, REINFORCE_SUPPLY, rpCap, rulesVersion, SMALL_GAME_TWISTS, PTYPES, toggleOn, TOGGLE_KEYS, TOGGLE_NAMES, TWISTS, typeGains, VTYPES } from "../game/index.ts";
+import { actionDesc, actionsFor, BATTLE_SIZES, HONOUR_PTS, isV12, LATEST_RULES, LIGHT_FORCES_MAX_PTS, ORBITS, reinforceCost, REINFORCE_SUPPLY, rpCap, rulesVersion, SMALL_GAME_TWISTS, PTYPES, toggleOn, TOGGLE_KEYS, TOGGLE_NAMES, TWISTS, typeGains, VTYPES } from "../game/index.ts";
 import type { ProvinceType, ToggleKey } from "../game/index.ts";
 import { useOptionalCampaign } from "../store/useCampaign.ts";
 import type { TabId } from "../store/useDevicePrefs.ts";
@@ -146,8 +146,8 @@ export function RulesTab({ onNavigate }: { onNavigate: (tab: TabId) => void }) {
       <div className="tbl"><table>
         <thead><tr><th>Action</th><th>Battle?</th><th>Effect</th></tr></thead>
         <tbody>
-          {ACTIONS.map((a) => (
-            <tr key={a.id}><td><b>{a.n}</b></td><td>{a.battle ? "Yes" : "No"}</td><td>{actionDesc(campaign?.state ?? {}, a)}</td></tr>
+          {actionsFor(ver).map((a) => (
+            <tr key={a.id}><td><b>{a.n}</b></td><td>{a.battle ? "Yes" : "No"}</td><td>{actionDesc(ver, a)}</td></tr>
           ))}
         </tbody>
       </table></div>
@@ -223,7 +223,7 @@ export function RulesTab({ onNavigate }: { onNavigate: (tab: TabId) => void }) {
         <thead><tr><th>Type</th><th>Base pts</th><th>Holder's bonus</th></tr></thead>
         <tbody>
           {Object.entries(VTYPES).filter(([k]) => v12 || k !== "graveyard").map(([k, t]) => (
-            <tr key={k}><td><b>{t.n}</b></td><td className="n">{t.size}</td><td>{typeGains(k as ProvinceType)}</td></tr>
+            <tr key={k}><td><b>{t.n}</b></td><td className="n">{t.size}</td><td>{typeGains(ver, k as ProvinceType)}</td></tr>
           ))}
         </tbody>
       </table></div>

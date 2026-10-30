@@ -2,6 +2,7 @@
 // Pure. `capProblem` in roster.ts uses `roleRules` to refuse saves that add a Character past its slots.
 import { VTYPES } from "./data.ts";
 import { provsOf, getPlayer } from "./selectors.ts";
+import { provinceBonus } from "./version.ts";
 import type { CampaignState, ProvinceType, Role, Unit, Zone } from "./types.ts";
 
 export const ROLE_NAMES: readonly Role[] = ["Character", "Battleline", "Non-Monster / Vehicle", "Vehicle / Monster", "Other"];
@@ -14,13 +15,13 @@ export const CHARACTER_MIN = 1;
 export const BATTLELINE_MIN = 2;
 
 /** What holding this type gives: its bonus text, plus a Character slot for a Shrine. */
-export function typeGains(type: ProvinceType): string {
-  return type === "shrine" ? `${VTYPES[type].bonus} +1 Character slot.` : VTYPES[type].bonus;
+export function typeGains(state: Pick<CampaignState, "rules">, type: ProvinceType): string {
+  return type === "shrine" ? `${VTYPES[type].bonus} +1 Character slot.` : provinceBonus(state, type);
 }
 
 /** What holding this zone gives its holder, in one line. */
-export function holderGains(v: Zone): string {
-  return v.type === "rift" ? "Hold it when the War Round ends to win the Reach." : typeGains(v.type);
+export function holderGains(state: Pick<CampaignState, "rules">, v: Zone): string {
+  return v.type === "rift" ? "Hold it when the War Round ends to win the Reach." : typeGains(state, v.type);
 }
 
 export function isRole(x: unknown): x is Role {

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { canPerform, count, getPlanet, getProvince, HAND_LIMIT, supplyOf } from "../game/index.ts";
+import { canPerform, count, getPlanet, getProvince, HAND_LIMIT, isV12, supplyOf } from "../game/index.ts";
 import type { Action, CampaignState, FactionName, Player, StatKey } from "../game/index.ts";
 import { useCampaign } from "../store/useCampaign.ts";
 import type { TabId } from "../store/useDevicePrefs.ts";
@@ -158,7 +158,7 @@ function PlayerCard({ player: p, state, color, setup }: CardProps) {
       <div className="mono dim" style={{ fontSize: 12 }}>
         EMPIRE: {n} PROVINCE{n === 1 ? "" : "S"}
         {cap ? ` · CAPITAL ${cap.name.toUpperCase()}, ${(capPlanet?.name ?? "").toUpperCase()}` : ""}
-        {p.scout ? " · SCOUTED" : ""}
+        {p.scout && !isV12(state) ? " · SCOUTED" : ""}
       </div>
       <BattleHistory state={state} player={p} />
       <div className="row" style={{ marginTop: 10, justifyContent: "space-between" }}>

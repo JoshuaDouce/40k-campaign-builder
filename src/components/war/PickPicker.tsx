@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
-import { ACTIONS, actionAvailable, actionDesc, buildPick, pickZones, tiedUp } from "../../game/index.ts";
+import { ACTIONS, actionAvailable, actionsFor, actionDesc, buildPick, pickZones, tiedUp } from "../../game/index.ts";
 import type { ActionId, CampaignState, PickChoice, Player, RoundPick, Zone } from "../../game/index.ts";
 import { TargetList } from "./TargetList.tsx";
 
@@ -29,7 +29,7 @@ export function PickPicker({ state, player, initial, greyTiedUp, submitLabel, al
   const def = ACTIONS.find((a) => a.id === act);
   const used = (id: string) => !!greyTiedUp && tiedUp(state, id, player.id);
   // Each action's targets, worked out once per render.
-  const zonesFor = new Map<ActionId, Zone[]>(ACTIONS.map((a) => [a.id, pickZones(state, player, a.id)]));
+  const zonesFor = new Map<ActionId, Zone[]>(actionsFor(state).map((a) => [a.id, pickZones(state, player, a.id)]));
   const zones: Zone[] = (act && zonesFor.get(act)) || [];
   const hasTarget = !!def && (def.battle || def.id === "fortify");
   const zoneId = zoneSel && zones.some((v) => v.id === zoneSel && !used(v.id)) ? zoneSel : null;
@@ -39,7 +39,7 @@ export function PickPicker({ state, player, initial, greyTiedUp, submitLabel, al
   return (
     <>
       <div className="acts-grid">
-        {ACTIONS.map((a) => {
+        {actionsFor(state).map((a) => {
           const ok = actionAvailable(state, player, a.id, zonesFor.get(a.id));
           const sel = a.id === act;
           return (

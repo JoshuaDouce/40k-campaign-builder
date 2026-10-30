@@ -144,7 +144,7 @@ function ProvinceInfo({ provId, planet }: { provId: string; planet: Planet }) {
         {[toggleOn(state, "twists") && `${orbit.twists} TWIST${orbit.twists > 1 ? "S" : ""}`, state.fort[v.id] && "FORTIFIED"].filter(Boolean).join(" · ")}
       </p>
       <p>
-        <b>Holding it:</b> {holderGains(v)}
+        <b>Holding it:</b> {holderGains(state, v)}
       </p>
       <p className="dim" style={{ fontSize: 14 }}>
         Borders: {v.nb.map((n) => getProvince(state, n)?.name ?? n).join(", ")}
