@@ -86,6 +86,24 @@ function textFor(added: Array<{ segs: LogSeg[] }>, name: string, a: Action): Log
 }
 
 /**
+ * Put `entry` on top of player `id`'s log, keeping it within the cap (mutates `s`). A player with no log yet first gets
+ * the opening entry, from their figures now (so call it before changing them).
+ */
+export function pushPlayerLog(s: CampaignState, id: string, entry: PlayerLogEntry): void {
+  const plog = (s.plog ??= {});
+  const list = plog[id] ?? [];
+  const at = figuresOf(s)[id];
+  if (!plog[id] && at) {
+    const start: PlayerLogEntry = { r: s.round, segs: [{ t: `History begins ${atRound(s.round)}. Earlier changes were not recorded.` }], start: true };
+    for (const k of FIGURE_KEYS) start[k] = [at[k], at[k]];
+    list.unshift(start);
+  }
+  list.unshift(entry);
+  list.length = Math.min(list.length, playerLogCap(s.players.length));
+  plog[id] = list;
+}
+
+/**
  * Record what `action` changed for each player (mutates `s`, the state `apply()` just ran it on; `state` is the one it
  * started from). `added` is how many log lines the action put on top of `s.log`.
  */

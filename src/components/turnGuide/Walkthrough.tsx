@@ -99,7 +99,7 @@ export function Walkthrough({ sc, trail, setTrail, sides, setSides, showNotes, o
             onUse={(id) => setSides([...sides, { id, at: trail.length }])}
           />
         )}
-        {showNotes && <DesignNotes notes={step.notes} />}
+        {showNotes && <DesignNotes notes={step.notes} sc={rep.env.sc} />}
       </div>
       <div className="row tg-nav">
         <button className="btn tg-tap" disabled={!trail.length} onClick={back}>

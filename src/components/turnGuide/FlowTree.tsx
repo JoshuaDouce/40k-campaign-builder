@@ -47,7 +47,7 @@ function Node({ node, showNotes, choose }: { node: TreeNode } & ViewProps) {
         {open && (
           <div id={bodyId} className="tg-nbody">
             <Paras text={stepText(step, env)} />
-            {showNotes && <DesignNotes notes={step.notes} />}
+            {showNotes && <DesignNotes notes={step.notes} sc={env.sc} />}
           </div>
         )}
         {chips && (

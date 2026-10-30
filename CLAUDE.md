@@ -191,9 +191,11 @@ entries without refreshing.
   Campaign rules panel lists it, plus owner-only tools such as the training refund.
 - **Varkesh Reach 1.2 (2026-10-30):** a rules version (`state.rules`; missing = 1.1). 1.2: province types by orbit
   (outer 500–750, middle 750–1000, inner 1000s plus a 1500 pt Titan Graveyard), Capitals border only 500 and 750,
-  Reinforcements 2 RP for +200, RP bank cap 6, Hollowgate by War Round 12. New campaigns start on 1.2. The organiser
-  upgrades a 1.1 campaign from the Campaign rules panel: holdings and held province types stay, unclaimed provinces are
-  re-charted, past Reinforcements lose half their supply, RP over 6 is lost. See `docs/features/varkesh-1-2.md`.
+  Reinforcements 2 RP for +200, Muster +150 supply (+50 more with a Forge, was +250 / +150), Outposts +50, Ruins +100 and
+  Titan Graveyards +150 supply held, Scout removed, RP bank cap 6, Hollowgate by War Round 12. New campaigns start on 1.2. The
+  organiser upgrades a 1.1 campaign from the Campaign rules panel: holdings and held province types stay, unclaimed provinces
+  are re-charted, past Reinforcements lose half their supply, past Musters lose 100 (200 with a Forge) counted from the log,
+  RP over 6 is lost. A campaign already on 1.2 gets the Muster cut once on load (`musterRepriced`). See `docs/features/varkesh-1-2.md`.
 - **Player log (2026-10-30):** an organiser-only panel at the foot of the Players tab shows, one player at a time, why their RP,
   supply limit or Fate Card count changed (War Round, Player / Organiser / Game tag, the log line, before and after).
   Recorded in `apply()` into `state.plog` (latest 200 per player, fewer above 4 players: 800 in all, to stay well inside

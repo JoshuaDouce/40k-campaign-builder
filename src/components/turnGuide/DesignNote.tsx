@@ -1,5 +1,5 @@
 import { CAT_LABEL } from "./guideTypes.ts";
-import type { DesignNoteData, NoteCat } from "./guideTypes.ts";
+import type { DesignNoteData, NoteCat, Scenario } from "./guideTypes.ts";
 import { NOTE_COUNTS } from "./walk.ts";
 
 export function Paras({ text }: { text: string }) {
@@ -15,14 +15,14 @@ export function Paras({ text }: { text: string }) {
 }
 
 /** Quiet side comments on the written rules at this step. */
-export function DesignNotes({ notes }: { notes: DesignNoteData[] }) {
+export function DesignNotes({ notes, sc }: { notes: DesignNoteData[]; sc: Scenario }) {
   if (!notes.length) return null;
   return (
     <div className="tg-notes" role="group" aria-label="Design notes">
-      {notes.map((n) => (
-        <div key={n.text} className={`tg-note ${n.cat}`}>
+      {notes.map((n, i) => (
+        <div key={i} className={`tg-note ${n.cat}`}>
           <span className="tg-cat">Design note · {CAT_LABEL[n.cat]}</span>
-          <p>{n.text}</p>
+          <p>{typeof n.text === "function" ? n.text(sc) : n.text}</p>
         </div>
       ))}
     </div>

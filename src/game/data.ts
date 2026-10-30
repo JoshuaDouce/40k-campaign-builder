@@ -72,7 +72,7 @@ export const VTYPES: Record<ProvinceType, ProvinceTypeDef> = {
   settlement:{n:"Settlement",size:600,bonus:"Quiet, cheap ground to grow an empire.",suf:["Hold","Stead","Township"]},
   outpost:{n:"Outpost",size:500,bonus:"+100 pts to your supply limit while you hold it. A small, sharp fight.",supply:100,suf:["Watch","Post","Station"]},
   ruins:{n:"Ruins",size:1000,bonus:"+150 pts to your supply limit while you hold it. Wide open killing ground.",supply:150,suf:["Wastes","Barrens","Ruins"]},
-  graveyard:{n:"Titan Graveyard",size:1500,bonus:"+250 pts to your supply limit while you hold it. A Strike Force war among fallen god-engines.",supply:250,suf:["Graveyard","Boneyard","Fields"]}};
+  graveyard:{n:"Titan Graveyard",size:1500,bonus:"+150 pts to your supply limit while you hold it. A Strike Force war among fallen god-engines.",supply:150,suf:["Graveyard","Boneyard","Fields"]}};
 export const HOLL: Hollowgate = {id:"holl",name:"The Hollowgate",type:"rift",pl:null};
 export const PLANET_NAMES: readonly string[] = ["Varkesh Prime","Kell","Ostrava","Thessaly","Grael","Vesk","Orrin's Tomb","Cinderfall","Lantern","Choirhold","Sorrow","Aster"];
 

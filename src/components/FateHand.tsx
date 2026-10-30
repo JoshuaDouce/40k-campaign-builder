@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { canPerform, HAND_LIMIT } from "../game/index.ts";
+import { canPerform, HAND_LIMIT, isV12 } from "../game/index.ts";
 import type { Card, Player } from "../game/index.ts";
 import { canSeeHand, useCampaign } from "../store/useCampaign.ts";
 import { FateCard } from "./FateCard.tsx";
@@ -77,7 +77,7 @@ export function FateHand({ player: p }: { player: Player }) {
         </div>
       ) : (
         <p className="mono dim" style={{ fontSize: 12 }}>
-          No Fate Cards in hand. You draw them for Refineries, victories, Muster, Scout, or Requisition the Deck.
+          No Fate Cards in hand. You draw them for Refineries, victories, Muster, {isV12(state) ? "" : "Scout, "}or Requisition the Deck.
         </p>
       )}
     </div>

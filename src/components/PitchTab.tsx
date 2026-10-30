@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { hollowgateRound, isV12, LATEST_RULES, toggleOn } from "../game/index.ts";
+import { actionList, hollowgateRound, isV12, LATEST_RULES, toggleOn } from "../game/index.ts";
 import type { CampaignState } from "../game/index.ts";
 import { useOptionalCampaign } from "../store/useCampaign.ts";
 import type { TabId } from "../store/useDevicePrefs.ts";
@@ -10,7 +10,7 @@ const stepsFor = (twists: boolean, rules: Pick<CampaignState, "rules">): Readonl
   ["The setting", "Three years ago the Hollowgate rift tore open at the heart of the Varkesh Reach. The Imperium's grip collapsed. The system is a scatter of worlds, each split into provinces, and every faction has its own reason for being here. The more players, the more worlds."],
   ["Build a 750 pt roster", "Name your warband and start with one Character, your Warlord, and at least 2 Battleline. No Epic Heroes or named characters, ever. Your leaders are nobodies who might become somebody. Start with 0 Requisition Points (RP) and a Capital province on one of the outer worlds. Earn RP from your Capital and by winning battles."],
   ["The War Round", "The campaign is played in War Rounds. At the start of each, everyone collects RP from their Capital and Hive Cities. Then everyone plans in secret and plays at the same time; only players on the same province wait."],
-  ["Take a campaign action", "Pick one: Conquer, Raid, Recuperate, Muster, Fortify or Scout. Conquer and Raid start a battle. The others build you up without fighting."],
+  ["Take a campaign action", `Pick one: ${actionList(rules)}. Conquer and Raid start a battle. The others build you up without fighting.`],
   [
     "Generate the battle",
     twists

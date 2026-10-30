@@ -62,7 +62,7 @@ export interface Crumb {
 
 /** A step's options that exist under the scenario's rules. */
 export function optionsOf(step: Step, sc: Scenario): StepOption[] {
-  return step.options.filter((o) => !o.hidden?.(sc));
+  return step.options.filter((o) => !o.hidden?.(sc)).map((o) => (o.hintFor ? { ...o, hint: o.hintFor(sc) } : o));
 }
 
 /** What a side action does to the tally under the scenario's rules. */
@@ -144,7 +144,7 @@ export function pathTrail(sc: Scenario, choices: Choices): TrailItem[] {
   const trail: TrailItem[] = [];
   walkFrom(
     sc,
-    (step, env) => step.options.find((o) => o.id === selectedId(step, env, choices)),
+    (step, env) => optionsOf(step, env.sc).find((o) => o.id === selectedId(step, env, choices)),
     (step, opt) => trail.push({ stepId: step.id, optionId: opt.id }),
   );
   return trail;

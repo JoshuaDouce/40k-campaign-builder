@@ -1,6 +1,6 @@
 // Read-only helpers over a CampaignState. None of these mutate.
 import { ALT, FACTIONS, HOLL, ORBITS, VTYPES } from "./data.ts";
-import { hollowgateRound } from "./version.ts";
+import { hollowgateRound, provinceSupply } from "./version.ts";
 import type { BattleRecord, CampaignState, OrbitDef, Planet, Player, Province, Zone } from "./types.ts";
 
 export const r50 = (n: number): number => Math.round(n / 50) * 50;
@@ -58,7 +58,7 @@ export function hollOpen(s: CampaignState): boolean {
 }
 /** Supply from held provinces (Outposts and Ruins). Live: lose the province, lose the supply. */
 export function holdingSupply(s: CampaignState, p: Player): number {
-  return provsOf(s, p).reduce((n, v) => n + (VTYPES[v.type].supply ?? 0), 0);
+  return provsOf(s, p).reduce((n, v) => n + provinceSupply(s, v.type), 0);
 }
 export function supplyOf(s: CampaignState, p: Player): number {
   return 750 + (p.sup || 0) + holdingSupply(s, p);

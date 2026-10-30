@@ -451,6 +451,8 @@ export interface CampaignState {
   ready?: Record<string, true>;
   /** Set once the 0 RP start has been applied; an older round-0 save without it has its players' RP zeroed once on load. */
   rpStartZero?: boolean;
+  /** Set once Musters taken under 1.1 have been repriced for 1.2 (by the upgrade, or on load for a campaign already on 1.2). */
+  musterRepriced?: boolean;
   /** Battle history, oldest first. Missing on old saves = empty. */
   history?: BattleRecord[];
   /** Undo window for the latest battle result. Missing = nothing to undo. */

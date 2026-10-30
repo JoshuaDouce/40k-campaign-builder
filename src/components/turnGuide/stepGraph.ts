@@ -1,6 +1,6 @@
 // The step graph behind both views: what a player decides, rolls and gains during one War Round turn.
 // Every number and rule here comes from the written rules (Rules, Pitch, Fate Deck and War Room wording).
-import { ACTIONS, battleSizeOf, hollowgateRound, isV12, LIGHT_FORCES_MAX_PTS, ORBITS, rpCap, SCOUT_NO_TWISTS, TWISTS, VTYPES } from "../../game/index.ts";
+import { ACTIONS, actionDesc, battleSizeOf, hollowgateRound, isV12, LIGHT_FORCES_MAX_PTS, forgeMusterBonus, musterGain, musterSupply, ORBITS, provinceBonus, rpCap, TWISTS, VTYPES } from "../../game/index.ts";
 import type { ActionId, ProvinceType } from "../../game/index.ts";
 import { cardLimit, sizeInfo, SUPPLY_SHORTAGE } from "./battleMath.ts";
 import type { Ctx, Effects, Env, Scenario, Step, StepOption, Tier } from "./guideTypes.ts";
@@ -35,7 +35,11 @@ export const EMPTY_CTX: Ctx = {
   decisive: false,
 };
 
-const actionText = (id: string, sc?: Scenario) => (id === "scout" && sc?.noTwists ? SCOUT_NO_TWISTS : (ACTIONS.find((a) => a.id === id)?.d ?? ""));
+/** An action's rules text under the scenario's rules (the guide's `noTwists` stands in for the Mission Twists switch). */
+const actionText = (id: string, sc: Scenario) => {
+  const a = ACTIONS.find((x) => x.id === id);
+  return a ? actionDesc({ rules: sc.rules, toggles: { twists: !sc.noTwists } }, a) : "";
+};
 const NO_FOOTHOLD = "You hold no provinces, so you can only attack unclaimed provinces on an outer world.";
 const NO_ENEMY = "No enemy holds a province you could reach.";
 
@@ -80,6 +84,7 @@ const provOptions: StepOption[] = PROV_ORDER.map((k) => ({
   id: k,
   label: VTYPES[k].n,
   hint: `${VTYPES[k].size} pts. ${VTYPES[k].bonus}`,
+  hintFor: (sc) => `${VTYPES[k].size} pts. ${provinceBonus(sc, k)}`,
   set: (c) => ({ ...c, prov: k }),
   next: (c) => (c.holder === "unclaimed" ? "garrison" : "underdog"),
   available: ({ ctx }) =>
@@ -132,7 +137,7 @@ function twistText({ ctx, sc }: Env): string {
         ? `${ctx.tier === "holl" ? "The Hollowgate" : "An inner world"} has 2 twists. Roll a D12 for the first.`
         : "Roll a D12 for the second twist.",
   ];
-  if (sc.scouted) lines.push("You scouted: you may swap one rolled twist for any twist you choose.");
+  if (sc.scouted && !isV12(sc)) lines.push("You scouted: you may swap one rolled twist for any twist you choose.");
   return lines.join("\n");
 }
 
@@ -194,7 +199,7 @@ export function afterReminders(ctx: Ctx, sc: Scenario): string[] {
     if (ctx.action === "recuperate") return ["Remove up to 2 Battle Scars from your roster."];
     if (ctx.action === "muster") return ["Add the supply to your supply limit."];
     if (ctx.action === "fortify") return ["Remember which province is fortified: the next defender there gets the bonus."];
-    if (ctx.action === "scout") return sc.noTwists ? [] : ["In your next battle you may swap one rolled twist for any twist you choose."];
+    if (ctx.action === "scout" && !isV12(sc)) return sc.noTwists ? [] : ["In your next battle you may swap one rolled twist for any twist you choose."];
     return [];
   }
   const l = [
@@ -207,7 +212,7 @@ export function afterReminders(ctx: Ctx, sc: Scenario): string[] {
   if (ctx.prov === "shrine") l.push("Shrine: both players' Marked for Glory units also get +1 XP.");
   if (ctx.result === "win" && ctx.action === "conquer" && ctx.prov === "shrine") l.push("You now hold a Shrine: +1 XP to your Marked for Glory unit in any battle fought there.");
   if (isGarrison(ctx)) l.push("The garrison player gains no RP, Fate Cards, wins or supply.");
-  if (sc.scouted) l.push("Your Scout swap is used up.");
+  if (sc.scouted && !isV12(sc)) l.push("Your Scout swap is used up.");
   return l;
 }
 
@@ -286,11 +291,11 @@ const turnOptions: StepOption[] = [
             : true,
   },
   quiet("recuperate", "Recuperate", "+1 RP, remove up to 2 Battle Scars.", "recuperate"),
-  quiet("muster", "Muster", "+250 supply and 1 Fate Card.", "muster"),
+  quiet("muster", "Muster", "+250 supply and 1 Fate Card.", "muster", { hintFor: (sc) => `+${musterSupply(sc)} supply and 1 Fate Card.` }),
   quiet("fortify", "Fortify", "Your next defender there gets +1 CP and extra terrain.", "fortify", {
     available: ({ sc }) => (sc.provinces ? true : "You hold no province to fortify."),
   }),
-  quiet("scout", "Scout", "Draw 1 Fate Card.", "scout"),
+  quiet("scout", "Scout", "Draw 1 Fate Card.", "scout", { hidden: (sc) => isV12(sc) }),
 ];
 
 const resultOption = (id: "win" | "lose" | "draw", label: string, crumb: string): StepOption => ({
@@ -494,7 +499,10 @@ const STEP_LIST: Step[] = [
     side: ["rp"],
     options: [finish("Finish my turn", "end")],
     notes: [
-      { cat: "quirk", text: "RP stops at 10 and a hand at 5. Anything gained beyond that is simply lost, so a full hand or bank wastes Muster, Scout, spoils and Recuperate." },
+      {
+        cat: "quirk",
+        text: (sc) => `RP stops at ${rpCap(sc)} and a hand at 5. Anything gained beyond that is simply lost, so a full hand or bank wastes Muster,${isV12(sc) ? "" : " Scout,"} spoils and Recuperate.`,
+      },
       { cat: "judged", text: "A Raid steals a random Fate Card, but the rules don't say what happens if your hand is already at the limit of 5." },
     ],
   },
@@ -503,7 +511,7 @@ const STEP_LIST: Step[] = [
     kind: "info",
     title: "Recuperate",
     blurb: "A quiet turn: +1 RP and heal scars.",
-    text: actionText("recuperate"),
+    text: ({ sc }) => actionText("recuperate", sc),
     side: ["rp"],
     options: [finish("Do it", "end", { rp: 1 })],
     notes: [{ cat: "nodown", text: "Recuperate costs nothing and has no limit. The only ceiling is the RP you can bank." }],
@@ -513,9 +521,9 @@ const STEP_LIST: Step[] = [
     kind: "info",
     title: "Muster",
     blurb: "A quiet turn: more supply and a card.",
-    text: ({ sc }) => `${actionText("muster")}${sc.forge ? " Your Forge gives +150 more supply." : ""}`,
+    text: ({ sc }) => `${actionText("muster", sc)}${sc.forge ? ` Your Forge gives +${forgeMusterBonus(sc)} more supply.` : ""}`,
     side: ["rp"],
-    options: [finish("Do it", "end", ({ sc }) => ({ supply: 250 + (sc.forge ? 150 : 0), cards: 1 }))],
+    options: [finish("Do it", "end", ({ sc }) => ({ supply: musterGain(sc, !!sc.forge), cards: 1 }))],
     notes: [{ cat: "nodown", text: "Muster gives supply and a Fate Card for nothing, every time it's taken. The only ceiling is the hand limit of 5." }],
   },
   {
@@ -523,7 +531,7 @@ const STEP_LIST: Step[] = [
     kind: "info",
     title: "Fortify",
     blurb: "Mark a province you hold.",
-    text: actionText("fortify"),
+    text: ({ sc }) => actionText("fortify", sc),
     side: ["rp"],
     options: [finish("Do it", "end")],
     notes: [],
