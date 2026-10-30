@@ -3,7 +3,7 @@ import { HAND_LIMIT, rollInt } from "../../game/index.ts";
 import { RP_CAP } from "./battleMath.ts";
 import { SIDE_ACTIONS } from "./sideActions.ts";
 import { EMPTY_CTX, START, STEPS } from "./stepGraph.ts";
-import type { Ctx, Effects, Env, NoteCat, Scenario, SideUse, Step, StepOption, Tally, TrailItem } from "./guideTypes.ts";
+import type { Effects, Env, NoteCat, Scenario, SideUse, Step, StepOption, Tally, TrailItem } from "./guideTypes.ts";
 
 const ZERO_TALLY: Tally = { rp: 0, cards: 0, provinces: 0, supply: 0 };
 
@@ -22,7 +22,12 @@ function applyOption(opt: StepOption, env: Env): Env {
   const eff = typeof opt.effects === "function" ? opt.effects(env) : (opt.effects ?? {});
   return { sc: env.sc, ctx: opt.set ? opt.set(env.ctx) : env.ctx, tally: addTally(env.tally, eff) };
 }
-const nextOf = (opt: StepOption, ctxAfter: Ctx): string => (typeof opt.next === "function" ? opt.next(ctxAfter) : opt.next);
+/** Steps left out while Mission Twists are off: the battle goes straight to its size. */
+const TWIST_STEPS = new Set(["twist1", "twist2"]);
+function nextOf(opt: StepOption, after: Env): string {
+  const next = typeof opt.next === "function" ? opt.next(after.ctx) : opt.next;
+  return after.sc.noTwists && TWIST_STEPS.has(next) ? "size" : next;
+}
 
 /** Roll the step's die, rolling again while the outcome is one that can't be taken. */
 export function rollFor(step: Step, rng: () => number, allowed: (optionId: string) => boolean = () => true): { value: number; optionId: string } | null {
@@ -46,7 +51,7 @@ function walkFrom(sc: Scenario, pick: (step: Step, env: Env, i: number) => StepO
     if (!opt) break;
     visit(step, opt);
     env = applyOption(opt, env);
-    stepId = nextOf(opt, env.ctx);
+    stepId = nextOf(opt, env);
   }
   return { stepId, env };
 }
@@ -105,7 +110,7 @@ export function buildTree(sc: Scenario, choices: Choices, showAll: boolean): Tre
     const rows = step.options.map((opt) => {
       const available = optionAvailability(opt, env);
       const after = applyOption(opt, env);
-      return { opt, available, after, next: nextOf(opt, after.ctx) };
+      return { opt, available, after, next: nextOf(opt, after) };
     });
     const playable = rows.filter((r) => r.available === true);
     const together = step.kind === "roll" && playable.length > 1 && playable.every((r) => r.next === playable[0].next);

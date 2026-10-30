@@ -47,13 +47,15 @@ interface Props {
   onOrganiserDelete?(): void;
   /** Organiser only: take a Battle Training off and refund its RP. */
   onRefundTraining?(training: string): void;
+  /** Organiser only, while the Battle Training rule is off: training bought earlier (hidden and not counted), to refund. */
+  hiddenTraining?: readonly string[];
   /** The Relics rule is on: relics can be earned (held ones always show). */
   relicsOn: boolean;
   onRollRelic(): void;
   onRemoveRelic(relic: string): void;
 }
 
-export function UnitCard({ unit, editable, memorial, overLimit, toughOver, toughNineExtra, epic, toughStage, warlordNotChar, removable, onEdit, onRemove, onOrganiserDelete, onRefundTraining, relicsOn, onRollRelic, onRemoveRelic }: Props) {
+export function UnitCard({ unit, editable, memorial, overLimit, toughOver, toughNineExtra, epic, toughStage, warlordNotChar, removable, onEdit, onRemove, onOrganiserDelete, onRefundTraining, hiddenTraining, relicsOn, onRollRelic, onRemoveRelic }: Props) {
   const [armed, setArmed] = useState(false);
   const [armedDelete, setArmedDelete] = useState(false);
   const [armedRefund, setArmedRefund] = useState<string | null>(null);
@@ -82,6 +84,7 @@ export function UnitCard({ unit, editable, memorial, overLimit, toughOver, tough
   const pct = next ? Math.round(((unit.xp - rank.xp) / (next.xp - rank.xp)) * 100) : 100;
   const relics = unit.relics ?? [];
   const training = unit.isCharacter ? (unit.training ?? []) : [];
+  const trainList = training.length ? training : (hiddenTraining ?? []);
   const honourDelta = HONOUR_PTS * unit.honours.length;
   const eff = effectivePoints(unit);
   const addOns = [
@@ -225,10 +228,10 @@ export function UnitCard({ unit, editable, memorial, overLimit, toughOver, tough
           {unit.enhancement}
         </div>
       )}
-      {training.length > 0 && (
+      {trainList.length > 0 && (
         <div className="enh">
-          <span>Battle Training · {training.length} of {MAX_TRAINING}</span>
-          {training.map((t) => (
+          <span>{training.length ? `Battle Training · ${training.length} of ${MAX_TRAINING}` : "Battle Training · switched off, not counted · only you see this"}</span>
+          {trainList.map((t) => (
             <div key={t}>
               <b>{t}</b> {trainingEffect(t)}
               {onRefundTraining && (

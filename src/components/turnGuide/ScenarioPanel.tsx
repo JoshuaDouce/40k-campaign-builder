@@ -9,9 +9,8 @@ interface Props {
   onChange(sc: Scenario): void;
 }
 
-type BoolKey = {
-  [K in keyof Scenario]: Scenario[K] extends boolean ? K : never;
-}[keyof Scenario];
+/** The yes/no questions the player answers (noTwists comes from the campaign, not the panel). */
+type BoolKey = Exclude<{ [K in keyof Scenario]-?: Scenario[K] extends boolean ? K : never }[keyof Scenario], "noTwists">;
 
 type NumKey = "players" | "rp" | "hand" | "supply";
 

@@ -205,8 +205,19 @@ export function scarOutcome(unit: Pick<Unit, "scars" | "isWarlord">): { kept: st
 const EMPTY: readonly Unit[] = [];
 
 /** A player's roster (empty if none). Read-only: do not mutate the result. */
+/** A unit as the campaign shows and counts it: Battle Training and relics are left out while their rule is off. */
+export function visibleUnit(state: Pick<CampaignState, "toggles">, u: Unit): Unit {
+  const hideTraining = !!u.training && !toggleOn(state, "training");
+  const hideRelics = !!u.relics && !toggleOn(state, "relics");
+  if (!hideTraining && !hideRelics) return u;
+  const { training, relics, ...rest } = u;
+  return { ...rest, ...(!hideTraining && training && { training }), ...(!hideRelics && relics && { relics }) };
+}
+
+/** A player's roster as the campaign shows and counts it (see `visibleUnit`). Read-only: never write through it. */
 export function rosterOf(state: CampaignState, playerId: string): readonly Unit[] {
-  return state.rosters?.[playerId] ?? EMPTY;
+  const raw = state.rosters?.[playerId] ?? EMPTY;
+  return toggleOn(state, "training") && toggleOn(state, "relics") ? raw : raw.map((u) => visibleUnit(state, u));
 }
 
 /** Unused unit id for a roster. */
@@ -385,7 +396,7 @@ export function capProblem(s: CampaignState, playerId: string, after: readonly U
   const p = getPlayer(s, playerId);
   if (!p) return null;
   const supply = supplyOf(s, p);
-  const total = totalEffective(after);
+  const total = totalEffective(after.map((u) => visibleUnit(s, u)));
   if (total > supply && total > totalEffective(rosterOf(s, playerId))) {
     return `This would take your roster to ${total} pts, over your ${supply} supply.`;
   }
@@ -472,6 +483,11 @@ export function updateUnitIn(s: CampaignState, playerId: string, unit: Unit): bo
   if (old.ex) u.ex = true;
   if (old.legendLogged) u.legendLogged = true;
   if (old.xpRound) u.xpRound = old.xpRound;
+  // The form never sees training or relics hidden by a rule that is off: keep them while the unit stays a Character.
+  if (u.isCharacter) {
+    if (!toggleOn(s, "training") && old.training) u.training = old.training;
+    if (!toggleOn(s, "relics") && old.relics) u.relics = old.relics;
+  }
   if (capProblem(s, playerId, withUnit(roster, u))) return false;
   roster[i] = u;
   enforceWarlord(roster, u);

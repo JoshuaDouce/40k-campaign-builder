@@ -41,7 +41,7 @@ export function RewardsTab({ onNavigate }: { onNavigate: (tab: TabId) => void })
     <section className="tab rw" id="rewards">
       <h2>Rewards</h2>
       <p className="dim">
-        Every Battle Honour, Scar, Relic and Battle Training, and what it does. When you roll for them is on the{" "}
+        Every {["Battle Honour", "Scar", ...tables.filter((t) => t.rule).map((t) => t.label === "Relic" ? "Relic" : t.title)].join(", ").replace(/, (?=[^,]*$)/, " and ")}, and what it does. When you roll for them is on the{" "}
         <button type="button" className="lnk" onClick={() => onNavigate("rules")}>Rules</button> page.
       </p>
       <div className="chips" role="group" aria-label="Jump to a table">

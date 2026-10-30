@@ -12,6 +12,7 @@ import {
   PTYPES,
   sizeOf,
   stageText,
+  toggleOn,
   VTYPES,
 } from "../game/index.ts";
 import type { Planet, Province } from "../game/index.ts";
@@ -140,8 +141,7 @@ function ProvinceInfo({ provId, planet }: { provId: string; planet: Planet }) {
         </span>
       </h4>
       <p className="dim mono" style={{ fontSize: 12 }}>
-        {orbit.twists} TWIST{orbit.twists > 1 ? "S" : ""}
-        {state.fort[v.id] ? " · FORTIFIED" : ""}
+        {[toggleOn(state, "twists") && `${orbit.twists} TWIST${orbit.twists > 1 ? "S" : ""}`, state.fort[v.id] && "FORTIFIED"].filter(Boolean).join(" · ")}
       </p>
       <p>
         <b>Holding it:</b> {holderGains(v)}

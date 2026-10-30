@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { rankOf, rosterOf } from "../../game/index.ts";
+import { rankOf, rosterOf, toggleOn } from "../../game/index.ts";
 import { useCampaign } from "../../store/useCampaign.ts";
 
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
@@ -7,6 +7,7 @@ const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one :
 /** Every Character in the Reach: the living by player, then the fallen as memorials (newest first). */
 export function HallOfHeroes({ colors }: { colors: Record<string, string> }) {
   const { state, dispatch, viewer } = useCampaign();
+  const relicsOn = toggleOn(state, "relics");
   const fallen = [...(state.fallen ?? [])].reverse();
   const [armed, setArmed] = useState<string | null>(null);
   useEffect(() => {
@@ -52,9 +53,11 @@ export function HallOfHeroes({ colors }: { colors: Record<string, string> }) {
                   <span>
                     <b>{u.kills ?? 0}</b> kills
                   </span>
-                  <span>
-                    <b>{u.relics?.length ?? 0}</b> {u.relics?.length === 1 ? "relic" : "relics"}
-                  </span>
+                  {relicsOn && (
+                    <span>
+                      <b>{u.relics?.length ?? 0}</b> {u.relics?.length === 1 ? "relic" : "relics"}
+                    </span>
+                  )}
                 </div>
               </div>
             ))}
@@ -82,7 +85,7 @@ export function HallOfHeroes({ colors }: { colors: Record<string, string> }) {
           <div className="meta">
             <span>{plural(f.battles, "battle", "battles")}</span>
             <span>{plural(f.kills, "kill", "kills")}</span>
-            <span>{plural(f.relics.length, "relic", "relics")}</span>
+            {relicsOn && <span>{plural(f.relics.length, "relic", "relics")}</span>}
           </div>
           <div className="cause">{f.cause}</div>
           {viewer.isOwner && (

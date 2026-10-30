@@ -308,6 +308,7 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
                       say(u.isCharacter && state.round !== 0 ? `${u.name} moved to the Hall of Heroes.` : "Unit removed.");
                     }}
                     relicsOn={toggleOn(state, "relics")}
+                    hiddenTraining={viewer.isOwner && !toggleOn(state, "training") ? state.rosters?.[pid]?.find((x) => x.id === u.id)?.training : undefined}
                     onRefundTraining={
                       viewer.isOwner
                         ? (training) => {

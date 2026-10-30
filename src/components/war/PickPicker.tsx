@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
-import { ACTIONS, actionAvailable, buildPick, pickZones, tiedUp } from "../../game/index.ts";
+import { ACTIONS, actionAvailable, actionDesc, buildPick, pickZones, tiedUp } from "../../game/index.ts";
 import type { ActionId, CampaignState, PickChoice, Player, RoundPick, Zone } from "../../game/index.ts";
 import { TargetList } from "./TargetList.tsx";
 
@@ -57,7 +57,7 @@ export function PickPicker({ state, player, initial, greyTiedUp, submitLabel, al
             >
               <span className={`at ${a.battle ? "b" : "q"}`}>{a.battle ? "Battle" : "No battle"}</span>
               <span className="an">{a.n}</span>
-              <span className="ad">{a.d}</span>
+              <span className="ad">{actionDesc(state, a)}</span>
             </button>
           );
         })}

@@ -16,6 +16,7 @@ import {
   RECRUITS_XP,
   ROLE_NAMES,
   roleOf,
+  toggleOn,
   scarName,
   scarWeapon,
   setupCharacterBlock,
@@ -284,7 +285,7 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, rp, o
       <p className="dim">
         {recruits
           ? `${RECRUITS_COST} RP. Add a new unit that starts at 3 XP (Blooded), with its first Battle Honour. You have ${rp ?? 0} RP.`
-          : "Rank is worked out from XP. Effective points add 10 per honour, relic and Battle Training."}
+          : `Rank is worked out from XP. Effective points add 10 per ${["honour", toggleOn(state, "relics") && "relic", toggleOn(state, "training") && "Battle Training"].filter(Boolean).join(", ").replace(/, (?=[^,]*$)/, " and ")}.`}
       </p>
       <div className="formgrid">
         <div className="field">
@@ -398,7 +399,7 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, rp, o
               Knights exemption: this Armiger can be your Setup Warlord without being a Character. It counts as your one Character.
             </div>
           )}
-          {losesDetails && <div className="hint bad">! Saving without Character removes this unit's title, backstory, enhancement, relics and Battle Training.</div>}
+          {losesDetails && <div className="hint bad">! Saving without Character removes this unit's {["title", "backstory", "enhancement", existing?.relics?.length && "relics", existing?.training?.length && "Battle Training"].filter(Boolean).join(", ").replace(/, (?=[^,]*$)/, " and ")}.</div>}
           {charBlock && (
             <div className="hint bad" id="f_charblock" role="alert">
               ! Setup allows one Character: your {charBlock.isWarlord ? "Warlord" : "Character"} ({charBlock.name}). Change or remove them first.

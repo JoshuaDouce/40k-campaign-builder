@@ -1,7 +1,7 @@
 // Campaign rule toggles: six owner-switched rules, plus the datasheet / Toughness-stage / Knights helpers.
 // Pure and read-only. Roster saves in roster.ts call the block checks; the UI uses them for messages.
 import { getPlayer, supplyOf } from "./selectors.ts";
-import type { CampaignState, Player, ToggleKey, Unit } from "./types.ts";
+import type { ActionDef, CampaignState, Player, ToggleKey, Unit } from "./types.ts";
 
 export const TOGGLE_KEYS: readonly ToggleKey[] = ["twists", "training", "relics", "datasheetLimit", "toughnessStages", "knights"];
 
@@ -32,6 +32,14 @@ export function isToggleKey(x: unknown): x is ToggleKey {
 /** True if the rule is on. Old saves may still hold a `forceOrg` key: it is ignored. */
 export function toggleOn(state: Pick<CampaignState, "toggles">, key: ToggleKey): boolean {
   return state.toggles?.[key] ?? TOGGLE_DEFAULTS[key];
+}
+
+/** Scout's rules text while Mission Twists are off (no twist to swap). */
+export const SCOUT_NO_TWISTS = "Draw 1 Fate Card.";
+
+/** An action's rules text as this campaign plays it: Scout's twist swap is left out while Mission Twists are off. */
+export function actionDesc(state: Pick<CampaignState, "toggles">, a: Pick<ActionDef, "id" | "d">): string {
+  return a.id === "scout" && !toggleOn(state, "twists") ? SCOUT_NO_TWISTS : a.d;
 }
 
 /** Toggle names that are on, in panel order. */

@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { toggleOn } from "../../game/index.ts";
+import { useOptionalCampaign } from "../../store/useCampaign.ts";
 import { FlowTree } from "./FlowTree.tsx";
 import { ScenarioPanel } from "./ScenarioPanel.tsx";
 import { DEFAULT_SCENARIO } from "./stepGraph.ts";
@@ -17,6 +19,10 @@ export function TurnGuideTab() {
   const [trail, setTrail] = useState<TrailItem[]>([]);
   const [sides, setSides] = useState<SideUse[]>([]);
   const [choices, setChoices] = useState<Choices>({});
+  // In a campaign with Mission Twists off, the guide follows suit (outside a campaign every rule is on).
+  const campaign = useOptionalCampaign();
+  const noTwists = !!campaign && !toggleOn(campaign.state, "twists");
+  const live = useMemo<Scenario>(() => (noTwists ? { ...sc, noTwists } : sc), [sc, noTwists]);
 
   const changeScenario = (next: Scenario) => {
     setSc(next);
@@ -52,11 +58,11 @@ export function TurnGuideTab() {
         </button>
       </div>
 
-      <ScenarioPanel sc={sc} onChange={changeScenario} />
+      <ScenarioPanel sc={live} onChange={changeScenario} />
 
       {view === "walk" ? (
         <Walkthrough
-          sc={sc}
+          sc={live}
           trail={trail}
           setTrail={setTrail}
           sides={sides}
@@ -66,7 +72,7 @@ export function TurnGuideTab() {
           onNextTurn={changeScenario}
         />
       ) : (
-        <FlowTree sc={sc} choices={choices} setChoices={setChoices} showNotes={showNotes} onWalk={walkPath} />
+        <FlowTree sc={live} choices={choices} setChoices={setChoices} showNotes={showNotes} onWalk={walkPath} />
       )}
     </section>
   );
