@@ -86,6 +86,7 @@ export function canPerform(state: CampaignState, action: Action, ctx: Permission
     case "setProvinceOwner":
     case "removePlayer":
     case "organiserRemoveUnit":
+    case "refundTraining":
     case "organiserAddCard":
     case "organiserRemoveCard":
     case "deleteFallen":

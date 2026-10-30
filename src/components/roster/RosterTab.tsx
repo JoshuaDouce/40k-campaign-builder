@@ -307,6 +307,15 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
                       dispatch({ type: "removeUnit", playerId: pid, unitId: u.id, cause });
                       say(u.isCharacter && state.round !== 0 ? `${u.name} moved to the Hall of Heroes.` : "Unit removed.");
                     }}
+                    relicsOn={toggleOn(state, "relics")}
+                    onRefundTraining={
+                      viewer.isOwner
+                        ? (training) => {
+                            dispatch({ type: "refundTraining", playerId: pid, unitId: u.id, training });
+                            say(`${training} removed from ${u.name}: ${PROMOTION_COST} RP refunded.`);
+                          }
+                        : undefined
+                    }
                     onOrganiserDelete={
                       viewer.isOwner
                         ? () => {

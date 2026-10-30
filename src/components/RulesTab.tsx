@@ -4,6 +4,8 @@ import { useOptionalCampaign } from "../store/useCampaign.ts";
 import type { TabId } from "../store/useDevicePrefs.ts";
 
 const TOGGLE_DESC: Record<ToggleKey, string> = {
+  training: "Characters can buy Battle Training with a Promotion. Off: no new training; the organiser can refund training already bought.",
+  relics: "Characters earn relics from Shrines and Fate Cards. Off: no new relics; held relics stay.",
   twists: `Battles roll Mission Twists. Off: none are rolled. Light Forces and Close Quarters still apply at ${LIGHT_FORCES_MAX_PTS} pts or fewer.`,
   datasheetLimit: "5 datasheets, +1 for each Extra Datasheet bought with RP.",
   toughnessStages: "No unit above T11 in War Rounds 1–2, until supply reaches 1250.",
@@ -131,7 +133,7 @@ export function RulesTab({ onNavigate }: { onNavigate: (tab: TabId) => void }) {
       <h3>Characters</h3>
       <ul className="rl">
         <li>Use their own Battle Honour and Battle Scar tables.</li>
-        <li>Up to 3 relics and 3 Battle Training each.</li>
+        {(toggled("relics") || toggled("training")) && <li>Up to {[toggled("relics") && "3 relics", toggled("training") && "3 Battle Training"].filter(Boolean).join(" and ")} each.</li>}
         <li>Fallen Characters go to the Hall of Heroes.</li>
       </ul>
 
@@ -286,18 +288,32 @@ export function RulesTab({ onNavigate }: { onNavigate: (tab: TabId) => void }) {
       </ul>
 
       <h3>Relics (roll D6 or pick)</h3>
-      <ul className="rl">
-        <li>A Character earns one when its player claims a Shrine, or from a Fate Card.</li>
-        <li>Up to 3 per Character, no duplicates: re-roll or pick another.</li>
-        <li>+10 pts each, added after Battle Honours.</li>
-      </ul>
+      {toggled("relics") ? (
+        <ul className="rl">
+          <li>A Character earns one when its player claims a Shrine, or from a Fate Card.</li>
+          <li>Up to 3 per Character, no duplicates: re-roll or pick another.</li>
+          <li>+10 pts each.</li>
+        </ul>
+      ) : (
+        <ul className="rl">
+          <li>Off in this campaign: no new relics. Relics already held stay and still add +10 pts each.</li>
+        </ul>
+      )}
 
       <h3>Battle Training (roll D12 or pick)</h3>
-      <ul className="rl">
-        <li>Bought with a Promotion (1 RP).</li>
-        <li>Not a detachment Enhancement: those are still paid in points when you muster.</li>
-        <li>Up to 3 per Character, no duplicates. +10 pts each.</li>
-      </ul>
+      {toggled("training") ? (
+        <ul className="rl">
+          <li>Bought with a Promotion (1 RP).</li>
+          <li>Not a detachment Enhancement: those are still paid in points when you muster.</li>
+          <li>Up to 3 per Character, no duplicates. +10 pts each.</li>
+          <li>Only the organiser can remove it, refunding the 1 RP.</li>
+        </ul>
+      ) : (
+        <ul className="rl">
+          <li>Off in this campaign: none can be bought. Battle Honours are still earned as normal.</li>
+          <li>The organiser can remove training already bought and refund its 1 RP.</li>
+        </ul>
+      )}
 
       <h3>Spending Requisition</h3>
       <p>Spend RP at any time outside a battle.</p>
@@ -308,7 +324,7 @@ export function RulesTab({ onNavigate }: { onNavigate: (tab: TabId) => void }) {
           {toggled("datasheetLimit") && <tr><td className="n">1 RP</td><td>Extra Datasheet</td><td>+1 to your datasheet limit, for the rest of the campaign.</td></tr>}
           <tr><td className="n">1 RP</td><td>Field Surgeon</td><td>Remove one Battle Scar.</td></tr>
           <tr><td className="n">1 RP</td><td>Requisition the Deck</td><td>Draw one Fate Card.</td></tr>
-          <tr><td className="n">1 RP</td><td>Promotion</td><td>Give a Character Battle Training, or make a Veteran (8+ XP) unit's sergeant a Character.</td></tr>
+          <tr><td className="n">1 RP</td><td>Promotion</td><td>{toggled("training") ? "Give a Character Battle Training, or make" : "Make"} a Veteran (8+ XP) unit's sergeant a Character.</td></tr>
           <tr><td className="n">2 RP</td><td>Seasoned Recruits</td><td>Add a new unit that starts at 3 XP (Blooded), with its first Battle Honour.</td></tr>
         </tbody>
       </table></div>

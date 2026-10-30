@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { capProblem, promoted, withUnit, MAX_TRAINING, TRAINING, TRAINING_PTS, PROMOTION_COST, PROMOTION_MIN_XP, rankOf, RECRUITS_COST, scarEffect, SURGEON_COST, scarLabel, scarName } from "../../game/index.ts";
+import { capProblem, promoted, toggleOn, withUnit, MAX_TRAINING, TRAINING, TRAINING_PTS, PROMOTION_COST, PROMOTION_MIN_XP, rankOf, RECRUITS_COST, scarEffect, SURGEON_COST, scarLabel, scarName } from "../../game/index.ts";
 import type { Action, Unit } from "../../game/index.ts";
 import { useCampaign } from "../../store/useCampaign.ts";
 import { RollOrPick } from "./RollOrPick.tsx";
@@ -89,7 +89,9 @@ export function PromotionDialog({ playerId, roster, rp, onDone, onClose }: Props
   const { state, dispatch } = useCampaign();
   // Setup allows one Character, the Warlord: no Veteran can be promoted until War Round 1.
   const setup = state.round === 0;
-  const [mode, setMode] = useState<PromoMode>("char");
+  // With the Battle Training rule off, a Promotion can only make a Veteran a Character.
+  const trainingOn = toggleOn(state, "training");
+  const [mode, setMode] = useState<PromoMode>(trainingOn ? "char" : "vet");
   const [uid, setUid] = useState<string | null>(null);
   const [roll, setRoll] = useState<number | undefined>();
   const [pick, setPick] = useState("");
@@ -122,16 +124,20 @@ export function PromotionDialog({ playerId, roster, rp, onDone, onClose }: Props
   return (
     <Overlay title="Promotion" onClose={onClose}>
       <p className="dim">
-        {PROMOTION_COST} RP. Give a Character Battle Training (+{TRAINING_PTS} pts each, up to {MAX_TRAINING}), or make a Veteran unit's sergeant a Character. You have {rp} RP.
+        {trainingOn
+          ? `${PROMOTION_COST} RP. Give a Character Battle Training (+${TRAINING_PTS} pts each, up to ${MAX_TRAINING}), or make a Veteran unit's sergeant a Character. You have ${rp} RP.`
+          : `${PROMOTION_COST} RP. Make a Veteran unit's sergeant a Character. You have ${rp} RP.`}
       </p>
-      <div className="seg" role="group" aria-label="Promotion type">
-        <button type="button" className="chip" aria-pressed={mode === "char"} onClick={() => pickMode("char")}>
-          Battle Training
-        </button>
-        <button type="button" className="chip" aria-pressed={mode === "vet"} onClick={() => pickMode("vet")}>
-          Veteran becomes Character
-        </button>
-      </div>
+      {trainingOn && (
+        <div className="seg" role="group" aria-label="Promotion type">
+          <button type="button" className="chip" aria-pressed={mode === "char"} onClick={() => pickMode("char")}>
+            Battle Training
+          </button>
+          <button type="button" className="chip" aria-pressed={mode === "vet"} onClick={() => pickMode("vet")}>
+            Veteran becomes Character
+          </button>
+        </div>
+      )}
       <div className="picklist" style={{ marginTop: 12 }}>
         {list.length ? (
           list.map((c) => (

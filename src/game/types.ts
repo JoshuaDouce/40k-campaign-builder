@@ -440,11 +440,11 @@ export interface CampaignState {
   history?: BattleRecord[];
   /** Undo window for the latest battle result. Missing = nothing to undo. */
   undo?: UndoInfo;
-  /** Owner-switched campaign rules. Missing object or key = default (Mission Twists and Datasheet limit on, the rest off). */
+  /** Owner-switched campaign rules. Missing object or key = default (Mission Twists, Battle Training, Relics and Datasheet limit on, the rest off). */
   toggles?: Partial<Record<ToggleKey, boolean>>;
 }
 
-export type ToggleKey = "twists" | "datasheetLimit" | "toughnessStages" | "knights";
+export type ToggleKey = "twists" | "training" | "relics" | "datasheetLimit" | "toughnessStages" | "knights";
 
 /** A rolled battle with its zone and both players looked up (`d` stands in for `def`). */
 export type BattleInfo = Omit<LiveBattle, "def"> & {
@@ -497,6 +497,7 @@ export type Action =
   | { type: "setReady"; playerId: string; ready: boolean }
   | { type: "fieldSurgeon"; playerId: string; unitId: string; scar: string }
   | { type: "promotion"; playerId: string; unitId: string; training?: string }
+  | { type: "refundTraining"; playerId: string; unitId: string; training: string }
   | { type: "seasonedRecruits"; playerId: string; unit: Unit }
   | { type: "setToggle"; key: ToggleKey; on: boolean }
   | { type: "regen" }
