@@ -51,6 +51,7 @@ export function fresh(players: Player[] | undefined, rng: Rng): CampaignState {
     hollOpened: false,
     rpStartZero: true,
     musterRepriced: true,
+    plogBackfilled: true,
     rosters: {},
     fallen: [],
     ready: {},

@@ -18,7 +18,11 @@ Fate Card count changed. Design: `design/player-log.html`.
 - The text is the campaign log line(s) the action added (those naming the player when any do), or a short fallback when
   the action adds none (playing or discarding a card, an organiser stat change, Undo).
 - The first time a player is seen they get an opening entry: "History begins at War Round N" (existing players, with
-  their figures before that action) or "Joined at War Round N" (late joiners). So existing campaigns need no migration.
+  their figures before that action) or "Joined at War Round N" (late joiners).
+- Backfill (added 2026-10-30): once, on load (`backfillPlayerLog`, flag `plogBackfilled`), the campaign log lines from
+  before the Player log began are copied under each named player's opening entry, tagged "Campaign log", text only (the
+  campaign log never held before and after figures, and keeps only the latest 60 lines). "Earlier" means older than every
+  line the Player log has already picked up. New campaigns and resets start with the flag set.
 - Tags: game-driven actions (begin a War Round, reveal, battle results, Undo, quiet picks) are Game. Organiser tools
   (stat +/-, Held by, Fate Card give/take, training refund, rules upgrade, remove player, chart, reset) are Organiser.
   Anything else is Player when the sender is that player, Organiser when the organiser acted for them, otherwise Game.
