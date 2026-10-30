@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { toggleOn } from "../../game/index.ts";
+import { LATEST_RULES, rulesVersion, toggleOn } from "../../game/index.ts";
 import { useOptionalCampaign } from "../../store/useCampaign.ts";
 import { FlowTree } from "./FlowTree.tsx";
 import { ScenarioPanel } from "./ScenarioPanel.tsx";
@@ -22,7 +22,9 @@ export function TurnGuideTab() {
   // In a campaign with Mission Twists off, the guide follows suit (outside a campaign every rule is on).
   const campaign = useOptionalCampaign();
   const noTwists = !!campaign && !toggleOn(campaign.state, "twists");
-  const live = useMemo<Scenario>(() => (noTwists ? { ...sc, noTwists } : sc), [sc, noTwists]);
+  // The guide follows the campaign's rules version, or the latest outside a campaign.
+  const rules = campaign ? rulesVersion(campaign.state) : LATEST_RULES;
+  const live = useMemo<Scenario>(() => ({ ...sc, rules, ...(noTwists && { noTwists }) }), [sc, noTwists, rules]);
 
   const changeScenario = (next: Scenario) => {
     setSc(next);

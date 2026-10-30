@@ -1,12 +1,19 @@
 // "Any time" choices a player can slip in around the main steps.
-import { HAND_LIMIT } from "../../game/index.ts";
+import { HAND_LIMIT, reinforceCost, REINFORCE_SUPPLY } from "../../game/index.ts";
 import { cardLimit } from "./battleMath.ts";
 import type { Env, SideAction } from "./guideTypes.ts";
 
 const needRp = (env: Env, cost: number): true | string => (env.sc.rp + env.tally.rp >= cost ? true : `You need ${cost} RP.`);
 
 export const SIDE_ACTIONS: SideAction[] = [
-  { id: "reinforcements", group: "rp", label: "Reinforcements", hint: "1 RP: +200 pts to your supply limit.", effects: { rp: -1, supply: 200 }, available: (env) => needRp(env, 1) },
+  {
+    id: "reinforcements",
+    group: "rp",
+    label: "Reinforcements",
+    hint: (sc) => `${reinforceCost(sc)} RP: +${REINFORCE_SUPPLY} pts to your supply limit.`,
+    effects: (sc) => ({ rp: -reinforceCost(sc), supply: REINFORCE_SUPPLY }),
+    available: (env) => needRp(env, reinforceCost(env.sc)),
+  },
   { id: "surgeon", group: "rp", label: "Field Surgeon", hint: "1 RP: remove one Battle Scar.", effects: { rp: -1 }, available: (env) => needRp(env, 1) },
   {
     id: "deck",

@@ -3,6 +3,7 @@ import { ORBITS, PLANET_NAMES, PREFIX, PTYPES, VTYPES } from "./data.ts";
 import { B, log } from "./log.ts";
 import { mulberry, rollInt, shuffle } from "./rng.ts";
 import type { Rng } from "./rng.ts";
+import { isV12 } from "./version.ts";
 import type { CampaignState, Lane, OrbitKey, Planet, PlanetType, Province, ProvinceType, Pt, System } from "./types.ts";
 
 export const BASE_SIZE = 360;
@@ -179,8 +180,47 @@ function nearest(from: Planet, among: Planet[]): Planet | null {
 
 /* ---------- provinces ---------- */
 
-/** Generate the provinces of one planet. `nextPrefix` supplies the name prefix for each. */
-export function genPlanetProvinces(pl: Planet, R: Rng, nextPrefix: () => string): Province[] {
+/** Varkesh Reach 1.2: the province types each orbit draws from, so battles grow as the war moves inward. */
+const ORBIT_POOL: Record<OrbitKey, readonly ProvinceType[]> = {
+  outer: ["outpost", "settlement", "shrine", "forge", "refinery"],
+  middle: ["forge", "refinery", "hive", "fortress", "ruins"],
+  inner: ["graveyard", "hive", "fortress", "ruins"],
+};
+const ORBIT_FILL: Record<OrbitKey, ProvinceType> = { outer: "outpost", middle: "ruins", inner: "fortress" };
+
+/**
+ * `n` province types for a 1.2 world: a Titan Graveyard first on an inner world, the world's favoured type if its orbit
+ * draws it, then the rest of the orbit's pool shuffled, each type once and none already in `have`; then filler.
+ */
+export function orbitTypes(orbit: OrbitKey, fav: ProvinceType, have: readonly ProvinceType[], n: number, R: Rng): ProvinceType[] {
+  const pool = ORBIT_POOL[orbit];
+  const out: ProvinceType[] = [];
+  const add = (t: ProvinceType) => {
+    if (out.length < n && !out.includes(t) && !have.includes(t)) out.push(t);
+  };
+  if (orbit === "inner") add("graveyard");
+  if (pool.includes(fav)) add(fav);
+  shuffle(pool, R).forEach(add);
+  while (out.length < n) out.push(ORBIT_FILL[orbit]);
+  return out;
+}
+
+/** 1.1 province types for a world of `k` provinces: a Spaceport, its favoured type, then a mix from every size. */
+function classicTypes(fav: ProvinceType, k: number, R: Rng): ProvinceType[] {
+  const pool = shuffle<ProvinceType>(
+    ["spaceport", fav, "outpost", "settlement", "ruins", "fortress", "refinery", "shrine", "hive", "forge", "settlement", "outpost"],
+    R,
+  );
+  const tlist: ProvinceType[] = ["spaceport", fav];
+  pool.forEach((t) => {
+    if (tlist.length < k && !tlist.includes(t)) tlist.push(t);
+  });
+  while (tlist.length < k) tlist.push("outpost");
+  return tlist;
+}
+
+/** Generate the provinces of one planet. `nextPrefix` supplies the name prefix for each. `v12`: orbit-sized types. */
+export function genPlanetProvinces(pl: Planet, R: Rng, nextPrefix: () => string, v12 = false): Province[] {
   const k = pl.orbit === "inner" ? 5 : 5 + Math.floor(R() * 3);
   const pts: Pt[] = [];
   let min = 0.62;
@@ -201,16 +241,7 @@ export function genPlanetProvinces(pl: Planet, R: Rng, nextPrefix: () => string)
   }
   const { cells, nb } = cellsFor(pts);
   const fav = PTYPES[pl.type].fav;
-  const pool = shuffle<ProvinceType>(
-    ["spaceport", fav, "outpost", "settlement", "ruins", "fortress", "refinery", "shrine", "hive", "forge", "settlement", "outpost"],
-    R,
-  );
-  const tlist: ProvinceType[] = ["spaceport", fav];
-  pool.forEach((t) => {
-    if (tlist.length < k && !tlist.includes(t)) tlist.push(t);
-  });
-  while (tlist.length < k) tlist.push("outpost");
-  const ts = shuffle(tlist, R);
+  const ts = shuffle<ProvinceType>(v12 ? ["spaceport", ...orbitTypes(pl.orbit, fav, ["spaceport"], k - 1, R)] : classicTypes(fav, k, R), R);
   return pts.map((p, i): Province => {
     const ty = ts[i],
       suf = VTYPES[ty].suf;
@@ -233,18 +264,22 @@ const CAPITAL_BORDER: ReadonlyArray<readonly [number, readonly ProvinceType[]]> 
   [750, ["forge", "refinery"]],
   [1000, ["hive", "fortress", "ruins"]],
 ];
-const BORDER_SIZES = CAPITAL_BORDER.map(([pts]) => pts);
+/** In 1.2 a Capital only borders 500 and 750 pt battles: the bigger ones are further in. */
+const CAPITAL_BORDER_V12 = CAPITAL_BORDER.filter(([pts]) => pts <= 750);
 
 /**
- * Retype the Capital's neighbours so it borders at least one 500, one 750 and one 1000 pt battle. The spaceport is
- * never changed, and a neighbour is only retyped when its size isn't one of those or another neighbour also has it.
+ * Retype the Capital's neighbours so it borders at least one 500, one 750 and (1.1 only) one 1000 pt battle. The
+ * spaceport is never changed, and a neighbour is only retyped when its size isn't one of those or another neighbour
+ * also has it.
  */
-function borderCapital(provs: Province[], v: Province, R: Rng): void {
+function borderCapital(provs: Province[], v: Province, R: Rng, v12: boolean): void {
+  const border = v12 ? CAPITAL_BORDER_V12 : CAPITAL_BORDER;
+  const BORDER_SIZES = border.map(([pts]) => pts);
   const nbs = v.nb.map((id) => provs.find((q) => q.id === id)).filter((q): q is Province => !!q);
   const size = (q: Province) => VTYPES[q.type].size;
   const spare = (q: Province) =>
     q.type !== "spaceport" && (!BORDER_SIZES.includes(size(q)) || nbs.filter((o) => size(o) === size(q)).length > 1);
-  for (const [pts, types] of CAPITAL_BORDER) {
+  for (const [pts, types] of border) {
     if (nbs.some((q) => size(q) === pts)) continue;
     // Off-size ground (a Settlement) goes first, then a doubled size.
     const q = nbs.find((o) => spare(o) && !BORDER_SIZES.includes(size(o))) ?? nbs.find(spare);
@@ -263,7 +298,7 @@ function borderCapital(provs: Province[], v: Province, R: Rng): void {
  * capital, as far as possible from capitals already on that world (then one with at least 3 neighbours, so it can
  * border a 500, 750 and 1000 pt battle). Converts it in place and retypes its neighbours to match.
  */
-function placeCapital(provs: Province[], homeId: string, cap: Record<string, string>, R: Rng): Province | null {
+function placeCapital(provs: Province[], homeId: string, cap: Record<string, string>, R: Rng, v12: boolean): Province | null {
   const taken = Object.values(cap);
   const cand = provs.filter((v) => v.pl === homeId && !taken.includes(v.id) && v.type !== "spaceport");
   const others = taken
@@ -276,7 +311,7 @@ function placeCapital(provs: Province[], homeId: string, cap: Record<string, str
   if (!v) return null;
   v.type = "capital";
   v.name = v.name.split(" ")[0] + " Landing";
-  borderCapital(provs, v, R);
+  borderCapital(provs, v, R, v12);
   return v;
 }
 
@@ -288,7 +323,8 @@ export interface GeneratedSystem {
   cap: Record<string, string>;
 }
 
-export function genSystem(players: ReadonlyArray<{ id: string }>, seed: number): GeneratedSystem {
+/** Chart a whole Reach. `v12`: Varkesh Reach 1.2 orbit-sized worlds. */
+export function genSystem(players: ReadonlyArray<{ id: string }>, seed: number, v12 = false): GeneratedSystem {
   const R = mulberry(seed);
   const { nIn, nMid, nOut } = worldCounts(players.length);
   const names = shuffle(PLANET_NAMES, R),
@@ -331,14 +367,14 @@ export function genSystem(players: ReadonlyArray<{ id: string }>, seed: number):
   });
   let pfx = 0;
   const nextPrefix = () => prefixes[pfx++ % prefixes.length];
-  planets.forEach((pl) => sys.provs.push(...genPlanetProvinces(pl, R, nextPrefix)));
+  planets.forEach((pl) => sys.provs.push(...genPlanetProvinces(pl, R, nextPrefix, v12)));
   // capitals: one outer world per player (worldCounts guarantees enough)
   const homes = planets.filter((p) => p.orbit === "outer");
   const terr: Record<string, string> = {},
     cap: Record<string, string> = {};
   players.forEach((pl, i) => {
     const world = homes[i % homes.length];
-    const v = placeCapital(sys.provs, world.id, cap, R);
+    const v = placeCapital(sys.provs, world.id, cap, R, v12);
     if (v) {
       cap[pl.id] = v.id;
       terr[v.id] = pl.id;
@@ -404,10 +440,10 @@ export function addWorld(s: CampaignState, playerId: string, rng: Rng): void {
 
   const prefixes = shuffle(PREFIX, rng);
   let pfx = 0;
-  const provs = genPlanetProvinces(world, rng, () => prefixes[pfx++ % prefixes.length]);
+  const provs = genPlanetProvinces(world, rng, () => prefixes[pfx++ % prefixes.length], isV12(s));
   sys.provs.push(...provs);
 
-  const v = player ? placeCapital(sys.provs, world.id, s.cap, rng) : null;
+  const v = player ? placeCapital(sys.provs, world.id, s.cap, rng, isV12(s)) : null;
   if (player && v) {
     s.cap[player.id] = v.id;
     s.terr[v.id] = player.id;

@@ -30,7 +30,7 @@ export function SideActions({ groups, env, uses, onUse }: Props) {
                   {a.label}
                   {used ? ` ×${used}` : ""}
                 </span>
-                <span className="ad">{ok === true ? a.hint : ok}</span>
+                <span className="ad">{ok === true ? (typeof a.hint === "function" ? a.hint(env.sc) : a.hint) : ok}</span>
               </button>
             );
           })}

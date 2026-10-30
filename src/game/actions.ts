@@ -40,6 +40,8 @@ import {
   unreadyPick,
 } from "./round.ts";
 import { getPlayer, getZone, hollOpen } from "./selectors.ts";
+import { upgradeRules } from "./upgrade.ts";
+import { REINFORCE_SUPPLY, reinforceCost, rpCap } from "./version.ts";
 import type { Action, ActionType, CampaignState, Player } from "./types.ts";
 
 /**
@@ -164,10 +166,11 @@ function run(s: CampaignState, a: Action, rng: Rng): boolean {
 
     case "buyReinforcements": {
       const p = getPlayer(s, a.playerId);
-      if (!p || p.rp < 1) return false;
-      p.rp--;
-      p.sup = (p.sup || 0) + 200;
-      log(s, B(p.name), " spends 1 RP on Reinforcements (+200 supply).");
+      const cost = reinforceCost(s);
+      if (!p || p.rp < cost) return false;
+      p.rp -= cost;
+      p.sup = (p.sup || 0) + REINFORCE_SUPPLY;
+      log(s, B(p.name), ` spends ${cost} RP on Reinforcements (+${REINFORCE_SUPPLY} supply).`);
       return true;
     }
 
@@ -217,7 +220,7 @@ function run(s: CampaignState, a: Action, rng: Rng): boolean {
       if (!p || !Number.isFinite(a.delta)) return false;
       if (a.stat !== "rp" && a.stat !== "battles" && a.stat !== "wins") return false;
       let v = Math.max(0, p[a.stat] + a.delta);
-      if (a.stat === "rp") v = Math.min(10, v);
+      if (a.stat === "rp") v = Math.min(rpCap(s), v);
       p[a.stat] = v;
       return true;
     }
@@ -289,6 +292,9 @@ function run(s: CampaignState, a: Action, rng: Rng): boolean {
       log(s, "Campaign rule changed: ", B(TOGGLE_NAMES[a.key]), ` is now ${a.on ? "on" : "off"}.`);
       return true;
     }
+
+    case "upgradeRules":
+      return upgradeRules(s, a.cuts, rng);
 
     case "regen":
       if (s.round !== 0) return false;

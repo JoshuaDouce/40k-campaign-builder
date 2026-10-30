@@ -5,7 +5,7 @@ import { RollPanel } from "./RollPanel.tsx";
 import { SideActions } from "./SideActions.tsx";
 import { STEPS } from "./stepGraph.ts";
 import { Tally } from "./Tally.tsx";
-import { carryOver, isTurnOver, optionAvailability, replay, stepText } from "./walk.ts";
+import { carryOver, isTurnOver, optionAvailability, optionsOf, replay, stepText } from "./walk.ts";
 import { KIND_LABEL } from "./guideTypes.ts";
 import type { Scenario, SideUse, StepOption, TrailItem } from "./guideTypes.ts";
 
@@ -43,7 +43,8 @@ export function Walkthrough({ sc, trail, setTrail, sides, setSides, showNotes, o
     setTrail([]);
     setSides([]);
   };
-  const single = step.options.length === 1;
+  const opts = optionsOf(step, rep.env.sc);
+  const single = opts.length === 1;
   const over = isTurnOver(step);
 
   return (
@@ -73,12 +74,12 @@ export function Walkthrough({ sc, trail, setTrail, sides, setSides, showNotes, o
         {step.kind === "roll" ? (
           <RollPanel key={`${step.id}-${trail.length}`} step={step} env={rep.env} onPick={pick} />
         ) : single ? (
-          <button className="btn primary tg-tap" onClick={() => pick(step.options[0])}>
-            {step.options[0].label}
+          <button className="btn primary tg-tap" onClick={() => pick(opts[0])}>
+            {opts[0].label}
           </button>
-        ) : step.options.length > 0 ? (
+        ) : opts.length > 0 ? (
           <div className="acts-grid" role="group" aria-label={step.title}>
-            {step.options.map((o) => {
+            {opts.map((o) => {
               const ok = optionAvailability(o, rep.env);
               return (
                 <button key={o.id} className="act tg-tap" disabled={ok !== true} onClick={() => pick(o)}>

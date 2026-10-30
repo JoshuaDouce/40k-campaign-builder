@@ -1,5 +1,6 @@
 // Read-only helpers over a CampaignState. None of these mutate.
 import { ALT, FACTIONS, HOLL, ORBITS, VTYPES } from "./data.ts";
+import { hollowgateRound } from "./version.ts";
 import type { BattleRecord, CampaignState, OrbitDef, Planet, Player, Province, Zone } from "./types.ts";
 
 export const r50 = (n: number): number => Math.round(n / 50) * 50;
@@ -51,9 +52,9 @@ export function claimedFrac(s: CampaignState): number {
   const n = s.sys.provs.length;
   return n ? s.sys.provs.filter((v) => s.terr[v.id]).length / n : 0;
 }
-/** True once 60% is claimed or round 8 is reached, and from then on (latched). */
+/** True once 60% is claimed or the Hollowgate round is reached (8, or 12 in 1.2), and from then on (latched). */
 export function hollOpen(s: CampaignState): boolean {
-  return s.hollOpened || claimedFrac(s) >= 0.6 || s.round >= 8;
+  return s.hollOpened || claimedFrac(s) >= 0.6 || s.round >= hollowgateRound(s);
 }
 /** Supply from held provinces (Outposts and Ruins). Live: lose the province, lose the supply. */
 export function holdingSupply(s: CampaignState, p: Player): number {

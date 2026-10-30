@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
-import { canPerform, chartMatches, SETUP_MAX_TOUGHNESS, setupChecklist, setupReadyCount, togglesOn, TOGGLE_NAMES } from "../game/index.ts";
+import { canPerform, chartMatches, hollowgateRound, SETUP_MAX_TOUGHNESS, setupChecklist, setupReadyCount, togglesOn, TOGGLE_NAMES } from "../game/index.ts";
 import type { Action, CampaignState, FactionName, Player, SetupChecklist } from "../game/index.ts";
 import { useCampaign } from "../store/useCampaign.ts";
 import type { TabId } from "../store/useDevicePrefs.ts";
@@ -13,7 +13,7 @@ const BRIEF: ReadonlyArray<readonly [string, string]> = [
   ["Your start.", "A 750 pt roster led by one Warlord with at least 2 Battleline, 0 Requisition Points (earn them from your Capital and by winning battles), and a Capital province on an outer world. No Epic Heroes."],
   ["The War Round.", "Everyone collects RP from Capitals and Hive Cities, then everyone plans in secret and plays at the same time; only players on the same province wait."],
   ["Your move.", "Pick one action: Conquer, Raid, Recuperate, Muster, Fortify or Scout. Conquer and Raid start a battle."],
-  ["Winning.", "Once 60% of the Reach is claimed (or by War Round 8) the Hollowgate opens. Hold it at the end of a War Round to win."],
+  ["Winning.", "Once 60% of the Reach is claimed (or by War Round {holl}) the Hollowgate opens. Hold it at the end of a War Round to win."],
 ];
 
 type MarkKind = "done" | "todo" | "next" | "ood" | "count";
@@ -95,7 +95,7 @@ export function SetupTab({ colors, onNavigate }: { colors: Record<string, string
             {BRIEF.map(([lead, body]) => (
               <li key={lead}>
                 <div>
-                  <b>{lead}</b> {body}
+                  <b>{lead}</b> {body.replace("{holl}", String(hollowgateRound(state)))}
                 </div>
               </li>
             ))}

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { canPerform, count, DATASHEET_COST, HAND_LIMIT, ROLE_NAMES, roleOf, countsAsSetupNine, datasheetLimit, distinctDatasheets, overStageCap, PROMOTION_COST, RECRUITS_COST, roleRules, rosterOf, setupToughnessBlock, SURGEON_COST, supplyOf, toggleOn, totalBuffs, totalEffective, toughStageActive, unitLocked, warlordNotCharacter } from "../../game/index.ts";
+import { canPerform, count, DATASHEET_COST, HAND_LIMIT, ROLE_NAMES, roleOf, countsAsSetupNine, datasheetLimit, distinctDatasheets, overStageCap, PROMOTION_COST, RECRUITS_COST, reinforceCost, REINFORCE_SUPPLY, roleRules, rosterOf, setupToughnessBlock, SURGEON_COST, supplyOf, toggleOn, totalBuffs, totalEffective, toughStageActive, unitLocked, warlordNotCharacter } from "../../game/index.ts";
 import type { Unit } from "../../game/index.ts";
 import { useCampaign } from "../../store/useCampaign.ts";
 import { FateHand } from "../FateHand.tsx";
@@ -210,16 +210,16 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
             <div className="rp-row">
               <button
                 className="btn sm"
-                disabled={player.rp < 1}
-                title="Spend 1 RP for +200 pts to your supply limit"
+                disabled={player.rp < reinforceCost(state)}
+                title={`Spend ${reinforceCost(state)} RP for +${REINFORCE_SUPPLY} pts to your supply limit`}
                 onClick={() =>
                   setDialog({
                     kind: "spend",
-                    spend: { title: "Reinforcements", cost: 1, effect: "+200 pts to your supply limit.", action: { type: "buyReinforcements", playerId: pid }, toast: "Reinforcements: +200 supply." },
+                    spend: { title: "Reinforcements", cost: reinforceCost(state), effect: `+${REINFORCE_SUPPLY} pts to your supply limit.`, action: { type: "buyReinforcements", playerId: pid }, toast: `Reinforcements: +${REINFORCE_SUPPLY} supply.` },
                   })
                 }
               >
-                Reinforcements · 1 RP
+                Reinforcements · {reinforceCost(state)} RP
               </button>
               <button className="btn sm" disabled={player.rp < SURGEON_COST} onClick={() => setDialog({ kind: "surgeon" })}>
                 Field Surgeon · {SURGEON_COST} RP

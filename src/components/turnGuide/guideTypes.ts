@@ -1,5 +1,5 @@
 // Types for the Turn Guide: a self-contained, rules-only exploration of one player's turn.
-import type { ActionId, ProvinceType } from "../../game/index.ts";
+import type { ActionId, ProvinceType, RulesVersion } from "../../game/index.ts";
 
 export type Tier = "outer" | "middle" | "inner" | "holl";
 export type Holder = "unclaimed" | "enemy";
@@ -22,6 +22,8 @@ export interface Scenario {
   supply: number;
   /** The campaign has Mission Twists off: the guide skips the twist steps and leaves twists out of its text. Not user-set. */
   noTwists?: boolean;
+  /** The rules version the guide follows: the campaign's, or the latest outside one. Not user-set. */
+  rules?: RulesVersion;
 }
 
 /** What has been decided so far this turn. */
@@ -71,6 +73,8 @@ export interface StepOption {
   available?: (env: Env) => true | string;
   effects?: Effects | ((env: Env) => Effects);
   set?: (ctx: Ctx) => Ctx;
+  /** True when this option doesn't exist under the scenario's rules: left out entirely, not shown as unavailable. */
+  hidden?: (sc: Scenario) => boolean;
 }
 
 export interface RollSpec {
@@ -105,8 +109,8 @@ export interface SideAction {
   id: string;
   group: SideGroup;
   label: string;
-  hint: string;
-  effects: Effects;
+  hint: string | ((sc: Scenario) => string);
+  effects: Effects | ((sc: Scenario) => Effects);
   /** true when usable now, otherwise the reason. */
   available: (env: Env, used: number) => true | string;
 }

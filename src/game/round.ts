@@ -8,6 +8,7 @@ import { B, log } from "./log.ts";
 import { toggleOn } from "./toggles.ts";
 import { rollInt } from "./rng.ts";
 import type { Rng } from "./rng.ts";
+import { rpCap } from "./version.ts";
 import {
   count,
   getPlayer,
@@ -439,7 +440,7 @@ export function resolvePick(s: CampaignState, playerId: string, res: "a" | "d" |
   sides.forEach((p) => p.battles++);
   if (rewarded) {
     rewarded.wins++;
-    rewarded.rp = Math.min(10, rewarded.rp + 1);
+    rewarded.rp = Math.min(rpCap(s), rewarded.rp + 1);
   }
   const pl = planetOf(s, v);
   const where = pl ? `${v.name} on ${pl.name}` : v.name;
@@ -465,20 +466,20 @@ export function resolvePick(s: CampaignState, playerId: string, res: "a" | "d" |
       if (v.type === "capital" && s.terr[v.id] === d.id) {
         const st = Math.min(2, d.rp);
         d.rp -= st;
-        a.rp = Math.min(10, a.rp + st);
+        a.rp = Math.min(rpCap(s), a.rp + st);
         log(s, B(a.name), ` sacks ${d.name}'s Capital and steals ${st} RP.`);
       }
       s.terr[v.id] = a.id;
       log(s, B(a.name), ` takes ${v.name}.`);
       if (info.garrison && decisive) {
-        a.rp = Math.min(10, a.rp + 1);
+        a.rp = Math.min(rpCap(s), a.rp + 1);
         log(s, "Decisive win: ", B(a.name), " gains 1 extra RP.");
       }
     } else if (win === d && s.terr[v.id] === d.id) log(s, B(d.name), ` holds ${v.name}.`);
   } else if (win === a) {
     const rp = Math.min(1, d.rp);
     d.rp -= rp;
-    a.rp = Math.min(10, a.rp + rp);
+    a.rp = Math.min(rpCap(s), a.rp + rp);
     if (d.hand.length && a.hand.length < HAND_LIMIT) {
       const c = d.hand.splice(rollInt(rng, d.hand.length), 1)[0];
       a.hand.push(c);
@@ -568,7 +569,7 @@ export function confirmQuietPick(s: CampaignState, playerId: string, rng: Rng): 
   const z = pk.zone ? provsOf(s, p).find((v) => v.id === pk.zone) : undefined;
   if (act === "fortify" && !z) return false;
   if (act === "recuperate") {
-    p.rp = Math.min(10, p.rp + 1);
+    p.rp = Math.min(rpCap(s), p.rp + 1);
     log(s, B(p.name), " recuperates: +1 RP, removes up to 2 Battle Scars.");
   }
   if (act === "muster") {

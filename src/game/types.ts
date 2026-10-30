@@ -44,7 +44,8 @@ export type ProvinceType =
   | "refinery"
   | "settlement"
   | "outpost"
-  | "ruins";
+  | "ruins"
+  | "graveyard";
 export type Role = "Character" | "Battleline" | "Non-Monster / Vehicle" | "Vehicle / Monster" | "Other";
 export type ActionId = "conquer" | "raid" | "recuperate" | "muster" | "fortify" | "scout";
 export type StatKey = "rp" | "battles" | "wins";
@@ -442,7 +443,11 @@ export interface CampaignState {
   undo?: UndoInfo;
   /** Owner-switched campaign rules. Missing object or key = default (Mission Twists, Battle Training, Relics and Datasheet limit on, the rest off). */
   toggles?: Partial<Record<ToggleKey, boolean>>;
+  /** Rules version. Missing = Varkesh Reach 1.1 (see version.ts). */
+  rules?: RulesVersion;
 }
+
+export type RulesVersion = "1.1" | "1.2";
 
 export type ToggleKey = "twists" | "training" | "relics" | "datasheetLimit" | "toughnessStages" | "knights";
 
@@ -500,6 +505,8 @@ export type Action =
   | { type: "refundTraining"; playerId: string; unitId: string; training: string }
   | { type: "seasonedRecruits"; playerId: string; unit: Unit }
   | { type: "setToggle"; key: ToggleKey; on: boolean }
+  /** Move a 1.1 campaign to 1.2. `cuts`: supply to take off each player id (their Reinforcements repriced). */
+  | { type: "upgradeRules"; cuts: Record<string, number> }
   | { type: "regen" }
   | { type: "reset" };
 

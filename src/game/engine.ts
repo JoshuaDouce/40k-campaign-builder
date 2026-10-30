@@ -6,6 +6,7 @@ import { genSystem } from "./map.ts";
 import { B, log } from "./log.ts";
 import { newSeed } from "./rng.ts";
 import type { Rng } from "./rng.ts";
+import { isV12, LATEST_RULES, rpCap } from "./version.ts";
 import { count, getPlanet, getZone, holdsType, hollOpen, laneLinked, provsOf, r50, supplyOf } from "./selectors.ts";
 import type { ActionId, BattleSizeDef, CampaignState, Player, Zone } from "./types.ts";
 
@@ -34,7 +35,7 @@ export function examplePlayers(): Player[] {
 /** A brand-new campaign. Pure: returns a new state. */
 export function fresh(players: Player[] | undefined, rng: Rng): CampaignState {
   const pl = structuredClone(players ?? examplePlayers());
-  const g = genSystem(pl, newSeed(rng));
+  const g = genSystem(pl, newSeed(rng), isV12({ rules: LATEST_RULES }));
   return {
     round: 0,
     phase: null,
@@ -53,12 +54,13 @@ export function fresh(players: Player[] | undefined, rng: Rng): CampaignState {
     fallen: [],
     ready: {},
     history: [],
+    rules: LATEST_RULES,
   };
 }
 
 /** Re-chart the whole Reach from scratch (mutates `s`). */
 export function regen(s: CampaignState, rng: Rng): void {
-  const g = genSystem(s.players, newSeed(rng));
+  const g = genSystem(s.players, newSeed(rng), isV12(s));
   s.sys = g.sys;
   s.terr = g.terr;
   s.cap = g.cap;
@@ -97,7 +99,7 @@ export function beginRound(s: CampaignState, rng: Rng): void {
   s.players.forEach((p) => {
     const inc = holdsType(s, p, "capital") + holdsType(s, p, "hive");
     if (inc) {
-      p.rp = Math.min(10, p.rp + inc);
+      p.rp = Math.min(rpCap(s), p.rp + inc);
       log(s, B(p.name), ` collects ${inc} RP from their cities.`);
     }
     const refineries = holdsType(s, p, "refinery");

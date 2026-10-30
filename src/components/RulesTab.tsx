@@ -1,7 +1,8 @@
-import { ACTIONS, actionDesc, BATTLE_SIZES, HONOUR_PTS, LIGHT_FORCES_MAX_PTS, ORBITS, SMALL_GAME_TWISTS, PTYPES, toggleOn, TOGGLE_KEYS, TOGGLE_NAMES, TWISTS, typeGains, VTYPES } from "../game/index.ts";
+import { ACTIONS, actionDesc, BATTLE_SIZES, HONOUR_PTS, isV12, LATEST_RULES, LIGHT_FORCES_MAX_PTS, ORBITS, reinforceCost, REINFORCE_SUPPLY, rpCap, rulesVersion, SMALL_GAME_TWISTS, PTYPES, toggleOn, TOGGLE_KEYS, TOGGLE_NAMES, TWISTS, typeGains, VTYPES } from "../game/index.ts";
 import type { ProvinceType, ToggleKey } from "../game/index.ts";
 import { useOptionalCampaign } from "../store/useCampaign.ts";
 import type { TabId } from "../store/useDevicePrefs.ts";
+import { RulesUpgrade } from "./RulesUpgrade.tsx";
 
 const TOGGLE_DESC: Record<ToggleKey, string> = {
   training: "Characters can buy Battle Training with a Promotion. Off: no new training; the organiser can refund training already bought.",
@@ -34,6 +35,7 @@ function CampaignRules() {
           </div>
         );
       })}
+      <RulesUpgrade />
     </div>
   );
 }
@@ -41,10 +43,13 @@ function CampaignRules() {
 export function RulesTab({ onNavigate }: { onNavigate: (tab: TabId) => void }) {
   const campaign = useOptionalCampaign();
   const toggled = campaign ? (k: ToggleKey) => toggleOn(campaign.state, k) : (k: ToggleKey) => toggleOn({}, k);
+  // Without a campaign, show the rules a new campaign plays.
+  const ver = campaign?.state ?? { rules: LATEST_RULES };
+  const v12 = isV12(ver);
   return (
     <section className="tab" id="rules">
       <h2>Rules</h2>
-      <p className="dim">Everything the War Room does, as plain rules you can also play on paper.</p>
+      <p className="dim">Everything the War Room does, as plain rules you can also play on paper. Varkesh Reach {rulesVersion(ver)}.</p>
 
       <CampaignRules />
 
@@ -151,7 +156,8 @@ export function RulesTab({ onNavigate }: { onNavigate: (tab: TabId) => void }) {
       <ul className="rl">
         <li>One outer world per player, plus middle and inner worlds (at least 4 worlds). 5 to 7 provinces each.</li>
         <li>Inner worlds sit nearest the Hollowgate.</li>
-        <li>Each player starts with a Capital on an outer world, bordered by a 500, a 750 and a 1000 pt battle.</li>
+        {v12 && <li>Battles grow towards the centre: outer worlds hold 500–750 pt provinces, middle worlds 750–1000, and every inner world a 1500 pt Titan Graveyard among its 1000s.</li>}
+        <li>Each player starts with a Capital on an outer world, bordered by a 500{v12 ? " and" : ","} a 750{v12 ? "" : " and a 1000"} pt battle.</li>
       </ul>
       <h4 className="rl-h">Late arrivals (joining after War Round 1 begins)</h4>
       <ul className="rl">
@@ -216,7 +222,7 @@ export function RulesTab({ onNavigate }: { onNavigate: (tab: TabId) => void }) {
       <div className="tbl"><table>
         <thead><tr><th>Type</th><th>Base pts</th><th>Holder's bonus</th></tr></thead>
         <tbody>
-          {Object.entries(VTYPES).map(([k, t]) => (
+          {Object.entries(VTYPES).filter(([k]) => v12 || k !== "graveyard").map(([k, t]) => (
             <tr key={k}><td><b>{t.n}</b></td><td className="n">{t.size}</td><td>{typeGains(k as ProvinceType)}</td></tr>
           ))}
         </tbody>
@@ -251,7 +257,7 @@ export function RulesTab({ onNavigate }: { onNavigate: (tab: TabId) => void }) {
       <ol className="steps">
         <li><div><b>Award XP</b>+1 to every unit that fought and survived. +1 per enemy unit it destroyed. A unit earns at most 2 XP a War Round from these. +1 to one unit you <i>Marked for Glory</i> before the game, on top of the cap.</div></li>
         <li><div><b>Roll for the fallen</b>Each destroyed unit rolls a D6 (Hard to Kill adds 1). On a 1 it gains a Battle Scar, Characters on a 1–2. The Warlord never rolls.</div></li>
-        <li><div><b>Requisition</b>+1 RP to the winner. Nothing for a loss or a draw. Bank up to 10.</div></li>
+        <li><div><b>Requisition</b>+1 RP to the winner. Nothing for a loss or a draw. Bank up to {rpCap(ver)}.</div></li>
         <li><div><b>Spoils</b>The winner draws 1 Fate Card. A Conquer winner takes the province. A Raid winner steals 1 RP and a random Fate Card.</div></li>
       </ol>
 
@@ -322,7 +328,7 @@ export function RulesTab({ onNavigate }: { onNavigate: (tab: TabId) => void }) {
       <div className="tbl"><table>
         <thead><tr><th>Cost</th><th>Requisition</th><th>Effect</th></tr></thead>
         <tbody>
-          <tr><td className="n">1 RP</td><td>Reinforcements</td><td>+200 pts to your supply limit.</td></tr>
+          <tr><td className="n">{reinforceCost(ver)} RP</td><td>Reinforcements</td><td>+{REINFORCE_SUPPLY} pts to your supply limit.</td></tr>
           {toggled("datasheetLimit") && <tr><td className="n">1 RP</td><td>Extra Datasheet</td><td>+1 to your datasheet limit, for the rest of the campaign.</td></tr>}
           <tr><td className="n">1 RP</td><td>Field Surgeon</td><td>Remove one Battle Scar.</td></tr>
           <tr><td className="n">1 RP</td><td>Requisition the Deck</td><td>Draw one Fate Card.</td></tr>

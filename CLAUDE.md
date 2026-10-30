@@ -189,6 +189,11 @@ entries without refreshing.
 - **A switched-off rule is invisible (2026-10-30):** while a campaign rule switch is off, nothing about it shows anywhere
   in the app (Rules, Rewards, Pitch, Map, War Room, Turn Guide, unit cards, Hall of Heroes, action text). Only the owner's
   Campaign rules panel lists it, plus owner-only tools such as the training refund.
+- **Varkesh Reach 1.2 (2026-10-30):** a rules version (`state.rules`; missing = 1.1). 1.2: province types by orbit
+  (outer 500–750, middle 750–1000, inner 1000s plus a 1500 pt Titan Graveyard), Capitals border only 500 and 750,
+  Reinforcements 2 RP for +200, RP bank cap 6, Hollowgate by War Round 12. New campaigns start on 1.2. The organiser
+  upgrades a 1.1 campaign from the Campaign rules panel: holdings and held province types stay, unclaimed provinces are
+  re-charted, past Reinforcements lose half their supply, RP over 6 is lost. See `docs/features/varkesh-1-2.md`.
 - **`main` deploys straight to live** and committing to `main` is fine (friends-only app).
 
 ## Not in the MVP

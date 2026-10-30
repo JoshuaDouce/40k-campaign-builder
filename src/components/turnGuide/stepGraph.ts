@@ -1,6 +1,6 @@
 // The step graph behind both views: what a player decides, rolls and gains during one War Round turn.
 // Every number and rule here comes from the written rules (Rules, Pitch, Fate Deck and War Room wording).
-import { ACTIONS, battleSizeOf, LIGHT_FORCES_MAX_PTS, ORBITS, SCOUT_NO_TWISTS, TWISTS, VTYPES } from "../../game/index.ts";
+import { ACTIONS, battleSizeOf, hollowgateRound, isV12, LIGHT_FORCES_MAX_PTS, ORBITS, rpCap, SCOUT_NO_TWISTS, TWISTS, VTYPES } from "../../game/index.ts";
 import type { ActionId, ProvinceType } from "../../game/index.ts";
 import { cardLimit, sizeInfo, SUPPLY_SHORTAGE } from "./battleMath.ts";
 import type { Ctx, Effects, Env, Scenario, Step, StepOption, Tier } from "./guideTypes.ts";
@@ -66,7 +66,7 @@ function tierOption(tier: Tier): StepOption {
       if (tier === "middle" && !(sc.spaceport || sc.middleHold)) return "You need a province on a middle world, or a Spaceport with a warp lane to one.";
       if (tier === "inner" && !(sc.spaceport || sc.innerHold)) return "You need a province on an inner world, or a Spaceport with a warp lane to one.";
       if (tier === "holl") {
-        if (!sc.hollowOpen) return "The Hollowgate hasn't opened yet. It opens once 60% of the Reach is claimed, or by War Round 8.";
+        if (!sc.hollowOpen) return `The Hollowgate hasn't opened yet. It opens once 60% of the Reach is claimed, or by War Round ${hollowgateRound(sc)}.`;
         if (!sc.innerHold) return "Only a player holding a province on an inner world can attack the Hollowgate.";
       }
       if (raid && !sc.enemyInReach) return NO_ENEMY;
@@ -75,14 +75,21 @@ function tierOption(tier: Tier): StepOption {
   };
 }
 
-const PROV_ORDER: ProvinceType[] = ["capital", "spaceport", "hive", "forge", "fortress", "shrine", "refinery", "settlement", "outpost", "ruins"];
+const PROV_ORDER: ProvinceType[] = ["capital", "spaceport", "hive", "forge", "fortress", "shrine", "refinery", "settlement", "outpost", "ruins", "graveyard"];
 const provOptions: StepOption[] = PROV_ORDER.map((k) => ({
   id: k,
   label: VTYPES[k].n,
   hint: `${VTYPES[k].size} pts. ${VTYPES[k].bonus}`,
   set: (c) => ({ ...c, prov: k }),
   next: (c) => (c.holder === "unclaimed" ? "garrison" : "underdog"),
-  available: ({ ctx }) => (k === "capital" && ctx.holder === "unclaimed" ? "A Capital belongs to a player, so it can't be unclaimed." : true),
+  available: ({ ctx }) =>
+    k === "capital" && ctx.holder === "unclaimed"
+      ? "A Capital belongs to a player, so it can't be unclaimed."
+      : k === "graveyard" && ctx.tier !== "inner"
+        ? "Titan Graveyards are only on inner worlds."
+        : true,
+  // Titan Graveyards only exist in a 1.2 Reach.
+  hidden: k === "graveyard" ? (sc) => !isV12(sc) : undefined,
 }));
 
 const twistOptions = (): StepOption[] =>
@@ -204,7 +211,7 @@ export function afterReminders(ctx: Ctx, sc: Scenario): string[] {
   return l;
 }
 
-function aftermathText({ ctx }: Env): string {
+function aftermathText({ ctx, sc }: Env): string {
   const garrison = isGarrison(ctx);
   const r = ctx.result;
   const l: string[] = [];
@@ -225,7 +232,7 @@ function aftermathText({ ctx }: Env): string {
       : `Requisition: ${r === "win" ? "as the winner you gain +1 RP" : "only the winner gains RP, so nothing this time"}.`,
   );
   if (r === "win") l.push("Spoils: the winner draws 1 Fate Card.");
-  l.push("Bank up to 10 RP; hand limit 5.");
+  l.push(`Bank up to ${rpCap(sc)} RP; hand limit 5.`);
   return l.join("\n");
 }
 
@@ -499,7 +506,7 @@ const STEP_LIST: Step[] = [
     text: actionText("recuperate"),
     side: ["rp"],
     options: [finish("Do it", "end", { rp: 1 })],
-    notes: [{ cat: "nodown", text: "Recuperate costs nothing and has no limit. The only ceiling is the 10 RP you can bank." }],
+    notes: [{ cat: "nodown", text: "Recuperate costs nothing and has no limit. The only ceiling is the RP you can bank." }],
   },
   {
     id: "muster",

@@ -1,9 +1,8 @@
 // Pure helpers that walk the step graph: replay a trail, build the flow tree, count the notes.
-import { HAND_LIMIT, rollInt } from "../../game/index.ts";
-import { RP_CAP } from "./battleMath.ts";
+import { HAND_LIMIT, rollInt, rpCap } from "../../game/index.ts";
 import { SIDE_ACTIONS } from "./sideActions.ts";
 import { EMPTY_CTX, START, STEPS } from "./stepGraph.ts";
-import type { Effects, Env, NoteCat, Scenario, SideUse, Step, StepOption, Tally, TrailItem } from "./guideTypes.ts";
+import type { Effects, Env, NoteCat, Scenario, SideAction, SideUse, Step, StepOption, Tally, TrailItem } from "./guideTypes.ts";
 
 const ZERO_TALLY: Tally = { rp: 0, cards: 0, provinces: 0, supply: 0 };
 
@@ -61,18 +60,28 @@ export interface Crumb {
   label: string;
 }
 
+/** A step's options that exist under the scenario's rules. */
+export function optionsOf(step: Step, sc: Scenario): StepOption[] {
+  return step.options.filter((o) => !o.hidden?.(sc));
+}
+
+/** What a side action does to the tally under the scenario's rules. */
+function sideEffects(a: SideAction | undefined, sc: Scenario): Effects {
+  return typeof a?.effects === "function" ? a.effects(sc) : (a?.effects ?? {});
+}
+
 /** Replay the player's choices from the start of the turn. Side-spends are folded into the tally. */
 export function replay(sc: Scenario, trail: TrailItem[], sides: SideUse[]): { stepId: string; env: Env; crumbs: Crumb[] } {
   const crumbs: Crumb[] = [];
   const { stepId, env } = walkFrom(
     sc,
-    (step, _env, i) => (i < trail.length ? step.options.find((o) => o.id === trail[i].optionId) : undefined),
+    (step, env, i) => (i < trail.length ? optionsOf(step, env.sc).find((o) => o.id === trail[i].optionId) : undefined),
     (step, opt) => {
       const label = opt.crumb === undefined ? opt.label : opt.crumb;
       if (label) crumbs.push({ stepId: step.id, label });
     },
   );
-  const tally = sides.reduce((t, u) => addTally(t, SIDE_ACTIONS.find((s) => s.id === u.id)?.effects ?? {}), env.tally);
+  const tally = sides.reduce((t, u) => addTally(t, sideEffects(SIDE_ACTIONS.find((s) => s.id === u.id), env.sc)), env.tally);
   return { stepId, env: { ...env, tally }, crumbs };
 }
 
@@ -95,9 +104,10 @@ export interface TreeNode {
 export type Choices = Record<string, string>;
 
 function selectedId(step: Step, env: Env, choices: Choices): string | null {
-  const wanted = step.options.find((o) => o.id === choices[step.id]);
+  const opts = optionsOf(step, env.sc);
+  const wanted = opts.find((o) => o.id === choices[step.id]);
   if (wanted && optionAvailability(wanted, env) === true) return wanted.id;
-  return step.options.find((o) => optionAvailability(o, env) === true)?.id ?? null;
+  return opts.find((o) => optionAvailability(o, env) === true)?.id ?? null;
 }
 
 export function buildTree(sc: Scenario, choices: Choices, showAll: boolean): TreeChild {
@@ -107,7 +117,7 @@ export function buildTree(sc: Scenario, choices: Choices, showAll: boolean): Tre
     if (seen.has(stepId)) return { stub: true, step };
     seen.add(stepId);
     const sel = selectedId(step, env, choices);
-    const rows = step.options.map((opt) => {
+    const rows = optionsOf(step, env.sc).map((opt) => {
       const available = optionAvailability(opt, env);
       const after = applyOption(opt, env);
       return { opt, available, after, next: nextOf(opt, after) };
@@ -164,7 +174,7 @@ export function carryOver(env: Env): Scenario {
   const { sc, ctx, tally } = env;
   return {
     ...sc,
-    rp: Math.max(0, Math.min(RP_CAP, sc.rp + tally.rp)),
+    rp: Math.max(0, Math.min(rpCap(sc), sc.rp + tally.rp)),
     hand: Math.max(0, Math.min(HAND_LIMIT, sc.hand + tally.cards)),
     supply: sc.supply + tally.supply,
     provinces: sc.provinces || tally.provinces > 0,
