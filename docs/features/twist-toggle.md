@@ -11,3 +11,5 @@ Added 2026-10-30.
 - Engine: `autoTwists(pts, twists)` and `SMALL_GAME_TWISTS` in `src/game/engine.ts`. The stored `lightForces` flag on
   a battle is no longer used (old saves may still hold it).
 - The Turn Guide shows both small-game twists. It doesn't read the switch: it still offers twist rolls.
+- The Rules tab hides the twist count by orbit and the Mission Twists (D12) table when the switch is off. The "Small
+  battles" line under Battle size still gives the Light Forces and Close Quarters effects.

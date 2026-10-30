@@ -175,7 +175,7 @@ export function RulesTab({ onNavigate }: { onNavigate: (tab: TabId) => void }) {
         <li>Supply limits don't change the battle size. If your roster is smaller, you field what you have.</li>
         <li><b>Underdog:</b> an attacker with fewer provinces than the defender gets +10% points.</li>
         <li><b>Small battles</b> ({LIGHT_FORCES_MAX_PTS} pts or fewer) always use {SMALL_GAME_TWISTS.map((i) => `${TWISTS[i].t} (${TWISTS[i].e.replace(/\.$/, "")})`).join(" and ")}, even with Mission Twists off.</li>
-        <li>The battle's points set the board and detachment points. Garrison and Underdog bonuses don't change them. The Close Quarters twist still shrinks the board to 44" x 30".</li>
+        <li>The battle's points set the board and detachment points. Garrison and Underdog bonuses don't change them.{toggled("twists") && ' The Close Quarters twist still shrinks the board to 44" x 30".'}</li>
       </ul>
       <div className="tbl"><table>
         <thead><tr><th>Size</th><th>Points</th><th>Board</th><th>Detachment points</th></tr></thead>
@@ -185,19 +185,22 @@ export function RulesTab({ onNavigate }: { onNavigate: (tab: TabId) => void }) {
           ))}
         </tbody>
       </table></div>
-      <ul className="rl">
-        <li>The world's orbit sets how many Mission Twists you roll:</li>
-        {!toggled("twists") && <li><b>Mission Twists are off in this campaign:</b> no twists are rolled. Small battles still use Light Forces and Close Quarters.</li>}
-      </ul>
-      <div className="tbl"><table>
-        <thead><tr><th>Orbit</th><th>Twists</th></tr></thead>
-        <tbody>
-          {Object.entries(ORBITS).map(([k, o]) => (
-            <tr key={k}><td><b>{o.name}</b></td><td className="n">{o.twists}</td></tr>
-          ))}
-          <tr><td><b>The Hollowgate</b></td><td className="n">2</td></tr>
-        </tbody>
-      </table></div>
+      {toggled("twists") && (
+        <>
+          <ul className="rl">
+            <li>The world's orbit sets how many Mission Twists you roll:</li>
+          </ul>
+          <div className="tbl"><table>
+            <thead><tr><th>Orbit</th><th>Twists</th></tr></thead>
+            <tbody>
+              {Object.entries(ORBITS).map(([k, o]) => (
+                <tr key={k}><td><b>{o.name}</b></td><td className="n">{o.twists}</td></tr>
+              ))}
+              <tr><td><b>The Hollowgate</b></td><td className="n">2</td></tr>
+            </tbody>
+          </table></div>
+        </>
+      )}
       <h4 className="rl-h">Garrison battles (unclaimed provinces)</h4>
       <ul className="rl">
         <li>Another player (never the attacker) plays the garrison. You must fight it.</li>
@@ -220,7 +223,7 @@ export function RulesTab({ onNavigate }: { onNavigate: (tab: TabId) => void }) {
       </table></div>
 
       <h3>World types</h3>
-      <p>Every battle on a world uses its trait, on top of any twists.</p>
+      <p>Every battle on a world uses its trait{toggled("twists") ? ", on top of any twists" : ""}.</p>
       <div className="tbl"><table>
         <thead><tr><th>World</th><th>Trait</th></tr></thead>
         <tbody>
@@ -230,15 +233,19 @@ export function RulesTab({ onNavigate }: { onNavigate: (tab: TabId) => void }) {
         </tbody>
       </table></div>
 
-      <h3>Mission Twists (D12)</h3>
-      <div className="tbl"><table>
-        <thead><tr><th>D12</th><th>Twist</th><th>Effect</th></tr></thead>
-        <tbody>
-          {TWISTS.map((c, i) => (
-            <tr key={c.t}><td className="n">{i + 1}</td><td>{c.t}</td><td>{c.e}</td></tr>
-          ))}
-        </tbody>
-      </table></div>
+      {toggled("twists") && (
+        <>
+          <h3>Mission Twists (D12)</h3>
+          <div className="tbl"><table>
+            <thead><tr><th>D12</th><th>Twist</th><th>Effect</th></tr></thead>
+            <tbody>
+              {TWISTS.map((c, i) => (
+                <tr key={c.t}><td className="n">{i + 1}</td><td>{c.t}</td><td>{c.e}</td></tr>
+              ))}
+            </tbody>
+          </table></div>
+        </>
+      )}
 
       <h3>After each battle</h3>
       <ol className="steps">
@@ -287,32 +294,27 @@ export function RulesTab({ onNavigate }: { onNavigate: (tab: TabId) => void }) {
         <li>Already at three scars: the new scar replaces the oldest.</li>
       </ul>
 
-      <h3>Relics (roll D6 or pick)</h3>
-      {toggled("relics") ? (
-        <ul className="rl">
-          <li>A Character earns one when its player claims a Shrine, or from a Fate Card.</li>
-          <li>Up to 3 per Character, no duplicates: re-roll or pick another.</li>
-          <li>+10 pts each.</li>
-        </ul>
-      ) : (
-        <ul className="rl">
-          <li>Off in this campaign: no new relics. Relics already held stay and still add +10 pts each.</li>
-        </ul>
+      {toggled("relics") && (
+        <>
+          <h3>Relics (roll D6 or pick)</h3>
+          <ul className="rl">
+            <li>A Character earns one when its player claims a Shrine, or from a Fate Card.</li>
+            <li>Up to 3 per Character, no duplicates: re-roll or pick another.</li>
+            <li>+10 pts each.</li>
+          </ul>
+        </>
       )}
 
-      <h3>Battle Training (roll D12 or pick)</h3>
-      {toggled("training") ? (
-        <ul className="rl">
-          <li>Bought with a Promotion (1 RP).</li>
-          <li>Not a detachment Enhancement: those are still paid in points when you muster.</li>
-          <li>Up to 3 per Character, no duplicates. +10 pts each.</li>
-          <li>Only the organiser can remove it, refunding the 1 RP.</li>
-        </ul>
-      ) : (
-        <ul className="rl">
-          <li>Off in this campaign: none can be bought. Battle Honours are still earned as normal.</li>
-          <li>The organiser can remove training already bought and refund its 1 RP.</li>
-        </ul>
+      {toggled("training") && (
+        <>
+          <h3>Battle Training (roll D12 or pick)</h3>
+          <ul className="rl">
+            <li>Bought with a Promotion (1 RP).</li>
+            <li>Not a detachment Enhancement: those are still paid in points when you muster.</li>
+            <li>Up to 3 per Character, no duplicates. +10 pts each.</li>
+            <li>Only the organiser can remove it, refunding the 1 RP.</li>
+          </ul>
+        </>
       )}
 
       <h3>Spending Requisition</h3>
