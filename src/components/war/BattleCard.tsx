@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { armySides, autoTwists, battleInfo, battleSizeOf, LIGHT_FORCES_MAX_PTS, planetOf, r5, TWISTS, VTYPES } from "../../game/index.ts";
+import { armySides, autoTwists, battleInfo, toggleOn, battleSizeOf, LIGHT_FORCES_MAX_PTS, planetOf, r5, TWISTS, VTYPES } from "../../game/index.ts";
 import type { Action, CampaignState, GarrisonEdge } from "../../game/index.ts";
 import { ArmyList } from "./ArmyList.tsx";
 import { BattleTally } from "./BattleTally.tsx";
@@ -32,6 +32,8 @@ export function BattleCard({ state, dispatch, can, playerId }: Props) {
   const started = !!B.started;
   const startAct = (on: boolean): Action => ({ type: "setBattleStarted", playerId, on });
   const sides = armySides({ def: B.d.id, garrison: B.garrison }, playerId);
+  const twistsOn = toggleOn(state, "twists");
+  const rerollLabel = twistsOn ? "Re-roll twists" : "Recalculate";
   return (
     <div className="battle">
       <div className="eyebrow">
@@ -96,11 +98,11 @@ export function BattleCard({ state, dispatch, can, playerId }: Props) {
           {n}
         </p>
       ))}
-      <p className="hint">{started ? "Points and notes are fixed for this battle." : "Points and notes are fixed now. Re-roll works them out again."}</p>
+      <p className="hint">{started ? "Points and notes are fixed for this battle." : `Points and notes are fixed now. ${rerollLabel} works them out again.`}</p>
       {started ? (
         <>
           <p className="mono" style={{ fontSize: 12, color: "var(--verd)", marginTop: 12 }}>
-            ◆ BATTLE IN PROGRESS · ARMY LISTS AND TWISTS LOCKED
+            ◆ BATTLE IN PROGRESS · {twistsOn ? "ARMY LISTS AND TWISTS LOCKED" : "ARMY LISTS LOCKED"}
           </p>
           {sides.map((side) => (
             <BattleTally key={side} state={state} dispatch={dispatch} can={can} attackerId={playerId} side={side} battle={B} />
@@ -121,7 +123,7 @@ export function BattleCard({ state, dispatch, can, playerId }: Props) {
               Battle started
             </button>
           </div>
-          <p className="hint">Locks the army lists and twists. Track losses, kills and Marked for Glory as you play; the post-battle helper starts from them.</p>
+          <p className="hint">Locks the army lists{twistsOn ? " and twists" : ""}. Track losses, kills and Marked for Glory as you play; the post-battle helper starts from them.</p>
         </>
       )}
       <p className="mono" style={{ fontSize: 12, color: "var(--brass)", marginTop: 12 }}>
@@ -151,7 +153,7 @@ export function BattleCard({ state, dispatch, can, playerId }: Props) {
           );
         })}
         <button type="button" className="btn sm" disabled={started || !can(reroll)} onClick={() => dispatch(reroll)}>
-          Re-roll twists
+          {rerollLabel}
         </button>
       </div>
     </div>

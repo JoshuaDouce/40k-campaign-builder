@@ -20,6 +20,8 @@ export interface Scenario {
   rp: number;
   hand: number;
   supply: number;
+  /** The campaign has Mission Twists off: the guide skips the twist steps and leaves twists out of its text. Not user-set. */
+  noTwists?: boolean;
 }
 
 /** What has been decided so far this turn. */

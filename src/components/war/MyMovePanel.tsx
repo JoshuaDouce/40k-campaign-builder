@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ACTIONS, defenderOf, getPlayer, pickStatus, planetOf, zoneName } from "../../game/index.ts";
+import { ACTIONS, actionDesc, defenderOf, toggleOn, getPlayer, pickStatus, planetOf, zoneName } from "../../game/index.ts";
 import type { Action } from "../../game/index.ts";
 import { BattleCard } from "./BattleCard.tsx";
 import { DefenderLines } from "./DefenderLines.tsx";
@@ -133,13 +133,13 @@ export function MyMovePanel({ playerId, isMine, onBack, ...ctx }: Props) {
           ) : null}
           <div className="row" style={{ marginTop: 8 }}>
             <button type="button" className="btn primary" disabled={!can(roll) || (needsGarrison && !garrisonId)} onClick={() => dispatch(roll)}>
-              Roll twists
+              {toggleOn(state, "twists") ? "Roll twists" : "Set up battle"}
             </button>
           </div>
         </div>
       ) : def ? (
         <>
-          <p style={{ marginTop: 10 }}>{def.d}</p>
+          <p style={{ marginTop: 10 }}>{actionDesc(state, def)}</p>
           <button type="button" className="btn primary" disabled={!can(confirm)} onClick={() => dispatch(confirm)}>
             Confirm {def.n}
           </button>

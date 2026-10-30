@@ -1,6 +1,6 @@
 // The step graph behind both views: what a player decides, rolls and gains during one War Round turn.
 // Every number and rule here comes from the written rules (Rules, Pitch, Fate Deck and War Room wording).
-import { ACTIONS, battleSizeOf, LIGHT_FORCES_MAX_PTS, ORBITS, TWISTS, VTYPES } from "../../game/index.ts";
+import { ACTIONS, battleSizeOf, LIGHT_FORCES_MAX_PTS, ORBITS, SCOUT_NO_TWISTS, TWISTS, VTYPES } from "../../game/index.ts";
 import type { ActionId, ProvinceType } from "../../game/index.ts";
 import { cardLimit, sizeInfo, SUPPLY_SHORTAGE } from "./battleMath.ts";
 import type { Ctx, Effects, Env, Scenario, Step, StepOption, Tier } from "./guideTypes.ts";
@@ -35,7 +35,7 @@ export const EMPTY_CTX: Ctx = {
   decisive: false,
 };
 
-const actionText = (id: string) => ACTIONS.find((a) => a.id === id)?.d ?? "";
+const actionText = (id: string, sc?: Scenario) => (id === "scout" && sc?.noTwists ? SCOUT_NO_TWISTS : (ACTIONS.find((a) => a.id === id)?.d ?? ""));
 const NO_FOOTHOLD = "You hold no provinces, so you can only attack unclaimed provinces on an outer world.";
 const NO_ENEMY = "No enemy holds a province you could reach.";
 
@@ -48,13 +48,11 @@ const finish = (label: string, next: string, effects?: StepOption["effects"]): S
 
 function tierOption(tier: Tier): StepOption {
   const label = { outer: "Outer world", middle: "Middle world", inner: "Inner world", holl: "The Hollowgate" }[tier];
-  const hint =
-    tier === "holl" ? "A 2000 pt war with 2 twists." : `${ORBITS[tier].twists} twist${ORBITS[tier].twists > 1 ? "s" : ""}.`;
   return {
     id: tier,
     label,
     crumb: tier === "holl" ? "The Hollowgate" : `${label} province`,
-    hint,
+    ...(tier === "holl" && { hint: "A 2000 pt war." }),
     set: (c) => ({ ...c, tier }),
     next: (c) => (c.action === "raid" ? "prov" : "holder"),
     available: ({ sc, ctx }) => {
@@ -174,7 +172,7 @@ function battleText(env: Env): string {
   l.push(sizeLine(s.size, ctx.twists));
   ctx.twists.forEach((i) => l.push(`Twist (D12 ${i + 1}), ${TWISTS[i].t}: ${TWISTS[i].e}`));
   s.auto.forEach((i) => l.push(`${TWISTS[i].t}: ${TWISTS[i].e}`));
-  l.push("Every battle on a world also uses that world's trait, on top of any twists.");
+  l.push(`Every battle on a world also uses that world's trait${env.sc.noTwists ? "" : ", on top of any twists"}.`);
   if (ctx.fortified || (ctx.prov === "fortress" && ctx.holder !== "unclaimed")) l.push("Fortified: the defender gets +1 CP and one extra piece of terrain.");
   if (ctx.prov === "capital" && ctx.holder === "enemy" && ctx.action === "conquer") l.push("This is the defender's Capital: if you win, you also steal 2 RP.");
   if (ctx.prov === "shrine") l.push("Shrine: +1 XP to both players' Marked for Glory units in any battle fought here (this guide plays it that way).");
@@ -189,7 +187,7 @@ export function afterReminders(ctx: Ctx, sc: Scenario): string[] {
     if (ctx.action === "recuperate") return ["Remove up to 2 Battle Scars from your roster."];
     if (ctx.action === "muster") return ["Add the supply to your supply limit."];
     if (ctx.action === "fortify") return ["Remember which province is fortified: the next defender there gets the bonus."];
-    if (ctx.action === "scout") return ["In your next battle you may swap one rolled twist for any twist you choose."];
+    if (ctx.action === "scout") return sc.noTwists ? [] : ["In your next battle you may swap one rolled twist for any twist you choose."];
     return [];
   }
   const l = [
@@ -285,7 +283,7 @@ const turnOptions: StepOption[] = [
   quiet("fortify", "Fortify", "Your next defender there gets +1 CP and extra terrain.", "fortify", {
     available: ({ sc }) => (sc.provinces ? true : "You hold no province to fortify."),
   }),
-  quiet("scout", "Scout", "Draw 1 Fate Card. Swap a twist in your next battle.", "scout"),
+  quiet("scout", "Scout", "Draw 1 Fate Card.", "scout"),
 ];
 
 const resultOption = (id: "win" | "lose" | "draw", label: string, crumb: string): StepOption => ({
@@ -319,11 +317,9 @@ const STEP_LIST: Step[] = [
     id: "where",
     kind: "decision",
     title: "Which world?",
-    blurb: "The orbit sets the number of twists.",
-    text: ({ ctx }) =>
-      ctx.action === "raid"
-        ? "Raid: which world is the enemy province on? The orbit sets the number of twists."
-        : "Conquer: which world is the province on? The orbit sets the number of twists.",
+    blurb: "Which world the province is on.",
+    text: ({ ctx, sc }) =>
+      `${ctx.action === "raid" ? "Raid: which world is the enemy province on?" : "Conquer: which world is the province on?"}${sc.noTwists ? "" : ` The orbit sets the number of twists: ${ORBITS.outer.twists} on outer and middle worlds, ${ORBITS.inner.twists} on inner worlds and the Hollowgate.`}`,
     options: (["outer", "middle", "inner", "holl"] as const).map(tierOption),
     notes: [
       { cat: "judged", text: "A Raid hits 'an enemy province you could reach', and the rules don't say whether the Hollowgate counts. This guide treats the Hollowgate as Conquer-only, so a Raid can't hit it. The rules also don't say whether an unclaimed Hollowgate is fought as a garrison." },
@@ -429,7 +425,7 @@ const STEP_LIST: Step[] = [
     id: "size",
     kind: "info",
     title: "Battle size",
-    blurb: "Province size, adjusted by twists and bonuses.",
+    blurb: "Province size and its adjustments.",
     text: sizeText,
     side: ["rp"],
     options: [finish("Next: Fate Cards", "cards")],
@@ -529,8 +525,8 @@ const STEP_LIST: Step[] = [
     id: "scout",
     kind: "info",
     title: "Scout",
-    blurb: "A quiet turn: a card and a twist swap.",
-    text: actionText("scout"),
+    blurb: "A quiet turn for a Fate Card.",
+    text: ({ sc }) => actionText("scout", sc),
     side: ["rp"],
     options: [finish("Do it", "end", { cards: 1 })],
     notes: [{ cat: "judged", text: "Scout allows a swap 'in your next battle', but the rules don't say what happens if you Scout twice before fighting." }],

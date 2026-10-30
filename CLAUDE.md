@@ -184,8 +184,11 @@ entries without refreshing.
   rolled twists and whether the switch is on or off.
 - **Battle Training and Relics switches (2026-10-30):** owner-only campaign rules, both on by default. Training off: no
   training can be bought (a Promotion can still make a Veteran a Character; Battle Honours are earned as normal). Relics
-  off: no new relics. Held training and relics stay and keep their points. The organiser can remove a Battle Training at
-  any time and refund its 1 RP (logged, not capped at 10).
+  off: no new relics. Held training and relics are hidden and don't count toward points while off (kept in the data, back
+  when switched on). The organiser can remove a Battle Training at any time and refund its 1 RP (logged, not capped at 10).
+- **A switched-off rule is invisible (2026-10-30):** while a campaign rule switch is off, nothing about it shows anywhere
+  in the app (Rules, Rewards, Pitch, Map, War Room, Turn Guide, unit cards, Hall of Heroes, action text). Only the owner's
+  Campaign rules panel lists it, plus owner-only tools such as the training refund.
 - **`main` deploys straight to live** and committing to `main` is fine (friends-only app).
 
 ## Not in the MVP

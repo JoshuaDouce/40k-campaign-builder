@@ -15,11 +15,10 @@ export function TrainingPicker({ playerId, unitId }: { playerId: string; unitId:
   const roster = rosterOf(state, playerId);
   const unit = roster.find((u) => u.id === unitId);
   const rp = getPlayer(state, playerId)?.rp ?? 0;
-  if (!unit?.isCharacter) return null;
+  if (!unit?.isCharacter || !toggleOn(state, "training")) return null;
   const held = unit.training ?? [];
-  const block = !toggleOn(state, "training")
-    ? "Battle Training is off in this campaign: none can be bought."
-    : held.length >= MAX_TRAINING ? `This Character has the most Battle Training it can hold (${MAX_TRAINING}).` : rp < PROMOTION_COST ? `Adding Battle Training costs ${PROMOTION_COST} RP. You have ${rp}.` : null;
+  const block =
+    held.length >= MAX_TRAINING ? `This Character has the most Battle Training it can hold (${MAX_TRAINING}).` : rp < PROMOTION_COST ? `Adding Battle Training costs ${PROMOTION_COST} RP. You have ${rp}.` : null;
   const capBlock = pick && !block ? capProblem(state, playerId, withUnit(roster, promoted(unit, pick))) : null;
 
   const buy = () => {

@@ -1,4 +1,4 @@
-import { ACTIONS, BATTLE_SIZES, HONOUR_PTS, LIGHT_FORCES_MAX_PTS, ORBITS, SMALL_GAME_TWISTS, PTYPES, toggleOn, TOGGLE_KEYS, TOGGLE_NAMES, TWISTS, typeGains, VTYPES } from "../game/index.ts";
+import { ACTIONS, actionDesc, BATTLE_SIZES, HONOUR_PTS, LIGHT_FORCES_MAX_PTS, ORBITS, SMALL_GAME_TWISTS, PTYPES, toggleOn, TOGGLE_KEYS, TOGGLE_NAMES, TWISTS, typeGains, VTYPES } from "../game/index.ts";
 import type { ProvinceType, ToggleKey } from "../game/index.ts";
 import { useOptionalCampaign } from "../store/useCampaign.ts";
 import type { TabId } from "../store/useDevicePrefs.ts";
@@ -117,7 +117,7 @@ export function RulesTab({ onNavigate }: { onNavigate: (tab: TabId) => void }) {
           <h4 className="rl-h">Knights</h4>
           <ul className="rl">
             <li>Armigers and War Dogs count as Battleline, so the Toughness 9 limit doesn't apply to them.</li>
-            <li>In Setup, your Warlord may be an Armiger or War Dog: Warlord trait only, no title, backstory, enhancement or relics.</li>
+            <li>In Setup, your Warlord may be an Armiger or War Dog: Warlord trait only, no title, backstory{toggled("relics") ? ", enhancement or relics" : " or enhancement"}.</li>
             <li>From War Round 1, field at least 1 Character. It may become your Warlord.</li>
           </ul>
         </>
@@ -142,7 +142,7 @@ export function RulesTab({ onNavigate }: { onNavigate: (tab: TabId) => void }) {
         <thead><tr><th>Action</th><th>Battle?</th><th>Effect</th></tr></thead>
         <tbody>
           {ACTIONS.map((a) => (
-            <tr key={a.id}><td><b>{a.n}</b></td><td>{a.battle ? "Yes" : "No"}</td><td>{a.d}</td></tr>
+            <tr key={a.id}><td><b>{a.n}</b></td><td>{a.battle ? "Yes" : "No"}</td><td>{actionDesc(campaign?.state ?? {}, a)}</td></tr>
           ))}
         </tbody>
       </table></div>
@@ -174,7 +174,7 @@ export function RulesTab({ onNavigate }: { onNavigate: (tab: TabId) => void }) {
         <li>The Hollowgate is a fixed 2000 pt war.</li>
         <li>Supply limits don't change the battle size. If your roster is smaller, you field what you have.</li>
         <li><b>Underdog:</b> an attacker with fewer provinces than the defender gets +10% points.</li>
-        <li><b>Small battles</b> ({LIGHT_FORCES_MAX_PTS} pts or fewer) always use {SMALL_GAME_TWISTS.map((i) => `${TWISTS[i].t} (${TWISTS[i].e.replace(/\.$/, "")})`).join(" and ")}, even with Mission Twists off.</li>
+        <li><b>Small battles</b> ({LIGHT_FORCES_MAX_PTS} pts or fewer) always use {SMALL_GAME_TWISTS.map((i) => `${TWISTS[i].t} (${TWISTS[i].e.replace(/\.$/, "")})`).join(" and ")}.</li>
         <li>The battle's points set the board and detachment points. Garrison and Underdog bonuses don't change them.{toggled("twists") && ' The Close Quarters twist still shrinks the board to 44" x 30".'}</li>
       </ul>
       <div className="tbl"><table>
@@ -256,7 +256,7 @@ export function RulesTab({ onNavigate }: { onNavigate: (tab: TabId) => void }) {
       </ol>
 
       <p className="rw-pointer">
-        The rank, honour, scar, relic and training tables are on the{" "}
+        The rank, honour, scar{toggled("relics") ? ", relic" : ""}{toggled("training") ? " and training" : ""} tables are on the{" "}
         <button type="button" className="lnk" onClick={() => onNavigate("rewards")}>Rewards</button> page.
       </p>
 
@@ -275,7 +275,7 @@ export function RulesTab({ onNavigate }: { onNavigate: (tab: TabId) => void }) {
         <li>Scars never change a unit's points.</li>
         <li>Third scar: the unit is removed from your roster. Characters too, except the Warlord.</li>
       </ul>
-      <p className="dim">My Warband tracks XP, ranks, honours, scars and relics, with a post-battle helper for the rolls.</p>
+      <p className="dim">My Warband tracks XP, ranks, honours, scars{toggled("relics") ? " and relics" : ""}, with a post-battle helper for the rolls.</p>
 
       <h3>Character Battle Honours (roll D6 or pick)</h3>
       <ul className="rl">
