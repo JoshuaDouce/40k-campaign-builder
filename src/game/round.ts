@@ -3,8 +3,9 @@
 // runs on a structuredClone. The read-only selectors (`pickStatus`, `clashOf`, ...) never mutate.
 import { drawFor, HAND_LIMIT } from "./cards.ts";
 import { ACTIONS, PTYPES, TWISTS } from "./data.ts";
-import { LIGHT_FORCES_MAX_PTS, LIGHT_FORCES_TWIST, targets } from "./engine.ts";
+import { targets } from "./engine.ts";
 import { B, log } from "./log.ts";
+import { toggleOn } from "./toggles.ts";
 import { rollInt } from "./rng.ts";
 import type { Rng } from "./rng.ts";
 import {
@@ -283,8 +284,9 @@ export function revealPicks(s: CampaignState): boolean {
 // Battles
 // ---------------------------------------------------------------------------------------------
 
+/** The orbit's number of Mission Twists, or none with the Mission Twists rule off. */
 function rollTwistSet(zone: Zone, s: CampaignState, rng: Rng): number[] {
-  const n = orbitOf(s, zone).twists;
+  const n = toggleOn(s, "twists") ? orbitOf(s, zone).twists : 0;
   const idx: number[] = [];
   while (idx.length < n) {
     const i = rollInt(rng, TWISTS.length);
@@ -323,10 +325,9 @@ function figures(s: CampaignState, a: Player, d: Player, v: Zone, act: ActionId,
   if (v.type === "capital" && held)
     notes.push(`${d.name}'s Capital: if ${a.name} wins a Conquer here, they also steal 2 RP.`);
   if (v.type === "shrine") notes.push("Shrine: both players' Marked for Glory units gain +1 XP.");
-  if (a.scout) notes.push(`Scout: ${a.name} may swap one twist for any twist of their choice.`);
+  if (a.scout && toggleOn(s, "twists")) notes.push(`Scout: ${a.name} may swap one twist for any twist of their choice.`);
   const cards = twists.includes(8) ? 1 : Math.max(1, Math.floor(pts / 500));
-  const lightForces = pts <= LIGHT_FORCES_MAX_PTS && !twists.includes(LIGHT_FORCES_TWIST);
-  return { pts, ...gar, notes, cards, lightForces };
+  return { pts, ...gar, notes, cards };
 }
 
 /** What `makeBattle` needs: the given `twists` (converting an old save), or an `rng` to roll them. */

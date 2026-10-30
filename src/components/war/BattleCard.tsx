@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { armySides, battleInfo, battleSizeOf, LIGHT_FORCES_MAX_PTS, LIGHT_FORCES_TWIST, planetOf, r5, TWISTS, VTYPES } from "../../game/index.ts";
+import { armySides, autoTwists, battleInfo, battleSizeOf, LIGHT_FORCES_MAX_PTS, planetOf, r5, TWISTS, VTYPES } from "../../game/index.ts";
 import type { Action, CampaignState, GarrisonEdge } from "../../game/index.ts";
 import { ArmyList } from "./ArmyList.tsx";
 import { BattleTally } from "./BattleTally.tsx";
@@ -75,15 +75,15 @@ export function BattleCard({ state, dispatch, can, playerId }: Props) {
           {TWISTS[i].e}
         </div>
       ))}
-      {B.lightForces && (
-        <div className="twist" style={{ borderColor: "var(--verd)" }}>
+      {autoTwists(B.pts, B.twists).map((i) => (
+        <div className="twist" key={i} style={{ borderColor: "var(--verd)" }}>
           <span className="mono" style={{ fontSize: 11, color: "var(--verd)" }}>
-            LIGHT FORCES · {LIGHT_FORCES_MAX_PTS} PTS OR FEWER
+            {TWISTS[i].t.toUpperCase()} · {LIGHT_FORCES_MAX_PTS} PTS OR FEWER
           </span>
           <br />
-          {TWISTS[LIGHT_FORCES_TWIST].e}
+          {TWISTS[i].e}
         </div>
-      )}
+      ))}
       <div className="twist" style={{ borderColor: "var(--verd)" }}>
         <span className="mono" style={{ fontSize: 11, color: "var(--verd)" }}>
           WORLD · {B.trait.n.toUpperCase()}

@@ -1,6 +1,6 @@
 // The step graph behind both views: what a player decides, rolls and gains during one War Round turn.
 // Every number and rule here comes from the written rules (Rules, Pitch, Fate Deck and War Room wording).
-import { ACTIONS, battleSizeOf, LIGHT_FORCES_MAX_PTS, LIGHT_FORCES_TWIST, ORBITS, TWISTS, VTYPES } from "../../game/index.ts";
+import { ACTIONS, battleSizeOf, LIGHT_FORCES_MAX_PTS, ORBITS, TWISTS, VTYPES } from "../../game/index.ts";
 import type { ActionId, ProvinceType } from "../../game/index.ts";
 import { cardLimit, sizeInfo, SUPPLY_SHORTAGE } from "./battleMath.ts";
 import type { Ctx, Effects, Env, Scenario, Step, StepOption, Tier } from "./guideTypes.ts";
@@ -150,8 +150,9 @@ function sizeText(env: Env): string {
   l.push("Supply limits don't change the battle size. If your roster is smaller, you field what you have.");
   if (s.garrison) l.push(`Garrison fight: choose +20% points for you (${s.yours} pts against ${s.size}) or -20% points for the garrison (${s.size} pts against ${s.garrisonLess}), rounded to the nearest 5. Underdog doesn't apply.`);
   else if (ctx.underdog) l.push(`You are the Underdog: +10% points, which this guide works out as ${s.yours} pts (rounded to the nearest 5).`);
-  if (s.light)
-    l.push(`${s.size} pts is ${LIGHT_FORCES_MAX_PTS} or fewer, so Light Forces applies automatically: ${TWISTS[LIGHT_FORCES_TWIST].e}${s.garrison ? " (It goes by the base size, before the 20%.)" : ""}`);
+  s.auto.forEach((i) =>
+    l.push(`${s.size} pts is ${LIGHT_FORCES_MAX_PTS} or fewer, so ${TWISTS[i].t} applies automatically: ${TWISTS[i].e}${s.garrison ? " (It goes by the base size, before the 20%.)" : ""}`),
+  );
   return l.join("\n");
 }
 
@@ -172,7 +173,7 @@ function battleText(env: Env): string {
   l.push(`${kind}: ${s.size} pts${s.garrison ? ` for the garrison and ${s.yours} pts for you, or ${s.garrisonLess} pts for the garrison and ${s.size} pts for you` : ctx.underdog ? ` (${s.yours} pts for you as the Underdog)` : ""}.`);
   l.push(sizeLine(s.size, ctx.twists));
   ctx.twists.forEach((i) => l.push(`Twist (D12 ${i + 1}), ${TWISTS[i].t}: ${TWISTS[i].e}`));
-  if (s.light) l.push(`Light Forces: ${TWISTS[LIGHT_FORCES_TWIST].e}`);
+  s.auto.forEach((i) => l.push(`${TWISTS[i].t}: ${TWISTS[i].e}`));
   l.push("Every battle on a world also uses that world's trait, on top of any twists.");
   if (ctx.fortified || (ctx.prov === "fortress" && ctx.holder !== "unclaimed")) l.push("Fortified: the defender gets +1 CP and one extra piece of terrain.");
   if (ctx.prov === "capital" && ctx.holder === "enemy" && ctx.action === "conquer") l.push("This is the defender's Capital: if you win, you also steal 2 RP.");

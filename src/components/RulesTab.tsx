@@ -1,9 +1,10 @@
-import { ACTIONS, BATTLE_SIZES, HONOUR_PTS, LIGHT_FORCES_MAX_PTS, LIGHT_FORCES_TWIST, ORBITS, PTYPES, toggleOn, TOGGLE_KEYS, TOGGLE_NAMES, TWISTS, typeGains, VTYPES } from "../game/index.ts";
+import { ACTIONS, BATTLE_SIZES, HONOUR_PTS, LIGHT_FORCES_MAX_PTS, ORBITS, SMALL_GAME_TWISTS, PTYPES, toggleOn, TOGGLE_KEYS, TOGGLE_NAMES, TWISTS, typeGains, VTYPES } from "../game/index.ts";
 import type { ProvinceType, ToggleKey } from "../game/index.ts";
 import { useOptionalCampaign } from "../store/useCampaign.ts";
 import type { TabId } from "../store/useDevicePrefs.ts";
 
 const TOGGLE_DESC: Record<ToggleKey, string> = {
+  twists: `Battles roll Mission Twists. Off: none are rolled. Light Forces and Close Quarters still apply at ${LIGHT_FORCES_MAX_PTS} pts or fewer.`,
   datasheetLimit: "5 datasheets, +1 for each Extra Datasheet bought with RP.",
   toughnessStages: "No unit above T11 in War Rounds 1–2, until supply reaches 1250.",
   knights: "Armigers and War Dogs count as Battleline; one may be the Setup Warlord.",
@@ -171,7 +172,7 @@ export function RulesTab({ onNavigate }: { onNavigate: (tab: TabId) => void }) {
         <li>The Hollowgate is a fixed 2000 pt war.</li>
         <li>Supply limits don't change the battle size. If your roster is smaller, you field what you have.</li>
         <li><b>Underdog:</b> an attacker with fewer provinces than the defender gets +10% points.</li>
-        <li><b>Light Forces:</b> battles of {LIGHT_FORCES_MAX_PTS} pts or fewer. {TWISTS[LIGHT_FORCES_TWIST].e}</li>
+        <li><b>Small battles</b> ({LIGHT_FORCES_MAX_PTS} pts or fewer) always use {SMALL_GAME_TWISTS.map((i) => `${TWISTS[i].t} (${TWISTS[i].e.replace(/\.$/, "")})`).join(" and ")}, even with Mission Twists off.</li>
         <li>The battle's points set the board and detachment points. Garrison and Underdog bonuses don't change them. The Close Quarters twist still shrinks the board to 44" x 30".</li>
       </ul>
       <div className="tbl"><table>
@@ -184,6 +185,7 @@ export function RulesTab({ onNavigate }: { onNavigate: (tab: TabId) => void }) {
       </table></div>
       <ul className="rl">
         <li>The world's orbit sets how many Mission Twists you roll:</li>
+        {!toggled("twists") && <li><b>Mission Twists are off in this campaign:</b> no twists are rolled. Small battles still use Light Forces and Close Quarters.</li>}
       </ul>
       <div className="tbl"><table>
         <thead><tr><th>Orbit</th><th>Twists</th></tr></thead>
@@ -200,7 +202,7 @@ export function RulesTab({ onNavigate }: { onNavigate: (tab: TabId) => void }) {
         <li>The garrison player is chosen once picks are revealed, before the battle is rolled.</li>
         <li>No Underdog bonus.</li>
         <li>Choose your edge: +20% points for you, or −20% for the garrison.</li>
-        <li>Light Forces and Fate Cards go by the base size, before the 20%.</li>
+        <li>Light Forces, Close Quarters and Fate Cards go by the base size, before the 20%.</li>
         <li>The garrison player gains nothing: no RP, Fate Cards, wins or supply.</li>
         <li><b>Decisive win:</b> win having lost under 25% of your army for +1 RP.</li>
       </ul>
