@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ARMY_BATTLELINE_MIN, armyLimit, armyLock, armyOf, armyPoints, effectivePoints, fieldedPoints, getPlayer, isBattleline, roleOf, rosterOf } from "../../game/index.ts";
+import { ARMY_BATTLELINE_MIN, armyLimit, armyLock, armyOf, armyPoints, buffPoints, effectivePoints, fieldedPoints, getPlayer, isBattleline, roleOf, rosterOf, totalBuffs } from "../../game/index.ts";
 import type { Action, ArmyList as List, ArmyLock, CampaignState, LiveBattle, Unit } from "../../game/index.ts";
 import { Overlay } from "../roster/Overlay.tsx";
 import { YellowscribeButton } from "./YellowscribeButton.tsx";
@@ -27,10 +27,16 @@ function Points({ list, unit }: { list: List; unit: Unit }) {
   // Only fielded units carry a fielded value, so this is the full points for the rest.
   const full = effectivePoints(unit);
   const f = fieldedPoints(list, unit);
+  const buffs = buffPoints(unit);
   return (
     <>
       {f < full && <s>{full}</s>}
       {f} <small>pts</small>
+      {buffs > 0 && (
+        <span className="al-buff">
+          {unit.points} + {buffs} buffs
+        </span>
+      )}
     </>
   );
 }
@@ -63,6 +69,7 @@ export function ArmyList({ state, dispatch, can, attackerId, side, battle }: Pro
 
   const name = getPlayer(state, side)?.name ?? "Unknown";
   const total = armyPoints(list, roster);
+  const buffs = totalBuffs(roster.filter((u) => list.units.includes(u.id)));
   const limit = armyLimit(battle, attackerId, side);
   const over = total - limit;
   const n = list.units.length;
@@ -88,6 +95,7 @@ export function ArmyList({ state, dispatch, can, attackerId, side, battle }: Pro
   const count = (
     <span className={over > 0 ? "state bad" : "state"}>
       {n} unit{n === 1 ? "" : "s"} · {fmt(total)} / {fmt(limit)} pts
+      {buffs > 0 && ` · ${fmt(buffs)} in buffs`}
     </span>
   );
   return (

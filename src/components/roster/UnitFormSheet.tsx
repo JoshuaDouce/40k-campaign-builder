@@ -297,7 +297,7 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, r
       <p className="dim">
         {recruits
           ? `${RECRUITS_COST} RP. Add a new unit that starts at 3 XP (Blooded), with its first Battle Honour. You have ${rp ?? 0} RP.`
-          : "Rank is worked out from XP. Effective points add 10% per honour, rounded to the nearest 5, plus 10 per relic."}
+          : "Rank is worked out from XP. Effective points add 10 per honour, relic and Battle Training."}
       </p>
       <div className="formgrid">
         <div className="field">

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ALWAYS_ROLES, canPerform, count, DATASHEET_COST, HAND_LIMIT, ROLE_NAMES, roleOf, countsAsSetupNine, datasheetLimit, distinctDatasheets, forceOrgFor, overStageCap, PROMOTION_COST, RECRUITS_COST, roleRuleOn, rosterOf, setupToughnessBlock, SURGEON_COST, supplyOf, toggleOn, totalEffective, toughStageActive, unitLocked, warlordNotCharacter } from "../../game/index.ts";
+import { ALWAYS_ROLES, canPerform, count, DATASHEET_COST, HAND_LIMIT, ROLE_NAMES, roleOf, countsAsSetupNine, datasheetLimit, distinctDatasheets, forceOrgFor, overStageCap, PROMOTION_COST, RECRUITS_COST, roleRuleOn, rosterOf, setupToughnessBlock, SURGEON_COST, supplyOf, toggleOn, totalBuffs, totalEffective, toughStageActive, unitLocked, warlordNotCharacter } from "../../game/index.ts";
 import type { Unit } from "../../game/index.ts";
 import { useCampaign } from "../../store/useCampaign.ts";
 import { FateHand } from "../FateHand.tsx";
@@ -51,6 +51,7 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
     .map((role) => ({ role, units: sorted.filter((u) => roleOf(u) === role), row: fo.rows.find((r) => r.role === role) }))
     .filter((g) => g.units.length > 0);
   const total = totalEffective(roster);
+  const buffs = totalBuffs(roster);
   const provinces = count(state, player);
   const supply = supplyOf(state, player);
   const over = total > supply;
@@ -139,6 +140,11 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
             <div className={`v${over ? " over" : ""}`}>
               {total.toLocaleString()} <small>/ {supply.toLocaleString()} pts</small>
             </div>
+            {buffs > 0 && (
+              <div className="mono dim" style={{ fontSize: 12, marginTop: 4 }}>
+                {(total - buffs).toLocaleString()} base + {buffs.toLocaleString()} buffs
+              </div>
+            )}
             {over ? (
               <div className="overline">{total - supply} over supply. Nothing that adds points can be saved until you're back under.</div>
             ) : (

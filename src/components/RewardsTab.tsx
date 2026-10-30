@@ -1,4 +1,4 @@
-import { CHAR_HONOURS, CHAR_SCARS, HONOURS, MAX_RELICS, MAX_TRAINING, RANKS, RELIC_PTS, RELICS, SCARS, TRAINING, TRAINING_PTS } from "../game/index.ts";
+import { CHAR_HONOURS, CHAR_SCARS, HONOUR_PTS, HONOURS, MAX_RELICS, MAX_TRAINING, RANKS, RELIC_PTS, RELICS, SCARS, TRAINING, TRAINING_PTS } from "../game/index.ts";
 import type { EffectRow } from "../game/index.ts";
 import type { TabId } from "../store/useDevicePrefs.ts";
 
@@ -17,8 +17,8 @@ function RollTable({ die, label, rows }: { die: string; label: string; rows: rea
 }
 
 const TABLES: ReadonlyArray<{ id: string; title: string; die: string; pick: boolean; label: string; rows: readonly EffectRow[]; how: string }> = [
-  { id: "rw-honours", title: "Battle Honours", die: "D6", pick: true, label: "Honour", rows: HONOURS, how: "Units that aren't Characters. One for each rank gained. +10% of the unit's base points each. No duplicates." },
-  { id: "rw-char-honours", title: "Character Battle Honours", die: "D6", pick: true, label: "Honour", rows: CHAR_HONOURS, how: "Characters. One for each rank gained. +10% of the unit's base points each. No duplicates across both honour tables." },
+  { id: "rw-honours", title: "Battle Honours", die: "D6", pick: true, label: "Honour", rows: HONOURS, how: `Units that aren't Characters. One for each rank gained. +${HONOUR_PTS} pts each. No duplicates.` },
+  { id: "rw-char-honours", title: "Character Battle Honours", die: "D6", pick: true, label: "Honour", rows: CHAR_HONOURS, how: `Characters. One for each rank gained. +${HONOUR_PTS} pts each. No duplicates across both honour tables.` },
   { id: "rw-scars", title: "Battle Scars", die: "D3", pick: false, label: "Scar", rows: SCARS, how: "Units that aren't Characters, when a destroyed unit rolls a 1 on a D6 after the battle. No points change. A third scar removes the unit." },
   { id: "rw-char-scars", title: "Character Battle Scars", die: "D3", pick: false, label: "Scar", rows: CHAR_SCARS, how: "Characters, on a 1–2 after the battle. The Warlord takes one whenever it is destroyed and is never removed. Grievous Wound heals after the next battle." },
   { id: "rw-relics", title: "Relics", die: "D6", pick: true, label: "Relic", rows: RELICS, how: `Characters, from claiming a Shrine or a Fate Card. Up to ${MAX_RELICS} each, +${RELIC_PTS} pts each.` },

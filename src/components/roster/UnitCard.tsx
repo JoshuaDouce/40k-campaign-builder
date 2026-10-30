@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import {
   honourEffect,
-  extrasPoints,
-  honourPoints,
+  effectivePoints,
+  HONOUR_PTS,
   MAX_RELICS,
   MAX_TRAINING,
   rankIndex,
@@ -76,9 +76,8 @@ export function UnitCard({ unit, editable, memorial, overLimit, toughOver, tough
   const pct = next ? Math.round(((unit.xp - rank.xp) / (next.xp - rank.xp)) * 100) : 100;
   const relics = unit.relics ?? [];
   const training = unit.isCharacter ? (unit.training ?? []) : [];
-  const hp = honourPoints(unit);
-  const honourDelta = hp - unit.points;
-  const eff = hp + extrasPoints(unit);
+  const honourDelta = HONOUR_PTS * unit.honours.length;
+  const eff = effectivePoints(unit);
   const addOns = [
     honourDelta > 0 && `+${honourDelta} honour`,
     relics.length > 0 && `+${RELIC_PTS * relics.length} relics`,
