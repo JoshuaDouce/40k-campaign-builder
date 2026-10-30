@@ -194,6 +194,10 @@ entries without refreshing.
   Reinforcements 2 RP for +200, RP bank cap 6, Hollowgate by War Round 12. New campaigns start on 1.2. The organiser
   upgrades a 1.1 campaign from the Campaign rules panel: holdings and held province types stay, unclaimed provinces are
   re-charted, past Reinforcements lose half their supply, RP over 6 is lost. See `docs/features/varkesh-1-2.md`.
+- **Player log (2026-10-30):** an organiser-only panel at the foot of the Players tab shows, one player at a time, why their RP,
+  supply limit or Fate Card count changed (War Round, Player / Organiser / Game tag, the log line, before and after).
+  Recorded in `apply()` into `state.plog` (latest 200 per player, fewer above 4 players: 800 in all, to stay well inside
+  the 400 KB campaign item). Read-only; players never see it (UI-only, like hidden hands). See `docs/features/player-log.md`.
 - **`main` deploys straight to live** and committing to `main` is fine (friends-only app).
 
 ## Not in the MVP

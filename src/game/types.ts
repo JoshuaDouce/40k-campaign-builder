@@ -201,6 +201,20 @@ export interface LogEntry {
 }
 
 /**
+ * One change to a player's RP, supply limit or Fate Card count (organiser-only Player log). Each figure is `[from, to]`;
+ * an opening entry (`start`) stores `[v, v]`. `by`: p = the player, o = the organiser, g = the game; missing = unknown.
+ */
+export interface PlayerLogEntry {
+  r: number;
+  segs: LogSeg[];
+  by?: "p" | "o" | "g";
+  rp?: [number, number];
+  sup?: [number, number];
+  hand?: [number, number];
+  start?: true;
+}
+
+/**
  * One unit on a player's roster. Scars are plain strings: the scar name from `SCARS`, or for Worn Gear
  * `"Worn Gear (melta rifles)"` (name, space, weapon in brackets). Use `scarName` / `scarWeapon` / `makeScar`
  * from roster.ts rather than parsing by hand.
@@ -443,6 +457,8 @@ export interface CampaignState {
   undo?: UndoInfo;
   /** Owner-switched campaign rules. Missing object or key = default (Mission Twists, Battle Training, Relics and Datasheet limit on, the rest off). */
   toggles?: Partial<Record<ToggleKey, boolean>>;
+  /** Organiser Player log by player id, newest first, capped per player (see playerLogCap). Missing = nothing recorded yet. */
+  plog?: Record<string, PlayerLogEntry[]>;
   /** Rules version. Missing = Varkesh Reach 1.1 (see version.ts). */
   rules?: RulesVersion;
 }

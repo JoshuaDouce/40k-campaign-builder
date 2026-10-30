@@ -1,7 +1,7 @@
 // Who may send which action. Honour-system for the MVP: this is enforced in the UI only.
 import { droppedEarned, rosterOf } from "./roster.ts";
 import { getPlayer } from "./selectors.ts";
-import type { Action, CampaignState } from "./types.ts";
+import type { Action, ActionType, CampaignState } from "./types.ts";
 
 export interface PermissionContext {
   /** Signed-in user id, or null when not a member. */
@@ -14,14 +14,32 @@ export function canActFor(s: CampaignState, playerId: string, ctx: PermissionCon
   return ctx.isOwner || controls(s, playerId, ctx.userId);
 }
 
+/** Actions only the owner may send. */
+export const OWNER_ONLY: ReadonlySet<ActionType> = new Set<ActionType>([
+  "revealPicks",
+  "adjustStat",
+  "setProvinceOwner",
+  "removePlayer",
+  "organiserRemoveUnit",
+  "refundTraining",
+  "organiserAddCard",
+  "organiserRemoveCard",
+  "deleteFallen",
+  "setToggle",
+  "upgradeRules",
+  "regen",
+  "reset",
+]);
+
 /** True if `playerId` exists, has a userId, and it is `userId`. Players without a userId are owner-only. */
-function controls(s: CampaignState, playerId: string, userId: string | null): boolean {
+export function controls(s: CampaignState, playerId: string, userId: string | null): boolean {
   const p = getPlayer(s, playerId);
   return !!p && userId !== null && p.userId !== undefined && p.userId === userId;
 }
 
 export function canPerform(state: CampaignState, action: Action, ctx: PermissionContext): boolean {
   if (ctx.isOwner) return true;
+  if (OWNER_ONLY.has(action.type)) return false;
   const { userId } = ctx;
   switch (action.type) {
     case "beginRound":
@@ -80,20 +98,6 @@ export function canPerform(state: CampaignState, action: Action, ctx: Permission
 
     case "addPlayer":
       return userId !== null && action.userId === userId && !state.players.some((p) => p.userId === userId);
-
-    case "revealPicks":
-    case "adjustStat":
-    case "setProvinceOwner":
-    case "removePlayer":
-    case "organiserRemoveUnit":
-    case "refundTraining":
-    case "organiserAddCard":
-    case "organiserRemoveCard":
-    case "deleteFallen":
-    case "setToggle":
-    case "upgradeRules":
-    case "regen":
-    case "reset":
-      return false;
   }
+  return false;
 }

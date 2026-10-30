@@ -133,7 +133,7 @@ export function useRemoteCampaign(campaignId: string, user: AuthUser): RemoteCam
   const runAction = useCallback(
     async (action: Action) => {
       const attemptSave = async (base: CampaignRecord): Promise<"saved" | "conflict" | "noop"> => {
-        const next: CampaignState = apply(base.state, action, { rng: newRng() });
+        const next: CampaignState = apply(base.state, action, { rng: newRng(), actor: { userId: user.userId, isOwner: user.isOrganiser } });
         if (next === base.state) return "noop";
         try {
           take(await saveState(campaignId, next, base.version));
@@ -166,7 +166,7 @@ export function useRemoteCampaign(campaignId: string, user: AuthUser): RemoteCam
         setNotice("error");
       }
     },
-    [campaignId, take, refetch],
+    [campaignId, take, refetch, user.userId, user.isOrganiser],
   );
 
   const dispatch = useCallback(

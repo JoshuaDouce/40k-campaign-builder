@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Varkesh Reach - Player log (design mock)</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Grenze+Gothic:wght@500;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Share+Tech+Mono&display=swap">
+<style>
+/* ===== Tokens and base: copied from reference/index.html and src/styles/prototype.css ===== */
+[hidden]{display:none!important}
+body{margin:0}
+:root{
+  --bg:#16120f; --panel:#211a16; --panel2:#2a211c; --line:#3d312a;
+  --ink:#ebdfc8; --dim:#a8977f; --brass:#d0a952; --blood:#b8392e; --verd:#6f9a86;
+  --f-display:"Grenze Gothic","Palatino Linotype",Georgia,serif;
+  --f-body:"Alegreya Sans","Segoe UI",system-ui,sans-serif;
+  --f-mono:"Share Tech Mono",ui-monospace,Menlo,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.55;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px}
+.wrap{max-width:520px;margin:0 auto}
+header.hero{padding-block:28px 18px;border-bottom:1px solid var(--line)}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass)}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(40px,11vw,68px);line-height:.95;margin:6px 0 10px;text-wrap:balance;letter-spacing:.01em}
+h1 span{color:var(--blood)}
+.lede{color:var(--dim);max-width:62ch;margin:0}
+button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible,a:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+h2{font-family:var(--f-display);font-weight:700;font-size:34px;line-height:1.05;margin:0 0 6px;text-wrap:balance}
+h3{font-family:var(--f-display);font-weight:500;font-size:23px;margin:26px 0 6px;color:var(--brass);text-wrap:balance}
+p{margin:0 0 12px;max-width:65ch}
+.dim{color:var(--dim)}
+.mono{font-family:var(--f-mono)}
+.btn{font-family:var(--f-mono);font-size:13px;letter-spacing:.05em;text-transform:uppercase;background:var(--panel2);color:var(--ink);border:1px solid var(--line);padding:9px 14px;border-radius:2px;cursor:pointer}
+.btn.sm{padding:5px 9px;font-size:11px;min-height:44px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.note{border-left:3px solid var(--blood);padding:8px 12px;background:var(--panel);margin:14px 0;max-width:65ch}
+.note b{color:var(--blood)}
+.chip{display:inline-flex;align-items:center;gap:6px;font-family:var(--f-mono);font-size:12px;padding:4px 9px;border:1px solid var(--line);border-radius:20px;color:var(--dim);background:none;cursor:pointer}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex:none}
+select,input[type=text]{font:inherit;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:2px;padding:7px 9px;max-width:100%}
+.player{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:14px;margin:12px 0}
+.player .top{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.player .top input{flex:1 1 140px;min-width:0}
+.hint{font-family:var(--f-mono);font-size:12px;color:var(--dim);margin-top:8px;line-height:1.4}
+.empty{text-align:center;border:1px dashed var(--line);border-radius:3px;padding:28px 16px;margin:14px 0;background:var(--panel)}
+
+/* ===== Player log additions (new, "pl-" prefix, built from the same tokens) ===== */
+/* Section: a panel on the Players tab, below the player cards, owner only */
+.pl{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:14px;margin:12px 0}
+.pl-head{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:baseline;justify-content:space-between}
+.pl-head h3{margin:0}
+.pl-own{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.pl-pick{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 4px}
+.pl-pick .chip{min-height:44px;color:var(--ink)}
+.pl-pick .chip[aria-pressed=true]{border-color:var(--brass);background:var(--panel2)}
+.pl-list{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:6px}
+.pl-e{border-left:3px solid var(--dim);background:var(--bg);padding:8px 10px;font-size:14.5px;line-height:1.4;min-width:0}
+.pl-e.org{border-left-color:var(--blood)}
+.pl-e.game{border-left-color:var(--brass)}
+.pl-e.start{border-left-style:dashed}
+.pl-top{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;justify-content:space-between;margin-bottom:2px}
+.pl-r{font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--brass)}
+.pl-tag{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:1px 7px;border:1px solid var(--line);border-radius:20px;color:var(--dim)}
+.pl-tag.org{border-color:var(--blood);background:var(--blood);color:var(--ink)}
+.pl-tag.game{color:var(--brass);border-color:var(--brass)}
+.pl-txt{color:var(--dim)}
+.pl-txt b{color:var(--ink);font-weight:500}
+.pl-diffs{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:4px;font-family:var(--f-mono);font-size:12px;letter-spacing:.03em}
+.pl-diffs .k{color:var(--dim);text-transform:uppercase;font-size:11px;letter-spacing:.08em;margin-right:4px}
+.pl-diffs .up{color:var(--verd)}
+.pl-diffs .dn{color:var(--blood)}
+.pl-diffs .same{color:var(--ink)}
+.pl-foot{margin:12px 0 0;border-top:1px solid var(--line);padding-top:8px}
+.pl-foot p{font-family:var(--f-mono);font-size:12px;color:var(--dim);line-height:1.4;margin:0 0 4px}
+
+/* mock-only: labels (not part of the product) */
+.mock{margin:28px 0 0}
+.mocklabel{display:flex;gap:8px;align-items:baseline;font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--brass);border-bottom:1px dashed var(--line);padding-bottom:6px;margin-bottom:4px}
+.mocklabel b{font-weight:400;color:var(--ink)}
+.mocknote{font-family:var(--f-mono);font-size:12px;color:var(--dim);margin:6px 0 10px;line-height:1.45}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+  <div class="eyebrow">Design mock · Players tab · Organiser only</div>
+  <h1>Player <span>Log</span></h1>
+  <p class="lede">A read-only history of what changed a player's RP, supply limit and Fate Card hand, newest first. It helps the organiser find out why a total looks wrong.</p>
+</header>
+
+<section class="mock">
+  <h2>Players tab</h2>
+
+  <div class="mocklabel" style="margin-top:16px"><span>A</span><b>Organiser view, with entries</b></div>
+  <p class="mocknote">The section sits at the foot of the Players tab, under the player cards (shown here as one stub card). One player at a time. Entries are newest first. "Organiser" entries have a solid blood tag and a blood edge so a hand-made +/- is easy to spot.</p>
+  <div id="stA"></div>
+
+  <div class="mocklabel" style="margin-top:28px"><span>B</span><b>Battle steal: the other side's log</b></div>
+  <p class="mocknote">A steal writes on both logs. This is the winner's log (Ninth Muster) for the same battle as the loser's "RP 5 → 3" entry in A.</p>
+  <div id="stB"></div>
+
+  <div class="mocklabel" style="margin-top:28px"><span>C</span><b>Late joiner and a single entry</b></div>
+  <p class="mocknote">A player who joined after War Round 1 has "Joined at War Round N" as the opening entry. When there is nothing else, only the opening entry shows.</p>
+  <div id="stC"></div>
+
+  <div class="mocklabel" style="margin-top:28px"><span>D</span><b>Empty</b></div>
+  <p class="mocknote">Nothing recorded yet for that player (for example the log was just switched on and no round has begun).</p>
+  <div id="stD"></div>
+
+  <div class="mocklabel" style="margin-top:28px"><span>E</span><b>Everyone else</b></div>
+  <p class="mocknote">Players who are not the campaign owner get no section at all: no heading, no empty box, no hint that it exists. The Players tab looks exactly as it does today.</p>
+  <div id="stE"></div>
+</section>
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const COL={a:"#d0a952",b:"#6f9a86",c:"#b8392e"};
+
+/* Entry: r = War Round, who = actor (P/O/G/null), txt = html with bold names,
+   d = [[label, before, after]], cls = extra class. Text is plain data in the product, never HTML. */
+const TAG={P:["Player",""],O:["Organiser","org"],G:["Game","game"]};
+function diffs(d){
+  if(!d||!d.length)return "";
+  return `<div class="pl-diffs">${d.map(([k,a,b])=>{
+    if(b===undefined)return `<span><span class="k">${k}</span><span class="same">${a}</span></span>`;
+    const dir=typeof a==="number"&&typeof b==="number"?(b>a?"up":"dn"):"same";
+    return `<span><span class="k">${k}</span><span class="${dir}">${a} → ${b}</span></span>`;
+  }).join("")}</div>`;
+}
+function entry(e){
+  const tag=e.who?`<span class="pl-tag ${TAG[e.who][1]}">${TAG[e.who][0]}</span>`:"";
+  const edge=e.who==="O"?" org":e.who==="G"?" game":"";
+  return `<li class="pl-e${edge}${e.start?" start":""}"><div class="pl-top"><span class="pl-r">War Round ${e.r}</span>${tag}</div>
+    <div class="pl-txt">${e.txt}</div>${diffs(e.d)}</li>`;
+}
+const SUPPLY_NOTE="Supply limit is the player's full limit (base + provinces + Reinforcements), not just the Reinforcements part.";
+const FOOT=`<div class="pl-foot"><p>${SUPPLY_NOTE}</p><p>Keeps the latest 200 entries per player. Read-only.</p></div>`;
+
+function picker(names,cur){
+  return `<div class="pl-pick" role="group" aria-label="Choose a player">${names.map(([n,c],i)=>
+    `<button class="chip" aria-pressed="${i===cur}"><span class="dot" style="background:${c}"></span>${esc(n)}</button>`).join("")}</div>`;
+}
+const PL=[["Ninth Muster",COL.a],["Ironhand",COL.b],["Void Choir",COL.c]];
+function section(cur,body,foot){
+  return `<div class="pl"><div class="pl-head"><h3>Player log</h3><span class="pl-own">Organiser only</span></div>
+    <p class="hint" style="margin:6px 0 0">Why a player's RP, supply or hand changed. One player at a time.</p>
+    ${picker(PL,cur)}${body}${foot===false?"":FOOT}</div>`;
+}
+const stub=(n,c,f)=>`<div class="player"><div class="top"><span class="dot" style="background:${c};width:14px;height:14px"></span>
+  <input type="text" value="${esc(n)}" aria-label="Player name"><select aria-label="Faction"><option>${f}</option></select></div>
+  <p class="dim mono" style="font-size:12px;margin:10px 0 0">(Player card continues here, unchanged.)</p></div>`;
+const list=es=>`<ul class="pl-list">${es.map(entry).join("")}</ul>`;
+const opening=(r,rp,sup,cards)=>({r,start:1,txt:`<b>History begins at War Round ${r}.</b> Earlier changes were not recorded.`,d:[["RP",rp],["Supply limit",sup],["Cards in hand",cards]]});
+
+/* A: Ironhand (loser of a steal), newest first */
+const ironhand=[
+ {r:7,who:"O",txt:`Organiser added 1 RP to <b>Ironhand</b>.`,d:[["RP",3,4]]},
+ {r:7,who:"G",txt:`<b>Ninth Muster</b> beat <b>Ironhand</b> and took <b>Hive Alpha</b> on Varkesh Prime. <b>Ninth Muster</b> stole 2 RP from <b>Ironhand</b>.`,d:[["RP",5,3]]},
+ {r:7,who:"P",txt:`<b>Ironhand</b> bought Battle Training for <b>Gutter Ravagers</b>.`,d:[["RP",7,5]]},
+ {r:6,who:"G",txt:`<b>Ironhand</b> beat <b>Void Choir</b> at Hive Alpha. <b>Ironhand</b> drew a Fate Card.`,d:[["RP",5,6],["Cards in hand",2,3]]},
+ {r:6,who:"P",txt:`<b>Ironhand</b> bought Reinforcements.`,d:[["RP",8,6],["Supply limit",1150,1350]]},
+ {r:5,who:"G",txt:`War Round 5 began. <b>Ironhand</b> collected 3 RP and drew a Fate Card.`,d:[["RP",5,8],["Cards in hand",1,2]]},
+ {r:5,who:"G",txt:`Rules upgraded to Varkesh Reach 1.2. <b>Ironhand</b> can bank only 6 RP and loses 2.`,d:[["RP",7,5]]},
+ {r:4,who:"G",txt:`<b>Ninth Muster</b>'s battle with <b>Ironhand</b> was undone. The result and its log lines were taken back.`,d:[["RP",4,5],["Cards in hand",3,2]]},
+ opening(3,4,1150,3)
+];
+$("#stA").innerHTML=stub("Ironhand",COL.b,"Orks")+section(1,list(ironhand));
+
+/* B: winner side of the same steal */
+const ninth=[
+ {r:7,who:"G",txt:`<b>Ninth Muster</b> beat <b>Ironhand</b> and took <b>Hive Alpha</b> on Varkesh Prime. <b>Ninth Muster</b> stole 2 RP from <b>Ironhand</b>. <b>Ninth Muster</b> drew a Fate Card.`,d:[["RP",4,6],["Cards in hand",2,3]]},
+ {r:6,who:"G",txt:`War Round 6 began. <b>Ninth Muster</b> collected 4 RP and drew a Fate Card.`,d:[["RP",0,4],["Cards in hand",1,2]]},
+ opening(5,0,1000,1)
+];
+$("#stB").innerHTML=section(0,list(ninth));
+
+/* C: late joiner with a single entry, then one with a few */
+const joined=[{r:6,start:1,txt:`<b>Void Choir</b> <b>Joined at War Round 6.</b>`,d:[["RP",0],["Supply limit",1000],["Cards in hand",0]]}];
+$("#stC").innerHTML=section(2,list(joined));
+
+/* D: empty */
+$("#stD").innerHTML=section(2,`<div class="empty"><p class="dim" style="margin:0 auto">Nothing recorded for this player yet. Changes to RP, supply limit and Fate Cards will appear here.</p></div>`);
+
+/* E: non-owner */
+$("#stE").innerHTML=stub("Ironhand",COL.b,"Orks")+`<div class="note" style="margin-top:12px"><b>Not shown to members.</b> Only the campaign owner sees the Player log. A non-owner's Players tab has no section, heading or placeholder for it.</div>`;
+</script>
+</body>
+</html>

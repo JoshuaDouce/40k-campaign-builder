@@ -7,6 +7,7 @@ import { BattleHistory } from "./BattleHistory.tsx";
 import { DeleteCampaign } from "./account/DeleteCampaign.tsx";
 import { MembersPanel } from "./account/MembersPanel.tsx";
 import { WaitingNote } from "./account/WaitingNote.tsx";
+import { PlayerLog } from "./PlayerLog.tsx";
 import { FactionOptions } from "./FactionOptions.tsx";
 import { OrganiserCards } from "./OrganiserCards.tsx";
 import { PlayerNameInput } from "./PlayerNameInput.tsx";
@@ -61,6 +62,7 @@ export function PlayersTab({ colors, onNavigate, onPlay, onDeleted }: TabProps) 
           </p>
         )}
       </div>
+      <PlayerLog colors={colors} />
       <div className="row" style={{ marginTop: 20 }}>
         <button className="btn danger sm" disabled={!canPerform(state, { type: "reset" }, viewer)} onClick={() => setResetOpen(true)}>
           Reset campaign

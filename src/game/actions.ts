@@ -3,7 +3,7 @@ import { drawCard, HAND_LIMIT, poolFor } from "./cards.ts";
 import { FACTIONS } from "./data.ts";
 import { beginRound, fresh, lateArrivalBonus, regen, START_RP } from "./engine.ts";
 import { markGlory, rememberArmies, setArmyList, setBattleStarted, tallyUnit } from "./army.ts";
-import { B, log } from "./log.ts";
+import { addedSince, B, log } from "./log.ts";
 import { addWorld } from "./map.ts";
 import type { Rng } from "./rng.ts";
 import {
@@ -39,6 +39,8 @@ import {
   undoBattle,
   unreadyPick,
 } from "./round.ts";
+import { recordPlayerLog } from "./playerLog.ts";
+import type { PlayerLogActor } from "./playerLog.ts";
 import { getPlayer, getZone, hollOpen } from "./selectors.ts";
 import { upgradeRules } from "./upgrade.ts";
 import { REINFORCE_SUPPLY, reinforceCost, rpCap } from "./version.ts";
@@ -66,6 +68,8 @@ export interface ApplyContext {
   rng: Rng;
   /** Reserved for callers that want to stamp time; the game module never reads the clock itself. */
   now?: number;
+  /** Who sent the action (for the organiser Player log tags). Missing = changes are logged untagged. */
+  actor?: PlayerLogActor;
 }
 
 function validIndex(p: Player, i: number): boolean {
@@ -306,6 +310,7 @@ function run(s: CampaignState, a: Action, rng: Rng): boolean {
       Object.assign(s, fresh(keep, rng));
       delete s.lastArmy;
       delete s.lastTally;
+      delete s.plog;
       return true;
     }
   }
@@ -329,11 +334,11 @@ export function apply(state: CampaignState, action: Action, ctx: ApplyContext): 
     ok = false;
   }
   if (!ok) return state;
+  const added = addedSince(s.log, prevTop);
   if (s.undo && action.type !== "resolvePick") {
     if (!ROSTER_ONLY.has(action.type)) delete s.undo;
     else {
       // Keep the window open; remember any log lines the roster action added so Undo can keep them.
-      const added = prevTop ? s.log.indexOf(prevTop) : s.log.length;
       if (added > 0) s.undo.later = [...s.log.slice(0, added), ...s.undo.later];
       if (action.type === "applyPostBattle") s.undo.reportFiled = true;
     }
@@ -341,5 +346,6 @@ export function apply(state: CampaignState, action: Action, ctx: ApplyContext): 
   if (hollOpen(s)) s.hollOpened = true;
   // Selectors may have cached lookups on `s` while it was still being changed.
   forgetRoundCache(s);
+  recordPlayerLog(state, s, action, added, ctx.actor);
   return s;
 }

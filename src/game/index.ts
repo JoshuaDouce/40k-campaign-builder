@@ -18,3 +18,4 @@ export * from "./toggles.ts";
 export * from "./yellowscribe.ts";
 export * from "./version.ts";
 export * from "./upgrade.ts";
+export * from "./playerLog.ts";
