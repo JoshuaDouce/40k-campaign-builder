@@ -1,9 +1,8 @@
 import { useState } from "react";
-import { ALWAYS_ROLES, canPerform, count, DATASHEET_COST, HAND_LIMIT, ROLE_NAMES, roleOf, countsAsSetupNine, datasheetLimit, distinctDatasheets, forceOrgFor, overStageCap, PROMOTION_COST, RECRUITS_COST, roleRuleOn, rosterOf, setupToughnessBlock, SURGEON_COST, supplyOf, toggleOn, totalBuffs, totalEffective, toughStageActive, unitLocked, warlordNotCharacter } from "../../game/index.ts";
+import { canPerform, count, DATASHEET_COST, HAND_LIMIT, ROLE_NAMES, roleOf, countsAsSetupNine, datasheetLimit, distinctDatasheets, overStageCap, PROMOTION_COST, RECRUITS_COST, roleRules, rosterOf, setupToughnessBlock, SURGEON_COST, supplyOf, toggleOn, totalBuffs, totalEffective, toughStageActive, unitLocked, warlordNotCharacter } from "../../game/index.ts";
 import type { Unit } from "../../game/index.ts";
 import { useCampaign } from "../../store/useCampaign.ts";
 import { FateHand } from "../FateHand.tsx";
-import { ForceOrgChart } from "./ForceOrgChart.tsx";
 import { HallOfHeroes } from "./HallOfHeroes.tsx";
 import { PostBattleHelper } from "./PostBattleHelper.tsx";
 import { ConfirmSpendDialog, FieldSurgeonDialog, PromotionDialog, SeasonedRecruitsDialog } from "./RpDialogs.tsx";
@@ -42,25 +41,22 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
   const pid = player.id;
   const editable = canPerform(state, { type: "addExamples", playerId: pid }, viewer);
   const roster = rosterOf(state, pid);
-  const fo = forceOrgFor(state, pid);
+  const rules = roleRules(state, pid);
   // Setup: the second and later non-Battleline T9 units (roster order) are flagged; the first is the one allowed.
   const nineExtraIds = state.round === 0 ? roster.filter(countsAsSetupNine).slice(1).map((u) => u.id) : [];
   const sorted = [...roster].sort((a, b) => Number(b.isWarlord) - Number(a.isWarlord));
   // One group per role in chart order, then units with no role. Empty groups are left out.
   const groups = [...ROLE_NAMES, undefined]
-    .map((role) => ({ role, units: sorted.filter((u) => roleOf(u) === role), row: fo.rows.find((r) => r.role === role) }))
+    .map((role) => ({ role, units: sorted.filter((u) => roleOf(u) === role), row: rules.rows.find((r) => r.role === role) }))
     .filter((g) => g.units.length > 0);
   const total = totalEffective(roster);
   const buffs = totalBuffs(roster);
   const provinces = count(state, player);
   const supply = supplyOf(state, player);
   const over = total > supply;
-  const slots = toggleOn(state, "forceOrg");
   const dsCount = toggleOn(state, "datasheetLimit") ? { x: distinctDatasheets(roster), n: datasheetLimit(state, pid) } : null;
   const stage = toughStageActive(state, player);
   const stageOver = stage ? roster.filter((u) => overStageCap(u.t)).length : 0;
-  // With slots on the chart shows every role; without them, Character and Battleline still get a count line.
-  const alwaysRows = slots ? [] : fo.rows.filter((r) => ALWAYS_ROLES.includes(r.role));
   const hasEx = roster.some((u) => u.ex);
   const say = (text: string) => setToast({ pid, text });
   const closeDialog = () => setDialog(null);
@@ -169,9 +165,9 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
             {dsCount.x > dsCount.n && <span>! {dsCount.x - dsCount.n} over the datasheet limit</span>}
           </div>
         )}
-        {alwaysRows.map((r) => (
+        {rules.rows.map((r) => (
           <div key={r.role} className={`rt-count${r.short > 0 || r.over > 0 ? " over" : ""}`}>
-            <span>{r.slotsIn ? `${r.role} ${r.filled} · min ${r.min}` : `${r.role} ${r.filled} / ${r.max} slot${r.max === 1 ? "" : "s"}${r.min ? ` · min ${r.min}` : ""}`}</span>
+            <span>{r.max === undefined ? `${r.role} ${r.filled} · min ${r.min}` : `${r.role} ${r.filled} / ${r.max} slot${r.max === 1 ? "" : "s"}${r.min ? ` · min ${r.min}` : ""}`}</span>
             {r.short > 0 && <span>! Needs {r.short} more {r.role}</span>}
             {r.over > 0 && <span>! {r.over} over the slot limit</span>}
           </div>
@@ -182,8 +178,6 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
             <span>! {stageOver === 1 ? "1 unit" : `${stageOver} units`} over the War Round 1–2 limit</span>
           </div>
         )}
-
-        {slots && <ForceOrgChart key={pid} fo={fo} />}
 
         {editable ? (
           <>
@@ -282,12 +276,12 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
 
       {sorted.length ? (
         groups.map(({ role, units, row }) => {
-          const over = row && roleRuleOn(state, row.role) ? row.over > 0 : false;
+          const over = !!row && row.over > 0;
           return (
             <section key={role ?? "none"} aria-label={role ?? "Unassigned"}>
               <h3 className={`rgroup${over ? " over" : ""}`}>
                 {role ?? "Unassigned"}
-                <span>{slots && row?.slotsIn ? `${units.length} · min ${row.min} · in ${row.slotsIn} slots` : slots && row ? `${row.filled} / ${row.max} slots` : `${units.length} unit${units.length === 1 ? "" : "s"}`}</span>
+                <span>{`${units.length} unit${units.length === 1 ? "" : "s"}`}</span>
               </h3>
               <div className="cols2">
                 {units.map((u) => (
@@ -296,7 +290,7 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
                     unit={u}
                     editable={editable}
                     memorial={state.round !== 0}
-                    overLimit={(slots || roleOf(u) === "Character") && fo.overLimitIds.includes(u.id)}
+                    overLimit={rules.overLimitIds.includes(u.id)}
                     toughOver={setupToughnessBlock(state, u.t)}
                     toughNineExtra={nineExtraIds.includes(u.id)}
                     epic={isEpicName(u.datasheet)}
@@ -365,7 +359,6 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
           playerId={pid}
           faction={player.faction}
           roster={roster}
-          fo={fo}
           onClose={closeDialog}
           onSave={(unit) => {
             dispatch({ type: "addUnit", playerId: pid, unit });
@@ -381,7 +374,6 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
           // The live unit, so Battle Training bought inside the dialog is kept when it saves.
           existing={roster.find((u) => u.id === dialog.unit.id) ?? dialog.unit}
           roster={roster}
-          fo={fo}
           onClose={closeDialog}
           onSave={(unit) => {
             dispatch({ type: "updateUnit", playerId: pid, unit });

@@ -215,7 +215,7 @@ export interface Unit {
   honours: string[];
   scars: string[];
   isCharacter: boolean;
-  /** Battlefield role for the Force Organisation chart. Missing = unassigned (a legacy Character counts as Character). */
+  /** Battlefield role. Missing = unassigned (a legacy Character counts as Character). */
   role?: Role;
   /** At most one per roster; requires `isCharacter`. */
   isWarlord: boolean;
@@ -441,11 +441,11 @@ export interface CampaignState {
   history?: BattleRecord[];
   /** Undo window for the latest battle result. Missing = nothing to undo. */
   undo?: UndoInfo;
-  /** Owner-switched campaign rules. Missing object or key = default (forceOrg on, the rest off). */
+  /** Owner-switched campaign rules. Missing object or key = default (Datasheet limit on, the rest off). */
   toggles?: Partial<Record<ToggleKey, boolean>>;
 }
 
-export type ToggleKey = "forceOrg" | "datasheetLimit" | "toughnessStages" | "knights";
+export type ToggleKey = "datasheetLimit" | "toughnessStages" | "knights";
 
 /** A rolled battle with its zone and both players looked up (`d` stands in for `def`). */
 export type BattleInfo = Omit<LiveBattle, "def"> & {

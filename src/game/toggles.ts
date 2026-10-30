@@ -1,13 +1,12 @@
-// Campaign rule toggles: four owner-switched rules, plus the datasheet / Toughness-stage / Knights helpers.
+// Campaign rule toggles: three owner-switched rules, plus the datasheet / Toughness-stage / Knights helpers.
 // Pure and read-only. Roster saves in roster.ts call the block checks; the UI uses them for messages.
 import { getPlayer, supplyOf } from "./selectors.ts";
 import type { CampaignState, Player, ToggleKey, Unit } from "./types.ts";
 
-export const TOGGLE_KEYS: readonly ToggleKey[] = ["forceOrg", "datasheetLimit", "toughnessStages", "knights"];
+export const TOGGLE_KEYS: readonly ToggleKey[] = ["datasheetLimit", "toughnessStages", "knights"];
 
 /** Names used in the Rules tab and the log. */
 export const TOGGLE_NAMES: Readonly<Record<ToggleKey, string>> = {
-  forceOrg: "Force Organisation slots",
   datasheetLimit: "Datasheet limit",
   toughnessStages: "Toughness stages",
   knights: "Knights exemption",
@@ -15,8 +14,7 @@ export const TOGGLE_NAMES: Readonly<Record<ToggleKey, string>> = {
 
 /** Defaults when the campaign has no toggle data: today's rules. */
 export const TOGGLE_DEFAULTS: Readonly<Record<ToggleKey, boolean>> = {
-  forceOrg: true,
-  datasheetLimit: false,
+  datasheetLimit: true,
   toughnessStages: false,
   knights: false,
 };
@@ -25,18 +23,9 @@ export function isToggleKey(x: unknown): x is ToggleKey {
   return typeof x === "string" && (TOGGLE_KEYS as readonly string[]).includes(x);
 }
 
-/** Rules that can't both be on: switching one on switches the other off. */
-export const TOGGLE_EXCLUDES: Readonly<Partial<Record<ToggleKey, ToggleKey>>> = {
-  forceOrg: "datasheetLimit",
-  datasheetLimit: "forceOrg",
-};
-
-const storedOn = (state: Pick<CampaignState, "toggles">, key: ToggleKey): boolean => state.toggles?.[key] ?? TOGGLE_DEFAULTS[key];
-
-/** True if the rule is on. Saves from before the rules were exclusive may hold both: the Datasheet limit wins. */
+/** True if the rule is on. Old saves may still hold a `forceOrg` key: it is ignored. */
 export function toggleOn(state: Pick<CampaignState, "toggles">, key: ToggleKey): boolean {
-  if (key === "forceOrg" && storedOn(state, "datasheetLimit")) return false;
-  return storedOn(state, key);
+  return state.toggles?.[key] ?? TOGGLE_DEFAULTS[key];
 }
 
 /** Toggle names that are on, in panel order. */

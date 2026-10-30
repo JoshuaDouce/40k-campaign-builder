@@ -1,10 +1,10 @@
 // Battle army lists: which roster units each side fields in a rolled battle, and at what points.
-import { roleOf, ROLES } from "./forceOrg.ts";
+import { BATTLELINE_MIN, roleOf } from "./roles.ts";
 import { effectivePoints, rosterOf } from "./roster.ts";
 import type { ArmyList, BattleTally, CampaignState, LiveBattle, Unit } from "./types.ts";
 
 /** Battleline units a list must field (fewer only when the roster has fewer). */
-export const ARMY_BATTLELINE_MIN = ROLES.find((r) => r.role === "Battleline")?.min ?? 2;
+export const ARMY_BATTLELINE_MIN = BATTLELINE_MIN;
 
 /** Why a unit can't be taken out of a list, or null if it can. */
 export type ArmyLock = "warlord" | "onlyBattleline" | "battlelineMin" | null;

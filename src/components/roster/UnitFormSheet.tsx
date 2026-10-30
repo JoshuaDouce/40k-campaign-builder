@@ -16,7 +16,6 @@ import {
   RECRUITS_XP,
   ROLE_NAMES,
   roleOf,
-  slotRole,
   scarName,
   scarWeapon,
   setupCharacterBlock,
@@ -33,14 +32,13 @@ import {
   isKnightsExempt,
   STAGE_MAX_TOUGHNESS,
   STAGE_SUPPLY,
-  toggleOn,
   toughStageActive,
   toughStageBlock,
   TITLE_MAX,
   TRAIT_MAX,
   WORN_GEAR,
 } from "../../game/index.ts";
-import type { FactionName, ForceOrg, Role, Unit } from "../../game/index.ts";
+import type { FactionName, Role, Unit } from "../../game/index.ts";
 import { useCampaign } from "../../store/useCampaign.ts";
 import { DatasheetPicker } from "./DatasheetPicker.tsx";
 import { useIsEpicName } from "./useDatasheets.ts";
@@ -60,8 +58,6 @@ interface Props {
   roster: readonly Unit[];
   /** The player's faction, for the datasheet pick-list. Without data the field is plain text. */
   faction?: FactionName;
-  /** Slot counts for the Role hint. */
-  fo: ForceOrg;
   /** Shown in the Seasoned Recruits intro. */
   rp?: number;
   onSave(unit: Unit): void;
@@ -141,7 +137,7 @@ const COPY: Record<FormMode, { title: string; cta: string }> = {
   recruits: { title: "Seasoned Recruits", cta: `Spend ${RECRUITS_COST} RP and add unit` },
 };
 
-export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, rp, onSave, onClose }: Props) {
+export function UnitFormSheet({ mode, existing, playerId, roster, faction, rp, onSave, onClose }: Props) {
   const rng = useRng();
   const { state, viewer } = useCampaign();
   const [d, setD] = useState<Draft>(() => initial(existing, mode));
@@ -173,7 +169,6 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, r
   // A non-Character Warlord is allowed for an exempt Knights unit in Setup, or kept if the unit already was one.
   const softAllowed = (setup && exemptDs) || wasSoftWarlord;
   const warlord = d.isWarlord && (d.isCharacter || softAllowed);
-  const slots = toggleOn(state, "forceOrg");
   const relics = d.isCharacter ? (existing?.relics ?? []) : [];
   const training = d.isCharacter ? (existing?.training ?? []) : [];
   // Characters may hold either table (legacy generic ones stay valid); their own table is listed first.
@@ -193,14 +188,6 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, r
     if (d.isCharacter || (role !== "Character" && isKnightsExempt(state, playerObj, datasheet))) return;
     pickRole(role);
   };
-  // Battleline fills Non-Monster / Vehicle slots, so the hint counts the shared slots.
-  const slotR = d.role ? slotRole(d.role) : "";
-  const roleMax = fo.rows.find((r) => r.role === slotR)?.max ?? 0;
-  const others = roster.filter((u) => {
-    const r = roleOf(u);
-    return u.id !== existing?.id && !!r && slotRole(r) === slotR;
-  }).length;
-  const projected = others + 1;
   const losesDetails = !!existing?.isCharacter && !d.isCharacter && !!(existing.relics?.length || existing.training?.length || existing.title || existing.backstory || existing.enhancement);
 
   // In Setup, a save that makes this unit a Character is stopped if the roster already has one. Saving an existing Character is fine.
@@ -281,7 +268,7 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, r
     else delete unit.kills;
     return unit;
   };
-  // Supply and slot caps, checked on the roster as this save would leave it.
+  // Supply and Character slot caps, checked on the roster as this save would leave it.
   const capBlock = problem ? null : capProblem(state, playerId, withUnit(roster, build(existing?.id ?? "")));
   const blocked = !!problem || !!charBlock || toughStop || epicBlock || dsBlock || !!capBlock;
 
@@ -386,22 +373,8 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, fo, r
             </button>
           ))}
         </div>
-        <div className="hint">Picking a datasheet fills this in from its keywords; you can change it. A Character always fills a Character slot. Beasts and Swarms are Non-Monster / Vehicle. Walkers and Aircraft are Vehicle / Monster. Transports and Fortifications are Other.{slots ? " A unit fills one slot only." : ""}</div>
+        <div className="hint">Picking a datasheet fills this in from its keywords; you can change it. A Character always fills a Character slot. Beasts and Swarms are Non-Monster / Vehicle. Walkers and Aircraft are Vehicle / Monster. Transports and Fortifications are Other.</div>
         {exemptDs && d.role === "Battleline" && !d.isCharacter && <div className="rt-note">Armigers and War Dogs count as Battleline in this campaign.</div>}
-        {!slots || charBlock ? null : d.role === "" ? (
-          <div className="hint">Unassigned units fill no slot. You can set a role later.</div>
-        ) : projected > roleMax ? (
-          // A save that grows the row is refused with the cap message below; a level edit of an over-full row may save.
-          capBlock ? null : (
-            <div className="hint bad">
-              ! {slotR} slots are over the limit ({projected} / {roleMax}). This save doesn't add to it.
-            </div>
-          )
-        ) : (
-          <div className="hint">
-            {slotR}: {projected} of {roleMax} slots used with this unit.{slotR !== d.role ? ` ${d.role} fills these slots.` : ""}
-          </div>
-        )}
         <div className="rolelink">
           <div className="tag">Linked to the Character role</div>
           <div className="chips" style={{ marginTop: 4 }}>

@@ -2,7 +2,7 @@
 // (through an injected Rng) and arrive here already resolved.
 import { CHAR_HONOURS, CHAR_SCARS, HONOURS, RANKS, RELICS, SCARS, TRAINING } from "./data.ts";
 import { B, log } from "./log.ts";
-import { forceOrgFor, normaliseRole, roleOf } from "./forceOrg.ts";
+import { normaliseRole, roleOf, roleRules } from "./roles.ts";
 import { rollInt } from "./rng.ts";
 import type { Rng } from "./rng.ts";
 import { getPlayer, supplyOf } from "./selectors.ts";
@@ -379,8 +379,7 @@ function ruleBlock(s: CampaignState, playerId: string, u: Unit): boolean {
 
 /**
  * Why the roster as it would be (`after`) breaks a cap, or null. A roster already over may stay level or shrink: only a
- * rise past supply, or a slot row growing past its limit, is refused. Character slots always count; the other rows only
- * with Force Organisation slots on.
+ * rise past supply, or a Character added past the Character slots, is refused.
  */
 export function capProblem(s: CampaignState, playerId: string, after: readonly Unit[]): string | null {
   const p = getPlayer(s, playerId);
@@ -390,14 +389,9 @@ export function capProblem(s: CampaignState, playerId: string, after: readonly U
   if (total > supply && total > totalEffective(rosterOf(s, playerId))) {
     return `This would take your roster to ${total} pts, over your ${supply} supply.`;
   }
-  const was = forceOrgFor(s, playerId).rows;
-  const now = forceOrgFor({ ...s, rosters: { ...s.rosters, [playerId]: [...after] } }, playerId).rows;
-  for (const r of now) {
-    if (r.slotsIn || (r.role !== "Character" && !toggleOn(s, "forceOrg"))) continue;
-    const old = was.find((x) => x.role === r.role)?.filled ?? 0;
-    if (r.filled > r.max && r.filled > old) return `${r.role} slots are full (${old} / ${r.max}).`;
-  }
-  return null;
+  const old = roleRules(s, playerId).rows[0].filled;
+  const { filled, max = Infinity } = roleRules({ ...s, rosters: { ...s.rosters, [playerId]: [...after] } }, playerId).rows[0];
+  return filled > max && filled > old ? `Character slots are full (${old} / ${max}).` : null;
 }
 
 /** The roster with `u` saved over the unit of the same id, or added at the end. */
