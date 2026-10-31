@@ -1,5 +1,5 @@
 // Who may send which action. Honour-system for the MVP: this is enforced in the UI only.
-import { droppedEarned, rosterOf } from "./roster.ts";
+import { droppedEarned, droppedScars, loweredHistory, rosterOf } from "./roster.ts";
 import { getPlayer } from "./selectors.ts";
 import type { Action, ActionType, CampaignState } from "./types.ts";
 
@@ -22,6 +22,7 @@ export const OWNER_ONLY: ReadonlySet<ActionType> = new Set<ActionType>([
   "removePlayer",
   "organiserRemoveUnit",
   "refundTraining",
+  "removeRelic",
   "organiserAddCard",
   "organiserRemoveCard",
   "deleteFallen",
@@ -72,9 +73,11 @@ export function canPerform(state: CampaignState, action: Action, ctx: Permission
     }
 
     case "updateUnit": {
-      // Earned Battle Honours and Battle Training stay: only the owner can take one off.
+      // Earned Battle Honours, Battle Training and Battle Scars stay, and XP, battles and kills never go down: only the
+      // owner can correct those. Otherwise a player could clear a unit's history to unlock it. Players remove scars
+      // through Recuperate or a Field Surgeon.
       const old = rosterOf(state, action.playerId).find((u) => u.id === action.unit.id);
-      return controls(state, action.playerId, userId) && !(old && droppedEarned(old, action.unit).length);
+      return controls(state, action.playerId, userId) && !(old && (droppedEarned(old, action.unit).length || droppedScars(old, action.unit).length || loweredHistory(old, action.unit).length));
     }
 
     case "requisitionDeck":
@@ -85,7 +88,6 @@ export function canPerform(state: CampaignState, action: Action, ctx: Permission
     case "addUnit":
     case "removeUnit":
     case "addRelic":
-    case "removeRelic":
     case "applyPostBattle":
     case "addExamples":
     case "clearExamples":

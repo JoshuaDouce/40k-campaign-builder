@@ -2,6 +2,7 @@
 // Functions that take `s: CampaignState` and change it MUTATE it: they are building blocks that `apply()`
 // runs on a structuredClone. The read-only selectors (`pickStatus`, `clashOf`, ...) never mutate.
 import { drawFor, HAND_LIMIT } from "./cards.ts";
+import { recuperateScars } from "./roster.ts";
 import { ACTIONS, PTYPES, TWISTS } from "./data.ts";
 import { targets } from "./engine.ts";
 import { B, log } from "./log.ts";
@@ -561,7 +562,7 @@ export function undoBattle(s: CampaignState, attacker: string): boolean {
 }
 
 /** Carry out a player's Ready-to-play quiet pick and mark it Done (mutates `s`). Returns false if it cannot be played now. */
-export function confirmQuietPick(s: CampaignState, playerId: string, rng: Rng): boolean {
+export function confirmQuietPick(s: CampaignState, playerId: string, rng: Rng, scars: readonly { unitId: string; scar: string }[] = []): boolean {
   const pk = s.picks[playerId];
   const p = getPlayer(s, playerId);
   if (s.phase !== "resolution" || !pk || !p || !pk.act) return false;
@@ -571,7 +572,8 @@ export function confirmQuietPick(s: CampaignState, playerId: string, rng: Rng): 
   if (act === "fortify" && !z) return false;
   if (act === "recuperate") {
     p.rp = Math.min(rpCap(s), p.rp + 1);
-    log(s, B(p.name), " recuperates: +1 RP, removes up to 2 Battle Scars.");
+    const mended = recuperateScars(s, playerId, scars);
+    log(s, B(p.name), ` recuperates: +1 RP${mended.length ? `, removes ${mended.join(", ")}` : ", no Battle Scars removed"}.`);
   }
   if (act === "muster") {
     const n = musterGain(s, holdsType(s, p, "forge") > 0);

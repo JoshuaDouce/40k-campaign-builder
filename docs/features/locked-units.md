@@ -14,6 +14,10 @@ it has any XP, battles, kills, Battle Honours, Battle Scars, relics or Battle Tr
 - A fresh unit (none of the above) is not locked in any round: it can be resized up or down, or removed, until it
   first fights or gains something. Changed 2026-10-31; before that every unit locked at War Round 1.
 - Example units (from "Add example units") are exempt, so they can still be removed or cleared.
+- Players can't clear a unit's history to unlock it: an edit can't lower XP, battles or kills, or remove an earned
+  Battle Honour, Battle Training or Battle Scar, and removing a relic is organiser-only. Players remove scars
+  through Recuperate (confirming it opens a sheet to pick up to two scars, removed by the game) or a Field Surgeon.
+  The organiser can correct any of these in the edit form.
 
 Helpers: `hasHistory(unit)`, `unitLocked(state, unit)` and `minPointsFor(state, unit)` in `src/game/roster.ts`. There is no stored model
 count, so "size" is the unit's base points: a bigger size always costs more.

@@ -129,7 +129,7 @@ function run(s: CampaignState, a: Action, rng: Rng): boolean {
       return undoBattle(s, a.attacker);
 
     case "confirmQuietPick":
-      return confirmQuietPick(s, a.playerId, rng);
+      return confirmQuietPick(s, a.playerId, rng, Array.isArray(a.scars) ? a.scars : []);
 
     case "switchPick":
       return switchPick(s, a.playerId, { act: a.act, zone: a.zone });

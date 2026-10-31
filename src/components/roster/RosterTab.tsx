@@ -299,10 +299,14 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
                     removable={!unitLocked(state, u)}
                     onEdit={() => setDialog({ kind: "edit", unit: u })}
                     onRollRelic={() => setDialog({ kind: "relic", unit: u })}
-                    onRemoveRelic={(relic) => {
-                      dispatch({ type: "removeRelic", playerId: pid, unitId: u.id, relic });
-                      say(`${relic} removed from ${u.name}.`);
-                    }}
+                    onRemoveRelic={
+                      viewer.isOwner
+                        ? (relic) => {
+                            dispatch({ type: "removeRelic", playerId: pid, unitId: u.id, relic });
+                            say(`${relic} removed from ${u.name}.`);
+                          }
+                        : undefined
+                    }
                     onRemove={(cause) => {
                       dispatch({ type: "removeUnit", playerId: pid, unitId: u.id, cause });
                       say(u.isCharacter && state.round !== 0 ? `${u.name} moved to the Hall of Heroes.` : "Unit removed.");
