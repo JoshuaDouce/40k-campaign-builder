@@ -451,13 +451,25 @@ export function addUnitTo(s: CampaignState, playerId: string, unit: Unit): boole
   return true;
 }
 
-/** Once War Round 1 begins a unit stays on the roster (only a third scar takes it) and can't shrink. Examples are exempt. */
-export function unitLocked(s: Pick<CampaignState, "round">, u: Pick<Unit, "ex">): boolean {
-  return s.round !== 0 && !u.ex;
+/** The parts of a unit that give it a campaign history: XP, battles, kills, honours, scars, relics, Battle Training. */
+export type HistoryFields = Pick<Unit, "ex" | "xp" | "battles" | "kills" | "honours" | "scars" | "relics" | "training">;
+
+/** True once a unit has fought, earned XP, or gained an honour, scar, relic or Battle Training. */
+export function hasHistory(u: HistoryFields): boolean {
+  return u.xp > 0 || (u.battles ?? 0) > 0 || (u.kills ?? 0) > 0 || u.honours.length > 0 || u.scars.length > 0 || (u.relics?.length ?? 0) > 0 || (u.training?.length ?? 0) > 0;
+}
+
+/**
+ * From War Round 1 a unit with a history stays on the roster (only a third scar takes it) and can't shrink. A unit
+ * with none (no XP, battles, kills, honours, scars, relics or training) can still be resized or removed, as can
+ * examples.
+ */
+export function unitLocked(s: Pick<CampaignState, "round">, u: HistoryFields): boolean {
+  return s.round !== 0 && !u.ex && hasHistory(u);
 }
 
 /** Lowest base points an edit may save: the current points once the unit is locked (size only goes up), else 0. */
-export function minPointsFor(s: Pick<CampaignState, "round">, u: Pick<Unit, "ex" | "points"> | undefined): number {
+export function minPointsFor(s: Pick<CampaignState, "round">, u: (HistoryFields & Pick<Unit, "points">) | undefined): number {
   return u && unitLocked(s, u) ? u.points : 0;
 }
 
