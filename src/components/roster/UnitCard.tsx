@@ -52,7 +52,8 @@ interface Props {
   /** The Relics rule is on: relics can be earned (held ones always show). */
   relicsOn: boolean;
   onRollRelic(): void;
-  onRemoveRelic(relic: string): void;
+  /** Owner only: players can't take a relic off. */
+  onRemoveRelic?(relic: string): void;
 }
 
 export function UnitCard({ unit, editable, memorial, overLimit, toughOver, toughNineExtra, epic, toughStage, warlordNotChar, removable, onEdit, onRemove, onOrganiserDelete, onRefundTraining, hiddenTraining, relicsOn, onRollRelic, onRemoveRelic }: Props) {
@@ -267,7 +268,7 @@ export function UnitCard({ unit, editable, memorial, overLimit, toughOver, tough
                     <b>{r}</b>
                     {relicEffect(r)}
                   </div>
-                  {editable && (
+                  {editable && onRemoveRelic && (
                     <button type="button" className="btn sm danger x" aria-label={`Remove relic ${r}`} onClick={() => onRemoveRelic(r)}>
                       Remove
                     </button>

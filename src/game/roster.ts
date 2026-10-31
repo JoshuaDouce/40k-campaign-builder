@@ -451,13 +451,25 @@ export function addUnitTo(s: CampaignState, playerId: string, unit: Unit): boole
   return true;
 }
 
-/** Once War Round 1 begins a unit stays on the roster (only a third scar takes it) and can't shrink. Examples are exempt. */
-export function unitLocked(s: Pick<CampaignState, "round">, u: Pick<Unit, "ex">): boolean {
-  return s.round !== 0 && !u.ex;
+/** The parts of a unit that give it a campaign history: XP, battles, kills, honours, scars, relics, Battle Training. */
+export type HistoryFields = Pick<Unit, "ex" | "xp" | "battles" | "kills" | "honours" | "scars" | "relics" | "training">;
+
+/** True once a unit has fought, earned XP, or gained an honour, scar, relic or Battle Training. */
+export function hasHistory(u: HistoryFields): boolean {
+  return u.xp > 0 || (u.battles ?? 0) > 0 || (u.kills ?? 0) > 0 || u.honours.length > 0 || u.scars.length > 0 || (u.relics?.length ?? 0) > 0 || (u.training?.length ?? 0) > 0;
+}
+
+/**
+ * From War Round 1 a unit with a history stays on the roster (only a third scar takes it) and can't shrink. A unit
+ * with none (no XP, battles, kills, honours, scars, relics or training) can still be resized or removed, as can
+ * examples.
+ */
+export function unitLocked(s: Pick<CampaignState, "round">, u: HistoryFields): boolean {
+  return s.round !== 0 && !u.ex && hasHistory(u);
 }
 
 /** Lowest base points an edit may save: the current points once the unit is locked (size only goes up), else 0. */
-export function minPointsFor(s: Pick<CampaignState, "round">, u: Pick<Unit, "ex" | "points"> | undefined): number {
+export function minPointsFor(s: Pick<CampaignState, "round">, u: (HistoryFields & Pick<Unit, "points">) | undefined): number {
   return u && unitLocked(s, u) ? u.points : 0;
 }
 
@@ -465,6 +477,15 @@ export function minPointsFor(s: Pick<CampaignState, "round">, u: Pick<Unit, "ex"
 export function droppedEarned(old: Pick<Unit, "honours" | "training">, next: Pick<Unit, "honours" | "training">): string[] {
   const keep = new Set([...next.honours, ...(next.training ?? [])]);
   return [...old.honours, ...(old.training ?? [])].filter((n) => !keep.has(n));
+}
+
+/** XP, battles or kills that `next` lowers from `old`. Players can't lower these (it would unlock the unit); the owner can. */
+export function loweredHistory(old: Pick<Unit, "xp" | "battles" | "kills">, next: Pick<Unit, "xp" | "battles" | "kills">): string[] {
+  const out: string[] = [];
+  if (next.xp < old.xp) out.push("XP");
+  if ((next.battles ?? 0) < (old.battles ?? 0)) out.push("battles");
+  if ((next.kills ?? 0) < (old.kills ?? 0)) out.push("kills");
+  return out;
 }
 
 export function updateUnitIn(s: CampaignState, playerId: string, unit: Unit): boolean {
@@ -722,6 +743,39 @@ export function fieldSurgeonOn(s: CampaignState, playerId: string, unitId: strin
   u.scars.splice(i, 1);
   log(s, B(p.name), ` spends ${SURGEON_COST} RP on a Field Surgeon: `, B(u.name), ` no longer has ${scar}.`);
   return true;
+}
+
+/** Most Battle Scars one Recuperate removes. */
+export const RECUPERATE_SCARS = 2;
+
+/**
+ * Recuperate's scar removal: takes off up to two of the player's picked scars (mutates `s`). A pick for a unit not on
+ * the player's roster, or a scar it doesn't hold, is skipped. Returns "Unit: Scar" for each one removed.
+ */
+export function recuperateScars(s: CampaignState, playerId: string, picks: readonly { unitId: string; scar: string }[]): string[] {
+  const roster = rosterFor(s, playerId);
+  const done: string[] = [];
+  for (const pk of picks) {
+    if (done.length >= RECUPERATE_SCARS) break;
+    const u = roster.find((x) => x.id === pk.unitId);
+    const i = u ? u.scars.indexOf(pk.scar) : -1;
+    if (!u || i === -1) continue;
+    u.scars.splice(i, 1);
+    done.push(`${u.name}: ${scarLabel(pk.scar)}`);
+  }
+  return done;
+}
+
+/** Battle Scars on `old` that `next` no longer has. Players remove scars through Recuperate or a Field Surgeon; the owner can edit them. */
+export function droppedScars(old: Pick<Unit, "scars">, next: Pick<Unit, "scars">): string[] {
+  const left = [...next.scars.map(scarName)];
+  const out: string[] = [];
+  for (const s of old.scars.map(scarName)) {
+    const i = left.indexOf(s);
+    if (i === -1) out.push(s);
+    else left.splice(i, 1);
+  }
+  return out;
 }
 
 /** The unit as a Promotion would leave it: one more Battle Training for a Character, else a new Character. */

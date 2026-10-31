@@ -28,6 +28,7 @@ import {
   datasheetLimitBlock,
   distinctDatasheets,
   droppedEarned,
+  loweredHistory,
   honourEffect,
   scarEffect,
   isKnightsExempt,
@@ -145,6 +146,7 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, rp, o
   // Players can't take off an earned Battle Honour or Battle Training; the owner can, to correct a mistake.
   const lockEarned = !viewer.isOwner;
   const earnedHonours = lockEarned ? (existing?.honours ?? []) : [];
+  const earnedScars = lockEarned ? (existing?.scars.map(scarName) ?? []) : [];
   const set = (patch: Partial<Draft>) => setD((prev) => ({ ...prev, ...patch }));
   const recruits = mode === "recruits";
   // Kills give XP one for one: a whole-number change to Kills moves XP by the same amount (never below 0).
@@ -226,7 +228,9 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, rp, o
   else if (recruits && d.honours.length !== 1) problem = "Pick exactly one Battle Honour.";
   else if (lockEarned && existing) {
     const dropped = droppedEarned(existing, { honours: d.honours, training });
+    const lowered = loweredHistory(existing, { xp, battles: d.battles.trim() === "" ? 0 : Number(d.battles), kills: d.kills.trim() === "" ? 0 : Number(d.kills) });
     if (dropped.length) problem = `${dropped.join(", ")} can't be removed once earned. Keep this unit a Character, or ask the campaign owner.`;
+    else if (lowered.length) problem = `A unit's ${lowered.join(", ")} can't go down. Ask the campaign owner to correct a mistake.`;
   }
 
   /** The unit as the form would save it, under `id`. */
@@ -313,7 +317,7 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, rp, o
         </div>
         <div className="field" style={{ flex: "1 1 120px" }}>
           <label htmlFor="f_xp">XP</label>
-          {recruits ? <input type="number" id="f_xp" value={RECRUITS_XP} disabled /> : <input type="number" id="f_xp" inputMode="numeric" min={0} step={1} value={d.xp} onChange={(e) => set({ xp: e.target.value })} />}
+          {recruits ? <input type="number" id="f_xp" value={RECRUITS_XP} disabled /> : <input type="number" id="f_xp" inputMode="numeric" min={lockEarned && existing ? existing.xp : 0} step={1} value={d.xp} onChange={(e) => set({ xp: e.target.value })} />}
         </div>
         <div className="field" style={{ flex: "1 1 120px" }}>
           <label htmlFor="f_tough">Toughness (T)</label>
@@ -461,11 +465,11 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, rp, o
         <div className="formgrid" style={{ marginBlock: 6 }}>
           <div className="field" style={{ flex: "1 1 120px" }}>
             <label htmlFor="f_battles">Battles</label>
-            <input type="number" id="f_battles" inputMode="numeric" min={0} step={1} value={d.battles} onChange={(e) => set({ battles: e.target.value })} />
+            <input type="number" id="f_battles" inputMode="numeric" min={lockEarned && existing ? (existing.battles ?? 0) : 0} step={1} value={d.battles} onChange={(e) => set({ battles: e.target.value })} />
           </div>
           <div className="field" style={{ flex: "1 1 120px" }}>
             <label htmlFor="f_kills">Kills</label>
-            <input type="number" id="f_kills" inputMode="numeric" min={0} step={1} value={d.kills} onChange={(e) => setKills(e.target.value)} />
+            <input type="number" id="f_kills" inputMode="numeric" min={lockEarned && existing ? (existing.kills ?? 0) : 0} step={1} value={d.kills} onChange={(e) => setKills(e.target.value)} />
           </div>
         </div>
         <div className="mono dim" style={{ fontSize: 11 }}>
@@ -502,7 +506,12 @@ export function UnitFormSheet({ mode, existing, playerId, roster, faction, rp, o
               ? `Battle Scars · ${d.scars.length} (the Warlord is never removed; at three, a new scar replaces the oldest)`
               : `Battle Scars · ${d.scars.length} of 2 (a third removes the unit)`}
           </div>
-          <HeldList items={d.scars.map((n) => ({ n, e: scarEffect(n) }))} tone="scar" onRemove={(n) => set({ scars: d.scars.filter((x) => x !== n) })} />
+          <HeldList
+            items={d.scars.map((n) => ({ n, e: scarEffect(n), locked: earnedScars.includes(n) }))}
+            tone="scar"
+            onRemove={(n) => set({ scars: d.scars.filter((x) => x !== n) })}
+          />
+          {earnedScars.length > 0 && <div className="hint">Remove a scar with Recuperate or a Field Surgeon. Only the campaign owner can remove one here.</div>}
           <EffectSelect
             label="Add a Battle Scar"
             placeholder="Choose a scar…"

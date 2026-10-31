@@ -7,6 +7,7 @@ import { GarrisonSelect } from "./GarrisonSelect.tsx";
 import { ClashTag, PickBadge } from "./PickBadge.tsx";
 import { PickPicker } from "./PickPicker.tsx";
 import { PlayerLine } from "./PlayerLine.tsx";
+import { RecuperateDialog } from "./RecuperateDialog.tsx";
 import { garrisonFor, pickLineWithWorld } from "./pickText.ts";
 import type { WarCtx } from "./warTypes.ts";
 
@@ -24,6 +25,7 @@ export function MyMovePanel({ playerId, isMine, onBack, ...ctx }: Props) {
   const player = getPlayer(state, playerId);
   const [switching, setSwitching] = useState(false);
   const [defSel, setDefSel] = useState<string | null>(null);
+  const [recuperating, setRecuperating] = useState(false);
   if (!player) return null;
   const pk = state.picks[playerId];
   const status = pickStatus(state, playerId);
@@ -140,9 +142,20 @@ export function MyMovePanel({ playerId, isMine, onBack, ...ctx }: Props) {
       ) : def ? (
         <>
           <p style={{ marginTop: 10 }}>{actionDesc(state, def)}</p>
-          <button type="button" className="btn primary" disabled={!can(confirm)} onClick={() => dispatch(confirm)}>
+          <button type="button" className="btn primary" disabled={!can(confirm)} onClick={() => (def.id === "recuperate" ? setRecuperating(true) : dispatch(confirm))}>
             Confirm {def.n}
           </button>
+          {recuperating && (
+            <RecuperateDialog
+              state={state}
+              playerId={playerId}
+              onClose={() => setRecuperating(false)}
+              onGo={(scars) => {
+                setRecuperating(false);
+                dispatch({ ...confirm, scars });
+              }}
+            />
+          )}
         </>
       ) : null}
 

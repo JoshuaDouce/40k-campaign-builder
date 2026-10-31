@@ -496,7 +496,8 @@ export type Action =
   | { type: "tallyUnit"; playerId: string; side: string; unitId: string; destroyed: boolean; kills: number }
   | { type: "markGlory"; playerId: string; side: string; unitId: string | null }
   | { type: "resolvePick"; playerId: string; result: "a" | "d" | "x"; decisive?: boolean }
-  | { type: "confirmQuietPick"; playerId: string }
+  /** For Recuperate, `scars` are the (up to two) Battle Scars the player picked to remove. */
+  | { type: "confirmQuietPick"; playerId: string; scars?: { unitId: string; scar: string }[] }
   | { type: "switchPick"; playerId: string; act: ActionId; zone?: string }
   | { type: "undoBattle"; attacker: string }
   | { type: "requisitionDeck"; playerId: string }
