@@ -154,7 +154,8 @@ entries without refreshing.
 - **Live battle tally (2026-10-29):** "Battle started" on a rolled battle locks its army lists, twists and garrison
   handicap, and opens a per-side tally (Destroyed, kills, Marked for Glory: campaign numbers only, no VP or CP). It is
   shared campaign state. "Back to army lists" unlocks and keeps the tally. Recording the result copies it to
-  `lastTally`, which pre-fills that player's post-battle helper.
+  `lastTally`. Recording the result of a tracked battle also applies battles, kills, XP, healing and Legend checks to the
+  fielded units automatically; the post-battle helper then asks only for honour and fallen rolls (Undo restores the units).
 - **Flat buff points (2026-10-30):** every Battle Honour, relic and Battle Training adds a flat 10 pts (honours were
   10% of base points rounded to 5). The army list and My Warband show the base points and the buff points separately,
   for checking against an outside list builder.

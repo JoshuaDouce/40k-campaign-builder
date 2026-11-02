@@ -87,15 +87,19 @@ export function xpGainFor(row: Row, glory: boolean, already: number): { gain: nu
   return ov === null ? { gain: calc.total, capped: calc.capped } : { gain: ov, capped: false };
 }
 
-/** Works out step 2 for the units that fought, and the finished results to send once nothing is blocked. */
-export function evaluate(roster: readonly Unit[], rows: Record<string, Row | undefined>, glory: string | null, rolls: Rolls, round: number): Evaluation {
+/**
+ * Works out step 2 for the units that fought, and the finished results to send once nothing is blocked.
+ * `owedIds` is the rolls-only mode after a tracked battle (the units `owedRolls` lists): XP, battles and kills are
+ * already on the units, so only those units are listed and nothing more is added.
+ */
+export function evaluate(roster: readonly Unit[], rows: Record<string, Row | undefined>, glory: string | null, rolls: Rolls, round: number, owedIds?: ReadonlySet<string>): Evaluation {
   const views: UnitView[] = [];
   const results: PostBattleResult[] = [];
   for (const unit of roster) {
     const row = rows[unit.id] ?? BLANK_ROW;
-    if (!row.fought) continue;
+    if (!row.fought || (owedIds && !owedIds.has(unit.id))) continue;
     const isGlory = glory === unit.id;
-    const { gain } = xpGainFor(row, isGlory, xpThisRound(unit, round));
+    const gain = owedIds ? 0 : xpGainFor(row, isGlory, xpThisRound(unit, round)).gain;
     const newXp = unit.xp + gain;
     const owed = honoursOwed(unit, newXp);
     let done = true;
@@ -156,7 +160,9 @@ export function evaluate(roster: readonly Unit[], rows: Record<string, Row | und
       }
     }
 
-    views.push({ unit, gain, newXp, battles: (unit.battles ?? 0) + 1, kills: (unit.kills ?? 0) + row.kills, heals: healsGrievous(unit), slots, fallen, done });
+    // Rolls-only: the battle, kills and any healing are already on the unit.
+    const fresh = owedIds ? 0 : 1;
+    views.push({ unit, gain, newXp, battles: (unit.battles ?? 0) + fresh, kills: (unit.kills ?? 0) + fresh * row.kills, heals: !owedIds && healsGrievous(unit), slots, fallen, done });
     const ov = validOv(row.ov);
     const result: PostBattleResult = { unitId: unit.id, fought: true, destroyed: row.destroyed, kills: row.kills, glory: isGlory };
     if (ov !== null) result.xpOverride = ov;

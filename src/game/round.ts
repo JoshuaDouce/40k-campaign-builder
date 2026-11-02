@@ -2,6 +2,7 @@
 // Functions that take `s: CampaignState` and change it MUTATE it: they are building blocks that `apply()`
 // runs on a structuredClone. The read-only selectors (`pickStatus`, `clashOf`, ...) never mutate.
 import { drawFor, HAND_LIMIT } from "./cards.ts";
+import { isTracked } from "./army.ts";
 import { recuperateScars } from "./roster.ts";
 import { ACTIONS, PTYPES, TWISTS } from "./data.ts";
 import { targets } from "./engine.ts";
@@ -507,9 +508,10 @@ export function resolvePick(s: CampaignState, playerId: string, res: "a" | "d" |
   if (pl) rec.world = pl.name;
   if (pk.act === "conquer" && win === a) rec.took = true;
   s.history = [...(s.history ?? []), rec];
-  if (info.garrison)
-    log(s, B(a.name), ": record XP and roll for the fallen. ", B(d.name), " fielded the garrison and gains nothing.");
-  else log(s, "Both players: record XP and roll for the fallen.");
+  // A tracked battle's XP, battles and kills go on automatically (autoApplyBattle): only the dice are left.
+  const todo = pk.battle && isTracked(pk.battle) ? "XP, battles and kills are recorded; make any honour and fallen rolls on My Warband." : "record XP and roll for the fallen.";
+  if (info.garrison) log(s, B(a.name), `: ${todo} `, B(d.name), " fielded the garrison and gains nothing.");
+  else log(s, `Both players: ${todo}`);
   pk.done = true;
   checkRoundEnd(s);
   return true;
@@ -552,6 +554,13 @@ export function undoBattle(s: CampaignState, attacker: string): boolean {
   s.terr = b.terr;
   s.players = b.players;
   s.hollOpened = b.hollOpened;
+  // Take back the progress a tracked battle gave its fielded units, keeping any roster edits made since.
+  for (const [pid, units] of Object.entries(b.rosters ?? {})) {
+    for (const was of units) {
+      const u = s.rosters?.[pid]?.find((x) => x.id === was.id);
+      if (u) Object.assign(u, { xp: was.xp, xpRound: was.xpRound, battles: was.battles, kills: was.kills, scars: was.scars, legendLogged: was.legendLogged });
+    }
+  }
   s.history = (s.history ?? []).slice(0, -1);
   if (b.lastArmy) s.lastArmy = b.lastArmy;
   else delete s.lastArmy;

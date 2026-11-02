@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { canPerform, count, DATASHEET_COST, HAND_LIMIT, ROLE_NAMES, roleOf, countsAsSetupNine, datasheetLimit, distinctDatasheets, overStageCap, PROMOTION_COST, RECRUITS_COST, reinforceCost, REINFORCE_SUPPLY, roleRules, rosterOf, setupToughnessBlock, SURGEON_COST, supplyOf, toggleOn, totalBuffs, totalEffective, toughStageActive, unitLocked, warlordNotCharacter } from "../../game/index.ts";
+import { canPerform, count, DATASHEET_COST, HAND_LIMIT, ROLE_NAMES, roleOf, countsAsSetupNine, datasheetLimit, distinctDatasheets, owedRolls, overStageCap, PROMOTION_COST, RECRUITS_COST, reinforceCost, REINFORCE_SUPPLY, roleRules, rosterOf, setupToughnessBlock, SURGEON_COST, supplyOf, toggleOn, totalBuffs, totalEffective, toughStageActive, unitLocked, warlordNotCharacter } from "../../game/index.ts";
 import type { Unit } from "../../game/index.ts";
 import { useCampaign } from "../../store/useCampaign.ts";
 import { FateHand } from "../FateHand.tsx";
@@ -58,6 +58,10 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
   const stage = toughStageActive(state, player);
   const stageOver = stage ? roster.filter((u) => overStageCap(u.t)).length : 0;
   const hasEx = roster.some((u) => u.ex);
+  // Rolls still owed after a tracked battle (XP, battles and kills are already on the units).
+  const owedUnits = owedRolls(state, pid)?.units ?? [];
+  // Applied with nothing left (a fielded unit removed since): the helper has nothing to ask and must not add XP again.
+  const helperDone = !!state.lastTally?.[pid]?.applied && owedUnits.length === 0;
   const say = (text: string) => setToast({ pid, text });
   const closeDialog = () => setDialog(null);
   const done = (text: string) => {
@@ -69,7 +73,7 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
     say("Example units added, tagged Example.");
   };
 
-  if (helper) {
+  if (helper && !helperDone) {
     return (
       <section className="tab" id="roster">
         <PostBattleHelper
@@ -88,6 +92,16 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
   return (
     <section className="tab" id="roster">
       <h2>My Warband</h2>
+      {owedUnits.length > 0 && (
+        <div className="note">
+          Your last battle is recorded. {owedUnits.length} unit{owedUnits.length === 1 ? "" : "s"} still owe{owedUnits.length === 1 ? "s" : ""} rolls: {owedUnits.map((u) => u.name).join(", ")}.
+          <div className="row" style={{ marginTop: 8 }}>
+            <button type="button" className="btn primary" onClick={() => setHelper(true)}>
+              Make post-battle rolls
+            </button>
+          </div>
+        </div>
+      )}
       <p className="dim">Your hub: your Fate Cards, your RP and your units with their XP, honours and scars. Nothing can be added that would take your roster over supply or past a full slot. Battle Honours from a battle always apply.</p>
       <div className="seg hallseg" role="group" aria-label="Roster view">
         <button type="button" className="chip" aria-pressed={view === "roster"} onClick={() => setView("roster")}>
@@ -185,7 +199,7 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
               <button className="btn primary" onClick={() => setDialog({ kind: "add" })}>
                 Add unit
               </button>
-              <button className="btn" disabled={roster.length === 0} onClick={() => setHelper(true)}>
+              <button className="btn" disabled={roster.length === 0 || helperDone} onClick={() => setHelper(true)}>
                 Post-battle helper
               </button>
               {hasEx ? (

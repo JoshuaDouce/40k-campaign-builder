@@ -31,6 +31,7 @@ export function BattleTally({ state, dispatch, can, attackerId, side, battle }: 
         {name} · {role}
       </div>
       {editable && <YellowscribeButton candidates={units} />}
+      <p className="hint">When the result is recorded, battles, kills and XP go onto your units automatically. You'll only roll honours and the fallen.</p>
       <div className="field">
         <label htmlFor={selId}>Marked for Glory (name it before the game)</label>
         <select id={selId} value={glory ?? ""} disabled={!editable} onChange={(e) => dispatch(setGlory(e.target.value || null))}>

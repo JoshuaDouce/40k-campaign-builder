@@ -2,7 +2,7 @@
 import { drawCard, HAND_LIMIT, poolFor } from "./cards.ts";
 import { FACTIONS } from "./data.ts";
 import { beginRound, fresh, lateArrivalBonus, regen, START_RP } from "./engine.ts";
-import { markGlory, rememberArmies, setArmyList, setBattleStarted, tallyUnit } from "./army.ts";
+import { autoApplyBattle, forgetLastBattle, markGlory, rememberArmies, setArmyList, setBattleStarted, tallyUnit } from "./army.ts";
 import { addedSince, B, log } from "./log.ts";
 import { addWorld } from "./map.ts";
 import type { Rng } from "./rng.ts";
@@ -11,6 +11,7 @@ import {
   addRelicTo,
   deleteFallenEntry,
   addUnitTo,
+  applyPostBattleRollsTo,
   applyPostBattleTo,
   clearExamplesFrom,
   fieldSurgeonOn,
@@ -59,6 +60,7 @@ const ROSTER_ONLY: ReadonlySet<ActionType> = new Set<ActionType>([
   "removeRelic",
   "deleteFallen",
   "applyPostBattle",
+  "applyPostBattleRolls",
   "addExamples",
   "clearExamples",
   "setToggle",
@@ -119,8 +121,11 @@ function run(s: CampaignState, a: Action, rng: Rng): boolean {
       if (a.decisive !== undefined && typeof a.decisive !== "boolean") return false;
       const before = takeSnapshot(s);
       const b = s.picks[a.playerId]?.battle;
+      const zone = s.picks[a.playerId]?.zone; // read now: the round may end and clear the picks
       if (!b || !resolvePick(s, a.playerId, a.result, rng, a.decisive)) return false;
       rememberArmies(s, a.playerId, b);
+      const rosters = autoApplyBattle(s, a.playerId, b, zone);
+      if (rosters) before.rosters = rosters;
       s.undo = { before, attacker: a.playerId, defender: b.def, reportFiled: false, later: [] };
       return true;
     }
@@ -202,10 +207,14 @@ function run(s: CampaignState, a: Action, rng: Rng): boolean {
     case "deleteFallen":
       return deleteFallenEntry(s, a.id);
     case "applyPostBattle":
-      if (!applyPostBattleTo(s, a.playerId, a.results)) return false;
-      if (s.lastArmy) delete s.lastArmy[a.playerId];
-      if (s.lastTally) delete s.lastTally[a.playerId];
+    case "applyPostBattleRolls": {
+      // A tracked battle's XP, battles and kills are already on the units: only its rolls may be filed.
+      if (a.type === "applyPostBattle" && s.lastTally?.[a.playerId]?.applied) return false;
+      const file = a.type === "applyPostBattle" ? applyPostBattleTo : applyPostBattleRollsTo;
+      if (!file(s, a.playerId, a.results)) return false;
+      forgetLastBattle(s, a.playerId);
       return true;
+    }
     case "addExamples":
       return addExamplesTo(s, a.playerId, rng);
     case "clearExamples":
@@ -273,8 +282,7 @@ function run(s: CampaignState, a: Action, rng: Rng): boolean {
       delete s.cap[a.playerId];
       removePlayerRoster(s, a.playerId);
       if (s.ready) delete s.ready[a.playerId];
-      if (s.lastArmy) delete s.lastArmy[a.playerId];
-      if (s.lastTally) delete s.lastTally[a.playerId];
+      forgetLastBattle(s, a.playerId);
       if (s.won === a.playerId) s.won = null;
       dropPlayerPicks(s, a.playerId, gone.name);
       return true;
@@ -340,7 +348,7 @@ export function apply(state: CampaignState, action: Action, ctx: ApplyContext): 
     else {
       // Keep the window open; remember any log lines the roster action added so Undo can keep them.
       if (added > 0) s.undo.later = [...s.log.slice(0, added), ...s.undo.later];
-      if (action.type === "applyPostBattle") s.undo.reportFiled = true;
+      if (action.type === "applyPostBattle" || action.type === "applyPostBattleRolls") s.undo.reportFiled = true;
     }
   }
   if (hollOpen(s)) s.hollOpened = true;
