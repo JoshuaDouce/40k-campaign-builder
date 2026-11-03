@@ -260,31 +260,6 @@ export interface Unit {
   legendLogged?: boolean;
 }
 
-/** One unit's line in a post-battle report. The UI resolves every die and passes the finished result. */
-export interface PostBattleResult {
-  unitId: string;
-  fought: boolean;
-  /** Only valid if `fought`. */
-  destroyed: boolean;
-  kills: number;
-  /** True for the one unit Marked for Glory (+1 XP, on top of the round cap). At most one per report. */
-  glory: boolean;
-  /** Replaces the computed XP gain when set. */
-  xpOverride?: number;
-  /** New honours chosen/rolled (names, none already held). Count must not exceed `honoursOwed`. */
-  honours?: string[];
-  /** The D6 for the fallen. Required if `destroyed`, except for the Warlord (which never rolls; ignored). */
-  fallenRoll?: number;
-  /**
-   * Scar name. Characters: from `CHAR_SCARS` (or legacy `SCARS`); others: `SCARS`. Required when the fallen roll
-   * leaves the unit scarred, and ALWAYS required when a destroyed unit is the Warlord (no fallenRoll needed).
-   * Ignored otherwise.
-   */
-  scar?: string;
-  /** Weapon for a Worn Gear scar. */
-  scarWeapon?: string;
-}
-
 /** A Character remembered in the Hall of Heroes. A snapshot: it does not change after it is stored. */
 export interface FallenCharacter {
   id: string;
@@ -333,17 +308,23 @@ export interface LiveBattle {
   tally?: Record<string, BattleTally>;
 }
 
-/** One side's in-game tally: the campaign numbers only, handed to the post-battle helper. */
+/** One side's in-game tally: the campaign numbers only, applied to the fielded units when the result is recorded. */
 export interface BattleTally {
   units: Record<string, UnitTally>;
   /** The unit Marked for Glory, named before the game. */
   glory?: string;
-  /** Set once the result was recorded and each fielded unit's dice-free progress applied; the helper then asks only for dice. */
-  applied?: true;
 }
 export interface UnitTally {
   destroyed?: true;
   kills?: number;
+  /** The D6 for the fallen. Only on a destroyed unit; never on the Warlord (it takes a scar without rolling). */
+  fallen?: number;
+  /** The D3 for the Battle Scar (Character table for Characters). Only when the unit is scarred. */
+  scarRoll?: number;
+  /** A scar picked by name instead of rolled (one of `allowedScars`); wins over `scarRoll`. */
+  scarPick?: string;
+  /** The weapon for a Worn Gear scar. */
+  weapon?: string;
 }
 
 /** One side's army for a battle: the roster units it fields, in roster order. */
@@ -407,11 +388,21 @@ export interface BattleRecord {
 /** The parts of the campaign a battle result can change. Restored by Undo. */
 export type UndoSnapshot = Pick<
   CampaignState,
-  "round" | "phase" | "order" | "picks" | "log" | "won" | "fort" | "terr" | "players" | "hollOpened" | "lastArmy" | "lastTally"
+  "round" | "phase" | "order" | "picks" | "log" | "won" | "fort" | "terr" | "players" | "hollOpened"
 > & {
-  /** The fielded units of a tracked battle as they were before its progress was applied, by player id. */
+  /** The fielded units as they were before the result was applied, by player id. */
   rosters?: Record<string, Unit[]>;
+  /** The units a third scar removed, by player id (each also in `rosters`), put back in place by Undo. */
+  removed?: Record<string, RemovedUnit[]>;
 };
+
+/** A unit a battle result removed with a third scar: its id, its place in the roster, and its Hall of Heroes entry. */
+export interface RemovedUnit {
+  id: string;
+  index: number;
+  /** The Hall of Heroes entry it was given (Characters only). */
+  fallenId?: string;
+}
 
 /** The open Undo window for the latest battle result. Present only while Undo is still possible. */
 export interface UndoInfo {
@@ -420,8 +411,6 @@ export interface UndoInfo {
   attacker: string;
   /** The defender, or the garrison player. */
   defender?: string;
-  /** True once a post-battle report has been filed since the result: Undo is then blocked. */
-  reportFiled: boolean;
   /** Log lines added by roster actions after the result (newest first), kept when the result is undone. */
   later: LogEntry[];
 }
@@ -448,10 +437,6 @@ export interface CampaignState {
   hollOpened: boolean;
   /** Unit rosters keyed by player id. Missing on old saves = every roster empty. */
   rosters?: Record<string, Unit[]>;
-  /** Unit ids each player fielded in their latest recorded battle, to preselect the post-battle helper. */
-  lastArmy?: Record<string, string[]>;
-  /** Each player's tally from their latest battle, if it was started, for the post-battle helper. */
-  lastTally?: Record<string, BattleTally>;
   /** Hall of Heroes memorial, oldest first (show newest first). Missing on old saves = none. */
   fallen?: FallenCharacter[];
   /** Round-0 setup: players who ticked Ready. Missing = nobody ready. */
@@ -499,6 +484,11 @@ export type Action =
   /** `playerId` is the attacker. `on: false` goes back to army lists and keeps the tally. */
   | { type: "setBattleStarted"; playerId: string; on: boolean }
   | { type: "tallyUnit"; playerId: string; side: string; unitId: string; destroyed: boolean; kills: number }
+  /**
+   * `playerId` is the attacker, `side` the player. Absolute values for a destroyed unit's fallen rolls; null clears that field.
+   * `scarPick` must be one of the unit's `allowedScars`.
+   */
+  | { type: "tallyFallen"; playerId: string; side: string; unitId: string; fallen?: number | null; scarRoll?: number | null; scarPick?: string | null; weapon?: string | null }
   | { type: "markGlory"; playerId: string; side: string; unitId: string | null }
   | { type: "resolvePick"; playerId: string; result: "a" | "d" | "x"; decisive?: boolean }
   /** For Recuperate, `scars` are the (up to two) Battle Scars the player picked to remove. */
@@ -524,8 +514,8 @@ export type Action =
   | { type: "addRelic"; playerId: string; unitId: string; relic: string; source: "shrine" | "fate" }
   | { type: "removeRelic"; playerId: string; unitId: string; relic: string }
   | { type: "deleteFallen"; id: string }
-  | { type: "applyPostBattle"; playerId: string; results: PostBattleResult[] }
-  | { type: "applyPostBattleRolls"; playerId: string; results: PostBattleResult[] }
+  /** Take one earned Battle Honour (rolled or picked by the player; the game checks it is owed, allowed and not held). */
+  | { type: "takeHonour"; playerId: string; unitId: string; honour: string }
   | { type: "addExamples"; playerId: string }
   | { type: "clearExamples"; playerId: string }
   | { type: "setReady"; playerId: string; ready: boolean }

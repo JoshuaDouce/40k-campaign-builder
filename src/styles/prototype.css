@@ -247,7 +247,7 @@ select,textarea,input[type=text],input[type=number]{font:inherit;background:var(
 .bar.close i{background:var(--verd)}
 .unit .enh{border-left:3px solid var(--brass);padding:2px 10px;font-size:14.5px}
 .unit .enh span{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);display:block}
-.unit .warnline{font-family:var(--f-mono);font-size:12px;color:var(--blood)}
+.unit .warnline,.sheet .warnline{font-family:var(--f-mono);font-size:12px;color:var(--blood)}
 .unit .acts{display:flex;gap:6px;margin-top:4px;justify-content:flex-end}
 .empty{text-align:center;border:1px dashed var(--line);border-radius:3px;padding:28px 16px;margin:14px 0;background:var(--panel)}
 .empty b{font-family:var(--f-display);font-size:26px;font-weight:500;display:block}
@@ -269,11 +269,10 @@ select,textarea,input[type=text],input[type=number]{font:inherit;background:var(
 .pbunit .nm{font-family:var(--f-display);font-size:20px;line-height:1.1}
 .stepper{display:inline-flex;align-items:center;gap:6px}
 .stepper output{font-family:var(--f-display);font-size:24px;min-width:1.4em;text-align:center}
-.xpprev{font-family:var(--f-mono);font-size:12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}
-.xpprev .gain{color:var(--verd);font-size:14px}
-.xpprev input{width:64px}
 .res{border-top:1px solid var(--line);padding:12px 0}
+.pbunit .res{border-top:0;padding:8px 0 0}
 .res .rt,.warlord-row .rt{font-family:var(--f-display);font-size:21px;line-height:1.1}
+.sheet .warnline{margin-top:6px}
 .out{font-family:var(--f-mono);font-size:12.5px;padding:6px 10px;margin-top:8px;border-left:3px solid var(--verd);background:var(--bg)}
 .out.bad{border-color:var(--blood);color:var(--blood)}
 .out.gone{border-color:var(--blood);background:var(--blood);color:var(--ink)}
@@ -304,7 +303,7 @@ select,textarea,input[type=text],input[type=number]{font:inherit;background:var(
 .overlay .sheet:focus{outline:none}
 .overlay .sheet.wide{max-width:760px}
 .rhead .chip,.opt,.diebtn .btn.sm,.stepper .btn.sm{min-height:44px}
-.diebtn select,.xpprev input{min-height:44px}
+.diebtn select{min-height:44px}
 .seg .chip,.chips .chip{min-height:40px}
 textarea{width:100%;resize:vertical;min-height:96px}
 .badge.relic{border-color:var(--brass);color:var(--brass);border-style:dashed}

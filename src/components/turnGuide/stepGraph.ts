@@ -204,10 +204,10 @@ export function afterReminders(ctx: Ctx, sc: Scenario): string[] {
   }
   const l = [
     "1. XP: +1 to every unit that fought and was not destroyed and +1 per enemy unit it destroyed (at most 2 XP a War Round from these), and +1 to the unit you Marked for Glory.",
-    "2. Rank-up and honour: a unit that reaches a new rank rolls a D6 (or picks) for 1 Battle Honour per rank gained. No duplicates: re-roll or pick another.",
+    "2. Rank-up and honour: a unit that reaches a new rank earns 1 Battle Honour per rank gained. Roll a D6 (or pick) from its card on My Warband. No duplicates: re-roll or pick another.",
     "3. Roll for the fallen: each destroyed unit rolls a D6 (Hard to Kill adds 1). On a 1 it gains a Battle Scar; Characters on a 1–2.",
     "4. Battle Scar: roll a D3 on the Battle Scars table and re-roll duplicates. Three scars and the unit is gone.",
-    "If you tracked this battle in the app, step 1 is done for you: XP, battles and kills go onto your units when the result is recorded, and My Warband asks only for the rolls in steps 2 to 4.",
+    "XP, battles and kills go onto your units when the result is recorded. Enter the fallen rolls (steps 3 and 4) on the battle tracker before then, or the app rolls them for you. Take honours on My Warband.",
     "5. RP and spoils: collect your Requisition and spoils as listed above.",
   ];
   if (ctx.prov === "shrine") l.push("Shrine: both players' Marked for Glory units also get +1 XP.");

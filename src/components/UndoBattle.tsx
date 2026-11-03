@@ -14,11 +14,7 @@ export function UndoBattle({ state, dispatch, viewer }: { state: CampaignState; 
   const u = state.undo;
   if (!u) return null;
   const undo: Action = { type: "undoBattle", attacker: u.attacker };
-  // Who may see it does not depend on whether a report has been filed.
-  if (!canPerform({ ...state, undo: { ...u, reportFiled: false } }, undo, viewer)) return null;
-  if (u.reportFiled) {
-    return <div className="note">This result can&apos;t be undone because a post-battle report has been filed since it was recorded.</div>;
-  }
+  if (!canPerform(state, undo, viewer)) return null;
   if (!confirming) {
     return (
       <div className="bh-undo">

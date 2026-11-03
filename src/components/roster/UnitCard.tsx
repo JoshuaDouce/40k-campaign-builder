@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   honourEffect,
+  honoursOwed,
   effectivePoints,
   HONOUR_PTS,
   MAX_RELICS,
@@ -52,11 +53,13 @@ interface Props {
   /** The Relics rule is on: relics can be earned (held ones always show). */
   relicsOn: boolean;
   onRollRelic(): void;
+  /** Take a Battle Honour the unit is owed (opens the dialog). */
+  onTakeHonour(): void;
   /** Owner only: players can't take a relic off. */
   onRemoveRelic?(relic: string): void;
 }
 
-export function UnitCard({ unit, editable, memorial, overLimit, toughOver, toughNineExtra, epic, toughStage, warlordNotChar, removable, onEdit, onRemove, onOrganiserDelete, onRefundTraining, hiddenTraining, relicsOn, onRollRelic, onRemoveRelic }: Props) {
+export function UnitCard({ unit, editable, memorial, overLimit, toughOver, toughNineExtra, epic, toughStage, warlordNotChar, removable, onEdit, onRemove, onOrganiserDelete, onRefundTraining, hiddenTraining, relicsOn, onRollRelic, onTakeHonour, onRemoveRelic }: Props) {
   const [armed, setArmed] = useState(false);
   const [armedDelete, setArmedDelete] = useState(false);
   const [armedRefund, setArmedRefund] = useState<string | null>(null);
@@ -93,6 +96,7 @@ export function UnitCard({ unit, editable, memorial, overLimit, toughOver, tough
     relics.length > 0 && `+${RELIC_PTS * relics.length} relics`,
     training.length > 0 && `+${TRAINING_PTS * training.length} training`,
   ].filter(Boolean);
+  const owed = honoursOwed(unit, unit.xp);
   const battles = unit.battles ?? 0;
   const kills = unit.kills ?? 0;
   const hasDetails = !!((unit.isWarlord && unit.warlordTrait) || unit.enhancement || unit.backstory);
@@ -144,7 +148,16 @@ export function UnitCard({ unit, editable, memorial, overLimit, toughOver, tough
         {unit.ex && <span className="badge ex">Example</span>}
         {legend ? <span className="badge legend">Legend of the Reach</span> : <span className="badge">{rank.n}</span>}
         {unit.isWarlord && <span className="badge war">Warlord</span>}
+        {owed > 0 && <span className="badge warn">{owed === 1 ? "Honour owed" : `${owed} honours owed`}</span>}
       </div>
+      {editable && owed > 0 && (
+        <div className="relicbar">
+          <button type="button" className="btn sm primary" onClick={onTakeHonour}>
+            Take honour
+          </button>
+          <span className="mono">{owed === 1 ? `RANK-UP EARNED: ROLL OR PICK 1 BATTLE HONOUR (+${HONOUR_PTS} PTS)` : `${owed} OWED: TAKE THEM ONE AT A TIME`}</span>
+        </div>
+      )}
       {unit.isCharacter ? (
         <div className="career">
           <span>

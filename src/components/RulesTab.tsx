@@ -255,7 +255,7 @@ export function RulesTab({ onNavigate }: { onNavigate: (tab: TabId) => void }) {
 
       <h3>After each battle</h3>
       <ol className="steps">
-        <li><div><b>Award XP</b>+1 to every unit that fought and survived. +1 per enemy unit it destroyed. A unit earns at most 2 XP a War Round from these. +1 to one unit you <i>Marked for Glory</i> before the game, on top of the cap.</div></li>
+        <li><div><b>Award XP</b>+1 to every unit that fought and survived. +1 per enemy unit it destroyed. A unit earns at most 2 XP a War Round from these. +1 to one unit you <i>Marked for Glory</i> before the game, on top of the cap. XP, battles and kills are added to your units when the result is recorded.</div></li>
         <li><div><b>Roll for the fallen</b>Each destroyed unit rolls a D6 (Hard to Kill adds 1). On a 1 it gains a Battle Scar, Characters on a 1–2. The Warlord never rolls.</div></li>
         <li><div><b>Requisition</b>+1 RP to the winner. Nothing for a loss or a draw. Bank up to {rpCap(ver)}.</div></li>
         <li><div><b>Spoils</b>The winner draws 1 Fate Card. A Conquer winner takes the province. A Raid winner steals 1 RP and a random Fate Card.</div></li>
@@ -269,7 +269,7 @@ export function RulesTab({ onNavigate }: { onNavigate: (tab: TabId) => void }) {
       <h3>Ranks</h3>
       <ul className="rl">
         <li>Green 0 XP, Blooded 3, Veteran 8, Elite 15, Legend of the Reach 25 (the unit gets a name in the campaign log).</li>
-        <li>Each rank gained: roll or pick 1 Battle Honour, straight after the battle.</li>
+        <li>Each rank gained earns 1 Battle Honour. Take it from the unit's card on My Warband: roll or pick.</li>
         <li>No duplicate honours: re-roll or pick another.</li>
         <li>Each Battle Honour adds {HONOUR_PTS} pts to the unit.</li>
       </ul>
@@ -281,7 +281,7 @@ export function RulesTab({ onNavigate }: { onNavigate: (tab: TabId) => void }) {
         <li>Scars never change a unit's points.</li>
         <li>Third scar: the unit is removed from your roster. Characters too, except the Warlord.</li>
       </ul>
-      <p className="dim">My Warband tracks XP, ranks, honours, scars{toggled("relics") ? " and relics" : ""}, with a post-battle helper for the rolls.</p>
+      <p className="dim">My Warband tracks XP, ranks, honours, scars{toggled("relics") ? " and relics" : ""}. Fallen rolls are made on the battle tracker; honours are taken from the unit card.</p>
 
       <h3>Character Battle Honours (roll D6 or pick)</h3>
       <ul className="rl">

@@ -153,9 +153,13 @@ entries without refreshing.
   battle's own size, before Garrison or Underdog bonuses. Shown on the battle card, the Rules tab and the turn guide.
 - **Live battle tally (2026-10-29):** "Battle started" on a rolled battle locks its army lists, twists and garrison
   handicap, and opens a per-side tally (Destroyed, kills, Marked for Glory: campaign numbers only, no VP or CP). It is
-  shared campaign state. "Back to army lists" unlocks and keeps the tally. Recording the result copies it to
-  `lastTally`. Recording the result of a tracked battle also applies battles, kills, XP, healing and Legend checks to the
-  fielded units automatically; the post-battle helper then asks only for honour and fallen rolls (Undo restores the units).
+  shared campaign state. "Back to army lists" unlocks and keeps the tally. Recording a result (always behind a confirm
+  sheet) applies progress to every army-list unit on both sides: battles, kills, XP, healing, Legend checks and fallen
+  scars. Fallen rolls (fallen D6, scar D3, Worn Gear weapon) are entered on the tracker for each Destroyed unit and saved
+  live; anything missing is rolled by the game when the result is recorded. A third scar removes a unit (Characters to the
+  Hall of Heroes). Battle Honours are no longer rolled after a battle: a unit owed one shows "Honour owed" on My Warband
+  and its player or the owner takes it from the unit card (roll or pick). There is no post-battle helper. Undo restores
+  everything, including a unit removed by a third scar.
 - **Flat buff points (2026-10-30):** every Battle Honour, relic and Battle Training adds a flat 10 pts (honours were
   10% of base points rounded to 5). The army list and My Warband show the base points and the buff points separately,
   for checking against an outside list builder.

@@ -2,7 +2,6 @@
 // Functions that take `s: CampaignState` and change it MUTATE it: they are building blocks that `apply()`
 // runs on a structuredClone. The read-only selectors (`pickStatus`, `clashOf`, ...) never mutate.
 import { drawFor, HAND_LIMIT } from "./cards.ts";
-import { isTracked } from "./army.ts";
 import { recuperateScars } from "./roster.ts";
 import { ACTIONS, PTYPES, TWISTS } from "./data.ts";
 import { targets } from "./engine.ts";
@@ -508,10 +507,8 @@ export function resolvePick(s: CampaignState, playerId: string, res: "a" | "d" |
   if (pl) rec.world = pl.name;
   if (pk.act === "conquer" && win === a) rec.took = true;
   s.history = [...(s.history ?? []), rec];
-  // A tracked battle's XP, battles and kills go on automatically (autoApplyBattle): only the dice are left.
-  const todo = pk.battle && isTracked(pk.battle) ? "XP, battles and kills are recorded; make any honour and fallen rolls on My Warband." : "record XP and roll for the fallen.";
-  if (info.garrison) log(s, B(a.name), `: ${todo} `, B(d.name), " fielded the garrison and gains nothing.");
-  else log(s, `Both players: ${todo}`);
+  // XP, battles, kills and the fallen go onto the fielded units next (applyBattleResult, from the action).
+  if (info.garrison) log(s, B(d.name), " fielded the garrison and gains nothing.");
   pk.done = true;
   checkRoundEnd(s);
   return true;
@@ -530,19 +527,17 @@ export function takeSnapshot(s: CampaignState): UndoSnapshot {
     terr: s.terr,
     players: s.players,
     hollOpened: s.hollOpened,
-    lastArmy: s.lastArmy,
-    lastTally: s.lastTally,
   });
 }
 
 /**
  * Take back the latest battle result (mutates s). That pick goes back to In battle with the same twists.
- * Returns false if there is nothing to undo or a post-battle report has been filed since.
+ * Returns false if there is nothing to undo.
  */
 export function undoBattle(s: CampaignState, attacker: string): boolean {
   const u = s.undo;
   // The action names whose result it undoes, so a retry after someone else's result landed is a no-op.
-  if (!u || u.reportFiled || u.attacker !== attacker) return false;
+  if (!u || u.attacker !== attacker) return false;
   const b = structuredClone(u.before);
   s.round = b.round;
   s.phase = b.phase;
@@ -554,18 +549,23 @@ export function undoBattle(s: CampaignState, attacker: string): boolean {
   s.terr = b.terr;
   s.players = b.players;
   s.hollOpened = b.hollOpened;
-  // Take back the progress a tracked battle gave its fielded units, keeping any roster edits made since.
+  // Take back the progress the result gave its fielded units, keeping any roster edits made since. A unit lost to a
+  // third scar goes back where it stood, and its Hall of Heroes entry goes. A unit removed some other way stays gone.
+  const fallenIds = new Set<string>();
   for (const [pid, units] of Object.entries(b.rosters ?? {})) {
+    const roster = ((s.rosters ??= {})[pid] ??= []);
     for (const was of units) {
-      const u = s.rosters?.[pid]?.find((x) => x.id === was.id);
+      const u = roster.find((x) => x.id === was.id);
       if (u) Object.assign(u, { xp: was.xp, xpRound: was.xpRound, battles: was.battles, kills: was.kills, scars: was.scars, legendLogged: was.legendLogged });
     }
+    for (const r of [...(b.removed?.[pid] ?? [])].sort((x, y) => x.index - y.index)) {
+      const was = units.find((x) => x.id === r.id);
+      if (was && !roster.some((x) => x.id === r.id)) roster.splice(r.index, 0, was);
+      if (r.fallenId) fallenIds.add(r.fallenId);
+    }
   }
+  if (fallenIds.size && s.fallen) s.fallen = s.fallen.filter((f) => !fallenIds.has(f.id));
   s.history = (s.history ?? []).slice(0, -1);
-  if (b.lastArmy) s.lastArmy = b.lastArmy;
-  else delete s.lastArmy;
-  if (b.lastTally) s.lastTally = b.lastTally;
-  else delete s.lastTally;
   delete s.undo;
   return true;
 }

@@ -1,5 +1,6 @@
-import { armyOf, getPlayer, rosterOf } from "../../game/index.ts";
+import { fieldedUnits, getPlayer } from "../../game/index.ts";
 import type { Action, CampaignState, LiveBattle } from "../../game/index.ts";
+import { FallenRoll } from "./FallenRoll.tsx";
 import { YellowscribeButton } from "./YellowscribeButton.tsx";
 
 interface Props {
@@ -13,10 +14,9 @@ interface Props {
   battle: Pick<LiveBattle, "lists" | "tally">;
 }
 
-/** One side's tally while the battle is played: losses, kills and Marked for Glory, for the post-battle helper. */
+/** One side's tally while the battle is played: losses, kills, Marked for Glory and the fallen rolls. All of it is applied when the result is recorded. */
 export function BattleTally({ state, dispatch, can, attackerId, side, battle }: Props) {
-  const fielded = new Set(armyOf(state, battle, side).units);
-  const units = rosterOf(state, side).filter((u) => fielded.has(u.id));
+  const units = fieldedUnits(state, battle, side);
   const t = battle.tally?.[side];
   const glory = t?.glory ?? null;
   const setGlory = (unitId: string | null): Action => ({ type: "markGlory", playerId: attackerId, side, unitId });
@@ -31,7 +31,7 @@ export function BattleTally({ state, dispatch, can, attackerId, side, battle }: 
         {name} · {role}
       </div>
       {editable && <YellowscribeButton candidates={units} />}
-      <p className="hint">When the result is recorded, battles, kills and XP go onto your units automatically. You'll only roll honours and the fallen.</p>
+      <p className="hint">When the result is recorded, battles, kills and XP go onto your units automatically. Enter fallen rolls for destroyed units here, or leave them and the app rolls them. Honours are taken from the unit on My Warband.</p>
       <div className="field">
         <label htmlFor={selId}>Marked for Glory (name it before the game)</label>
         <select id={selId} value={glory ?? ""} disabled={!editable} onChange={(e) => dispatch(setGlory(e.target.value || null))}>
@@ -49,7 +49,8 @@ export function BattleTally({ state, dispatch, can, attackerId, side, battle }: 
         const kills = r?.kills ?? 0;
         const set = (d: boolean, k: number): Action => ({ type: "tallyUnit", playerId: attackerId, side, unitId: u.id, destroyed: d, kills: k });
         return (
-          <div key={u.id} className={`pbunit${destroyed ? " off" : ""}`}>
+          // Not dimmed when destroyed: the fallen rolls inside must not look disabled.
+          <div key={u.id} className="pbunit">
             <div className="nm">
               {u.name}
               {glory === u.id && <span className="badge war">Glory</span>}
@@ -69,6 +70,15 @@ export function BattleTally({ state, dispatch, can, attackerId, side, battle }: 
                 </button>
               </span>
             </div>
+            {destroyed && (
+              <FallenRoll
+                unit={u}
+                entry={r}
+                editable={editable}
+                uid={`${attackerId}-${side}-${u.id}`}
+                save={(v) => dispatch({ type: "tallyFallen", playerId: attackerId, side, unitId: u.id, ...v })}
+              />
+            )}
           </div>
         );
       })}

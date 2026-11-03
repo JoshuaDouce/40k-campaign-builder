@@ -3,6 +3,7 @@ import { armySides, autoTwists, battleInfo, toggleOn, battleSizeOf, LIGHT_FORCES
 import type { Action, CampaignState, GarrisonEdge } from "../../game/index.ts";
 import { ArmyList } from "./ArmyList.tsx";
 import { BattleTally } from "./BattleTally.tsx";
+import { ConfirmRecord } from "./ConfirmRecord.tsx";
 
 interface Props {
   state: CampaignState;
@@ -12,14 +13,21 @@ interface Props {
   playerId: string;
 }
 
+interface ResultRow {
+  result: "a" | "d" | "x";
+  label: string;
+  primary: boolean;
+}
+
 /** One rolled battle: its twists, fixed figures, and the buttons to record the result or re-roll. */
 export function BattleCard({ state, dispatch, can, playerId }: Props) {
   const B = battleInfo(state, playerId);
   const [decisive, setDecisive] = useState(false);
+  const [confirm, setConfirm] = useState<ResultRow | null>(null);
   if (!B) return null;
   const planet = planetOf(state, B.v);
   const selId = `decisiveSel-${playerId}`;
-  const results: Array<{ result: "a" | "d" | "x"; label: string; primary: boolean }> = [
+  const results: ResultRow[] = [
     { result: "a", label: `${B.a.name} won`, primary: true },
     { result: "d", label: `${B.d.name} won${B.garrison ? " (garrison)" : ""}`, primary: true },
     { result: "x", label: "Draw", primary: false },
@@ -123,7 +131,7 @@ export function BattleCard({ state, dispatch, can, playerId }: Props) {
               Battle started
             </button>
           </div>
-          <p className="hint">Locks the army lists{twistsOn ? " and twists" : ""}. Track losses, kills and Marked for Glory as you play; the post-battle helper starts from them.</p>
+          <p className="hint">Locks the army lists{twistsOn ? " and twists" : ""}. Track losses, kills, Marked for Glory and the fallen as you play; they are applied when you record the result.</p>
         </>
       )}
       <p className="mono" style={{ fontSize: 12, color: "var(--brass)", marginTop: 12 }}>
@@ -147,7 +155,7 @@ export function BattleCard({ state, dispatch, can, playerId }: Props) {
         {results.map((r) => {
           const a: Action = { type: "resolvePick", playerId, result: r.result, decisive };
           return (
-            <button key={r.result} type="button" className={r.primary ? "btn primary" : "btn"} disabled={!can(a)} onClick={() => dispatch(a)}>
+            <button key={r.result} type="button" className={r.primary ? "btn primary" : "btn"} disabled={!can(a)} onClick={() => setConfirm(r)}>
               {r.label}
             </button>
           );
@@ -156,6 +164,19 @@ export function BattleCard({ state, dispatch, can, playerId }: Props) {
           {rerollLabel}
         </button>
       </div>
+      {confirm && (
+        <ConfirmRecord
+          state={state}
+          battle={B}
+          sides={sides}
+          label={confirm.result === "x" ? null : confirm.label}
+          onGo={() => {
+            dispatch({ type: "resolvePick", playerId, result: confirm.result, decisive });
+            setConfirm(null);
+          }}
+          onClose={() => setConfirm(null)}
+        />
+      )}
     </div>
   );
 }

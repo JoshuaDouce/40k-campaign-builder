@@ -1,4 +1,4 @@
-import { canActFor, canPerform, getPlayer, owedRolls, stageText, provsOf } from "../game/index.ts";
+import { canActFor, canPerform, getPlayer, stageText, provsOf } from "../game/index.ts";
 import type { Action } from "../game/index.ts";
 import { useCampaign } from "../store/useCampaign.ts";
 import { PlanPanel } from "./war/PlanPanel.tsx";
@@ -63,16 +63,6 @@ interface BodyProps extends WarCtx {
 function WarBody({ onNavigate, ...ctx }: BodyProps) {
   const { state, dispatch, can } = ctx;
   const winner = getPlayer(state, state.won);
-  // A tracked battle waiting for its post-battle report: point the viewer at the pre-filled helper.
-  const own = state.players.find((p) => p.userId !== undefined && p.userId === ctx.viewer.userId);
-  const tally = own ? state.lastTally?.[own.id] : undefined;
-  const owed = !!own && !!owedRolls(state, own.id);
-  // A tally already applied with nothing left to roll needs no note (the game normally clears it at once).
-  const note = owed
-    ? "Your battle is recorded. XP, battles and kills are already on your units. Open My Warband to make your honour and fallen rolls."
-    : tally && !tally.applied
-      ? "Your battle is recorded. The post-battle helper on My Warband is filled in from your tally."
-      : null;
   return (
     <>
       <div className="row mono" style={{ fontSize: 13, color: "var(--brass)" }}>
@@ -112,16 +102,6 @@ function WarBody({ onNavigate, ...ctx }: BodyProps) {
         <ResolutionPanel {...ctx} />
       )}
       <UndoBattle key={state.undo ? `${state.round}-${state.history?.length ?? 0}` : "none"} state={state} dispatch={dispatch} viewer={ctx.viewer} />
-      {note && (
-        <div className="note">
-          {note}
-          <div className="row" style={{ marginTop: 8 }}>
-            <button type="button" className="btn sm" onClick={() => onNavigate("roster")}>
-              Go to My Warband
-            </button>
-          </div>
-        </div>
-      )}
     </>
   );
 }
