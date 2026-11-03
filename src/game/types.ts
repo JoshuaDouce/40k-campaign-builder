@@ -338,6 +338,8 @@ export interface BattleTally {
   units: Record<string, UnitTally>;
   /** The unit Marked for Glory, named before the game. */
   glory?: string;
+  /** Set once the result was recorded and each fielded unit's dice-free progress applied; the helper then asks only for dice. */
+  applied?: true;
 }
 export interface UnitTally {
   destroyed?: true;
@@ -406,7 +408,10 @@ export interface BattleRecord {
 export type UndoSnapshot = Pick<
   CampaignState,
   "round" | "phase" | "order" | "picks" | "log" | "won" | "fort" | "terr" | "players" | "hollOpened" | "lastArmy" | "lastTally"
->;
+> & {
+  /** The fielded units of a tracked battle as they were before its progress was applied, by player id. */
+  rosters?: Record<string, Unit[]>;
+};
 
 /** The open Undo window for the latest battle result. Present only while Undo is still possible. */
 export interface UndoInfo {
@@ -520,6 +525,7 @@ export type Action =
   | { type: "removeRelic"; playerId: string; unitId: string; relic: string }
   | { type: "deleteFallen"; id: string }
   | { type: "applyPostBattle"; playerId: string; results: PostBattleResult[] }
+  | { type: "applyPostBattleRolls"; playerId: string; results: PostBattleResult[] }
   | { type: "addExamples"; playerId: string }
   | { type: "clearExamples"; playerId: string }
   | { type: "setReady"; playerId: string; ready: boolean }

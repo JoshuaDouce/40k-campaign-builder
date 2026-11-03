@@ -7,7 +7,7 @@ import { rollInt } from "./rng.ts";
 import type { Rng } from "./rng.ts";
 import { getPlayer, supplyOf } from "./selectors.ts";
 import { datasheetLimit, datasheetLimitBlock, foldDatasheet, isKnightsExempt, toggleOn, toughStageBlock } from "./toggles.ts";
-import type { CampaignState, EffectRow, FallenCharacter, PostBattleResult, Unit } from "./types.ts";
+import type { BattleTally, CampaignState, EffectRow, FallenCharacter, Player, PostBattleResult, Unit } from "./types.ts";
 
 /** XP at which a unit becomes a Legend of the Reach. */
 export const LEGEND_XP = 25;
@@ -651,6 +651,96 @@ export function removePlayerRoster(s: CampaignState, playerId: string): void {
   if (s.rosters) delete s.rosters[playerId];
 }
 
+/** A unit's XP for one report line: what it gains and how much of that counts toward the round cap. */
+function xpPlan(s: CampaignState, u: Unit, r: PostBattleResult): XpPlan {
+  const already = xpThisRound(u, s.round);
+  const calc = computeXpGain(r.fought, r.destroyed, r.kills, r.glory, already);
+  const gain = r.xpOverride ?? calc.total;
+  // An override is awarded as typed, and counts toward the round cap up to what is left of it.
+  const counted = r.xpOverride === undefined ? calc.counted : Math.min(r.xpOverride, Math.max(0, XP_ROUND_CAP - already));
+  return { already, counted, newXp: u.xp + gain };
+}
+interface XpPlan {
+  already: number;
+  counted: number;
+  newXp: number;
+}
+
+/** The checks on a report line that don't depend on the unit's honours or scars. */
+function validLine(r: PostBattleResult): boolean {
+  if (r.destroyed && !r.fought) return false;
+  if (!Number.isInteger(r.kills) || r.kills < 0) return false;
+  return r.xpOverride === undefined || (Number.isInteger(r.xpOverride) && r.xpOverride >= 0);
+}
+
+/** What the dice decide for a unit: the honours it takes and the scar it gains. */
+interface RollPlan {
+  honours: string[];
+  scar: string | null;
+}
+
+/** Checks a line's honours and fallen roll against the unit as it will stand (`xp` after any progress). Null if invalid. */
+function planRolls(u: Unit, r: PostBattleResult, xp: number): RollPlan | null {
+  const honours = r.honours ?? [];
+  const honOk = allowedHonours(u);
+  if (!honours.every((h) => honOk.some((x) => x.n === h)) || !unique(honours) || honours.some((h) => u.honours.includes(h))) return null;
+  if (honours.length > honoursOwed(u, xp)) return null;
+
+  // Fallen (the Warlord never rolls: it always takes a scar)
+  let scar: string | null = null;
+  if (r.destroyed) {
+    if (!u.isWarlord && (!Number.isInteger(r.fallenRoll) || (r.fallenRoll ?? 0) < 1 || (r.fallenRoll ?? 0) > 6)) return null;
+    if (u.isWarlord || isScarred(u, r.fallenRoll as number)) {
+      if (r.scar === undefined || !allowedScars(u).some((x) => x.n === r.scar)) return null;
+      if (scarOutcome(u).kept.some((x) => scarName(x) === r.scar)) return null; // a Grievous Wound healing now may be taken again
+      if (r.scar === WORN_GEAR && !r.scarWeapon?.trim()) return null;
+      scar = makeScar(r.scar, r.scarWeapon);
+    }
+  }
+  return { honours, scar };
+}
+
+/**
+ * The dice-free part of a report line: XP, battle, kills and healing a Grievous Wound (mutates `u`).
+ * Returns the rank the unit reached, if it ranked up; the caller logs that.
+ */
+function progressUnit(s: CampaignState, p: Player, u: Unit, r: PostBattleResult, plan: XpPlan): string | null {
+  const heals = r.fought && healsGrievous(u);
+  const oldRank = rankIndex(u.xp);
+  u.xp = plan.newXp;
+  if (plan.counted > 0) u.xpRound = { round: s.round, xp: plan.already + plan.counted };
+  if (r.fought) u.battles = (u.battles ?? 0) + 1;
+  u.kills = (u.kills ?? 0) + (r.fought || r.glory ? r.kills : 0);
+  if (heals) {
+    u.scars = scarsAfterHeal(u);
+    log(s, B(u.name), " of ", B(p.name), " recovers from a Grievous Wound.");
+  }
+  return rankIndex(plan.newXp) > oldRank ? rankOf(plan.newXp) : null;
+}
+
+/** The dice part of a report line: honours and the fallen's scar, with their log lines (mutates `u`; adds to `removed` if lost). */
+function rollUnit(s: CampaignState, p: Player, playerId: string, u: Unit, roll: RollPlan, reached: string | null, removed: Set<string>): void {
+  const say = (msg: string): void => log(s, B(u.name), " of ", B(p.name), msg);
+  const outcome = scarOutcome(u);
+  u.honours.push(...roll.honours);
+  if (reached) say(` reaches ${reached}` + (roll.honours.length ? ` and gains ${roll.honours.join(", ")}.` : "."));
+  else if (roll.honours.length) say(` gains ${roll.honours.join(", ")}.`);
+  const scar = roll.scar;
+  if (scar) {
+    u.scars = [...outcome.kept.filter((x) => x !== outcome.replaces), scar];
+    if (u.isWarlord) {
+      say(` is destroyed and takes ${scar}${outcome.replaces ? `, replacing ${outcome.replaces}` : ""}. The Warlord lives on.`);
+    } else if (outcome.gone) {
+      removed.add(u.id);
+      if (u.isCharacter) remember(s, p.name, playerId, u, THIRD_SCAR_CAUSE);
+      say(` takes a third Battle Scar (${scar}) and is lost.${u.isCharacter ? " It is remembered in the Hall of Heroes." : ""}`);
+    } else {
+      say(` is scarred: ${scar}.`);
+    }
+  }
+  if (!removed.has(u.id)) checkLegend(s, p.name, u);
+}
+
 export function applyPostBattleTo(s: CampaignState, playerId: string, results: PostBattleResult[]): boolean {
   const p = getPlayer(s, playerId);
   if (!p || !Array.isArray(results)) return false;
@@ -663,72 +753,91 @@ export function applyPostBattleTo(s: CampaignState, playerId: string, results: P
     const u = roster.find((x) => x.id === r.unitId);
     if (!u || seen.has(r.unitId)) return false;
     seen.add(r.unitId);
-    if (r.destroyed && !r.fought) return false;
-    if (!Number.isInteger(r.kills) || r.kills < 0) return false;
-    if (r.xpOverride !== undefined && (!Number.isInteger(r.xpOverride) || r.xpOverride < 0)) return false;
+    if (!validLine(r)) return false;
     if (r.glory && ++glories > 1) return false;
     if (!r.fought && !r.glory) continue; // nothing happened to this unit
 
-    const before = { honours: [...u.honours], isCharacter: u.isCharacter };
-    const heals = r.fought && healsGrievous(u);
-    const already = xpThisRound(u, s.round);
-    const calc = computeXpGain(r.fought, r.destroyed, r.kills, r.glory, already);
-    const gain = r.xpOverride ?? calc.total;
-    // An override is awarded as typed, and counts toward the round cap up to what is left of it.
-    const counted = r.xpOverride === undefined ? calc.counted : Math.min(r.xpOverride, Math.max(0, XP_ROUND_CAP - already));
-    const newXp = u.xp + gain;
-
-    // Honours
-    const newHon = r.honours ?? [];
-    const honOk = allowedHonours(u);
-    if (!newHon.every((h) => honOk.some((x) => x.n === h)) || !unique(newHon) || newHon.some((h) => u.honours.includes(h))) return false;
-    if (newHon.length > honoursOwed(u, newXp)) return false;
-
-    // Fallen (the Warlord never rolls: it always takes a scar)
-    let scar: string | null = null;
-    const outcome = scarOutcome(u);
-    if (r.destroyed) {
-      if (!u.isWarlord && (!Number.isInteger(r.fallenRoll) || (r.fallenRoll ?? 0) < 1 || (r.fallenRoll ?? 0) > 6)) return false;
-      if (u.isWarlord || isScarred(before, r.fallenRoll as number)) {
-        if (r.scar === undefined || !allowedScars(u).some((x) => x.n === r.scar)) return false;
-        if (outcome.kept.some((x) => scarName(x) === r.scar)) return false; // a Grievous Wound healing now may be taken again
-        if (r.scar === WORN_GEAR && !r.scarWeapon?.trim()) return false;
-        scar = makeScar(r.scar, r.scarWeapon);
-      }
-    }
-    const say = (msg: string): void => log(s, B(u.name), " of ", B(p.name), msg);
-
-    // Apply
-    const oldRank = rankIndex(u.xp);
-    u.xp = newXp;
-    if (counted > 0) u.xpRound = { round: s.round, xp: already + counted };
-    u.honours.push(...newHon);
-    if (r.fought) u.battles = (u.battles ?? 0) + 1;
-    u.kills = (u.kills ?? 0) + (r.fought || r.glory ? r.kills : 0);
-    if (heals) {
-      u.scars = scarsAfterHeal(u);
-      say(" recovers from a Grievous Wound.");
-    }
-    if (rankIndex(newXp) > oldRank) {
-      say(` reaches ${rankOf(newXp)}` + (newHon.length ? ` and gains ${newHon.join(", ")}.` : "."));
-    } else if (newHon.length) {
-      say(` gains ${newHon.join(", ")}.`);
-    }
-    if (scar) {
-      u.scars = [...outcome.kept.filter((x) => x !== outcome.replaces), scar];
-      if (u.isWarlord) {
-        say(` is destroyed and takes ${scar}${outcome.replaces ? `, replacing ${outcome.replaces}` : ""}. The Warlord lives on.`);
-      } else if (outcome.gone) {
-        removed.add(u.id);
-        if (u.isCharacter) remember(s, p.name, playerId, u, THIRD_SCAR_CAUSE);
-        say(` takes a third Battle Scar (${scar}) and is lost.${u.isCharacter ? " It is remembered in the Hall of Heroes." : ""}`);
-      } else {
-        say(` is scarred: ${scar}.`);
-      }
-    }
-    if (!removed.has(u.id)) checkLegend(s, p.name, u);
+    const plan = xpPlan(s, u, r);
+    const roll = planRolls(u, r, plan.newXp);
+    if (!roll) return false;
+    const reached = progressUnit(s, p, u, r, plan);
+    rollUnit(s, p, playerId, u, roll, reached, removed);
   }
 
+  if (removed.size) s.rosters![playerId] = roster.filter((x) => !removed.has(x.id));
+  return true;
+}
+
+/**
+ * A battle result recorded with the live tally gives every fielded unit its dice-free progress at once (mutates `s`):
+ * XP, battle, kills, healing a Grievous Wound and rank-ups. Units no longer on the roster are skipped.
+ * Honours and the fallen's scars wait for the dice (`applyPostBattleRollsTo`). `shrine`: the Marked for Glory unit
+ * gets the Shrine's extra +1 XP.
+ */
+export function applyBattleProgress(s: CampaignState, playerId: string, unitIds: readonly string[], tally: BattleTally, shrine = false): void {
+  const p = getPlayer(s, playerId);
+  if (!p) return;
+  const roster = rosterFor(s, playerId);
+  for (const id of unitIds) {
+    const u = roster.find((x) => x.id === id);
+    if (!u) continue;
+    const t = tally.units[id];
+    const r: PostBattleResult = { unitId: id, fought: true, destroyed: !!t?.destroyed, kills: t?.kills ?? 0, glory: tally.glory === id };
+    const plan = xpPlan(s, u, r);
+    if (shrine && r.glory) plan.newXp += GLORY_XP;
+    const reached = progressUnit(s, p, u, r, plan);
+    if (reached) log(s, B(u.name), " of ", B(p.name), ` reaches ${reached}.`);
+    // A destroyed unit may yet be lost to a third scar: its Legend check waits for the fallen roll.
+    if (!r.destroyed) checkLegend(s, p.name, u);
+  }
+}
+
+/** The fielded units of a tracked battle that still need dice, once progress is applied. */
+export interface OwedRolls {
+  honours: Unit[];
+  fallen: Unit[];
+  /** Every unit owing either, once each. */
+  units: Unit[];
+}
+
+/** What a player still has to roll after a tracked battle. Null until progress is applied, or when nothing is owed. */
+export function owedRolls(s: CampaignState, playerId: string): OwedRolls | null {
+  const t = s.lastTally?.[playerId];
+  const ids = s.lastArmy?.[playerId];
+  if (!t?.applied || !ids) return null;
+  const fielded = rosterFor(s, playerId).filter((u) => ids.includes(u.id));
+  const honours = fielded.filter((u) => honoursOwed(u, u.xp) > 0);
+  const fallen = fielded.filter((u) => t.units[u.id]?.destroyed);
+  const units = fielded.filter((u) => honours.includes(u) || fallen.includes(u));
+  return units.length ? { honours, fallen, units } : null;
+}
+
+/**
+ * The dice still owed after `applyBattleProgress`: honours and the fallen's scars (mutates `s`). Adds no XP, battle or
+ * kills. `results` may only name units the player fielded, and a unit is destroyed exactly when the tally says so.
+ */
+export function applyPostBattleRollsTo(s: CampaignState, playerId: string, results: PostBattleResult[]): boolean {
+  const p = getPlayer(s, playerId);
+  const owed = owedRolls(s, playerId);
+  if (!p || !owed || !Array.isArray(results)) return false;
+  const roster = rosterFor(s, playerId);
+  const tally = s.lastTally![playerId];
+  const seen = new Set<string>();
+  const removed = new Set<string>();
+  const plans: { u: Unit; roll: RollPlan }[] = [];
+
+  for (const r of results) {
+    const u = roster.find((x) => x.id === r.unitId);
+    if (!u || seen.has(r.unitId) || !s.lastArmy![playerId].includes(r.unitId)) return false;
+    seen.add(r.unitId);
+    if (!r.fought || r.destroyed !== !!tally.units[r.unitId]?.destroyed) return false;
+    const roll = planRolls(u, r, u.xp);
+    if (!roll) return false;
+    plans.push({ u, roll });
+  }
+  if (!owed.fallen.every((u) => seen.has(u.id))) return false;
+
+  for (const { u, roll } of plans) rollUnit(s, p, playerId, u, roll, null, removed);
   if (removed.size) s.rosters![playerId] = roster.filter((x) => !removed.has(x.id));
   return true;
 }

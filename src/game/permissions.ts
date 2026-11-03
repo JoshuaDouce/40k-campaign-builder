@@ -89,6 +89,7 @@ export function canPerform(state: CampaignState, action: Action, ctx: Permission
     case "removeUnit":
     case "addRelic":
     case "applyPostBattle":
+    case "applyPostBattleRolls":
     case "addExamples":
     case "clearExamples":
     case "fieldSurgeon":

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { rankOf, XP_ROUND_CAP, xpThisRound } from "../../game/index.ts";
+import { owedRolls, rankOf, XP_ROUND_CAP, xpThisRound } from "../../game/index.ts";
 import type { Unit } from "../../game/index.ts";
 import { useCampaign } from "../../store/useCampaign.ts";
 import { BLANK_ROW, evaluate, NO_ROLLS, xpGainFor } from "./pbLogic.ts";
@@ -28,16 +28,24 @@ export function PostBattleHelper({ playerId, roster, onClose }: Props) {
   const row = (id: string): Row => rows[id] ?? BLANK_ROW;
   const patch = (id: string, p: Partial<Row>) => setRows((r) => ({ ...r, [id]: { ...(r[id] ?? BLANK_ROW), ...p } }));
   const anyFought = roster.some((u) => row(u.id).fought);
-  const ev = evaluate(roster, rows, glory, rolls, state.round);
+  // After a tracked battle the game has already saved XP, battles and kills: only the honour and fallen rolls remain.
+  const [owedIds] = useState(() => (tally?.applied ? new Set(owedRolls(state, playerId)?.units.map((u) => u.id)) : undefined));
+  const applied = !!owedIds;
+  const ev = evaluate(roster, rows, glory, rolls, state.round, owedIds);
 
   const confirm = () => {
     if (ev.blocked || !ev.results.length) return;
+    if (applied) {
+      dispatch({ type: "applyPostBattleRolls", playerId, results: ev.results });
+      onClose("Rolls saved: honours and scars recorded." + (ev.anyGone ? " A unit was lost to its third scar." : ""));
+      return;
+    }
     dispatch({ type: "applyPostBattle", playerId, results: ev.results });
     onClose("Battle recorded: XP, career, honours and scars saved." + (ev.anyGone ? " A unit was lost to its third scar." : ""));
   };
 
-  if (step === 2) {
-    return <PostBattleResults ev={ev} rolls={rolls} setRolls={setRolls} onBack={() => setStep(1)} onCancel={() => onClose()} onConfirm={confirm} />;
+  if (applied || step === 2) {
+    return <PostBattleResults ev={ev} rolls={rolls} setRolls={setRolls} applied={applied} onBack={() => setStep(1)} onCancel={() => onClose()} onConfirm={confirm} />;
   }
 
   return (

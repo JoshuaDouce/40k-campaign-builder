@@ -8,12 +8,14 @@ interface Props {
   ev: Evaluation;
   rolls: Rolls;
   setRolls: Dispatch<SetStateAction<Rolls>>;
+  /** Rolls-only after a tracked battle: XP, battles and kills are already saved, and there is no step 1 to go back to. */
+  applied?: boolean;
   onBack(): void;
   onCancel(): void;
   onConfirm(): void;
 }
 
-export function PostBattleResults({ ev, rolls, setRolls, onBack, onCancel, onConfirm }: Props) {
+export function PostBattleResults({ ev, rolls, setRolls, applied, onBack, onCancel, onConfirm }: Props) {
   const put = <K extends keyof Rolls>(kind: K, key: string, v: Rolls[K][string]) => setRolls((r) => ({ ...r, [kind]: { ...r[kind], [key]: v } }));
   const rankUps = ev.views.filter((v) => v.slots.length > 0);
   const fallen = ev.views.filter((v) => v.fallen);
@@ -21,8 +23,12 @@ export function PostBattleResults({ ev, rolls, setRolls, onBack, onCancel, onCon
 
   return (
     <>
-      <h2>Post-battle results</h2>
-      <p className="dim">Step 2 of 2. Roll the dice at the table and enter them, or let the app roll. Nothing is saved until you confirm.</p>
+      <h2>{applied ? "Post-battle rolls" : "Post-battle results"}</h2>
+      <p className="dim">
+        {applied
+          ? "Your XP, battles and kills are already saved. Roll the dice at the table and enter them, or let the app roll. Nothing more is saved until you confirm."
+          : "Step 2 of 2. Roll the dice at the table and enter them, or let the app roll. Nothing is saved until you confirm."}
+      </p>
       <div className="tbl">
         <table>
           <thead>
@@ -37,7 +43,7 @@ export function PostBattleResults({ ev, rolls, setRolls, onBack, onCancel, onCon
             {ev.views.map((v) => (
               <tr key={v.unit.id}>
                 <td>{v.unit.name}</td>
-                <td className="n">+{v.gain} XP</td>
+                <td className="n">{applied ? `${v.newXp} XP` : `+${v.gain} XP`}</td>
                 <td>{rankOf(v.newXp)}</td>
                 <td className="n">
                   {v.battles} · {v.kills}
@@ -49,7 +55,7 @@ export function PostBattleResults({ ev, rolls, setRolls, onBack, onCancel, onCon
       </div>
 
       <h3 style={{ marginTop: 6 }}>Rank-ups</h3>
-      {rankUps.length === 0 && <p className="dim">Nobody ranked up this time.</p>}
+      {rankUps.length === 0 && <p className="dim">{applied ? "No honours owed." : "Nobody ranked up this time."}</p>}
       {rankUps.map((v) => (
         <HonourSlots key={v.unit.id} v={v} rolls={rolls} put={put} />
       ))}
@@ -72,9 +78,11 @@ export function PostBattleResults({ ev, rolls, setRolls, onBack, onCancel, onCon
         <button type="button" className="btn primary" disabled={ev.blocked} onClick={onConfirm}>
           Confirm and save
         </button>
-        <button type="button" className="btn" onClick={onBack}>
-          Back
-        </button>
+        {!applied && (
+          <button type="button" className="btn" onClick={onBack}>
+            Back
+          </button>
+        )}
         <button type="button" className="btn" onClick={onCancel}>
           Cancel
         </button>

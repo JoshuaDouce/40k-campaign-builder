@@ -1,6 +1,7 @@
 // Battle army lists: which roster units each side fields in a rolled battle, and at what points.
 import { BATTLELINE_MIN, roleOf } from "./roles.ts";
-import { effectivePoints, rosterOf } from "./roster.ts";
+import { applyBattleProgress, effectivePoints, owedRolls, rosterOf } from "./roster.ts";
+import { getZone } from "./selectors.ts";
 import type { ArmyList, BattleTally, CampaignState, LiveBattle, Unit } from "./types.ts";
 
 /** Battleline units a list must field (fewer only when the roster has fewer). */
@@ -146,4 +147,39 @@ export function rememberArmies(s: CampaignState, attackerId: string, b: LiveBatt
       (s.lastTally ??= {})[side] = { units: kept, ...(t.glory && units.includes(t.glory) && { glory: t.glory }) };
     } else if (s.lastTally) delete s.lastTally[side];
   }
+}
+
+/**
+ * For a battle that used the live tally ("Battle started" or any tally), give each side's fielded units their dice-free
+ * progress straight after `rememberArmies` and mark the side's tally `applied` (mutates `s`). A side that then owes no
+ * dice has its remembered army and tally cleared. Returns the fielded units as they were before, for Undo, or null if
+ * the battle was not tracked. A battle at a Shrine (`zone`) gives each Marked for Glory unit its +1 XP too.
+ */
+export function autoApplyBattle(s: CampaignState, attackerId: string, b: LiveBattle, zone?: string): Record<string, Unit[]> | null {
+  if (!isTracked(b)) return null;
+  const shrine = !!zone && getZone(s, zone)?.type === "shrine";
+  const before: Record<string, Unit[]> = {};
+  for (const side of armySides(b, attackerId)) {
+    const ids = s.lastArmy?.[side];
+    // The stored units, not rosterOf's view, which hides switched-off training and relics.
+    const roster = s.rosters?.[side];
+    if (!ids || !roster?.length) continue;
+    before[side] = structuredClone(roster.filter((u) => ids.includes(u.id)));
+    const tally = ((s.lastTally ??= {})[side] ??= { units: {} });
+    applyBattleProgress(s, side, ids, tally, shrine);
+    tally.applied = true;
+    if (!owedRolls(s, side)) forgetLastBattle(s, side);
+  }
+  return before;
+}
+
+/** A battle counts as tracked once it was started or anything was tallied (going back to army lists keeps the tally). */
+export function isTracked(b: Pick<LiveBattle, "started" | "tally">): boolean {
+  return !!(b.started || b.tally);
+}
+
+/** Drop a player's remembered army and tally once their post-battle report is done (mutates `s`). */
+export function forgetLastBattle(s: CampaignState, playerId: string): void {
+  if (s.lastArmy) delete s.lastArmy[playerId];
+  if (s.lastTally) delete s.lastTally[playerId];
 }
