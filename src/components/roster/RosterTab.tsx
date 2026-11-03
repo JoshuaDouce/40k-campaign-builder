@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { canPerform, count, DATASHEET_COST, HAND_LIMIT, ROLE_NAMES, roleOf, countsAsSetupNine, datasheetLimit, distinctDatasheets, owedRolls, overStageCap, PROMOTION_COST, RECRUITS_COST, reinforceCost, REINFORCE_SUPPLY, roleRules, rosterOf, setupToughnessBlock, SURGEON_COST, supplyOf, toggleOn, totalBuffs, totalEffective, toughStageActive, unitLocked, warlordNotCharacter } from "../../game/index.ts";
+import { canPerform, count, DATASHEET_COST, HAND_LIMIT, ROLE_NAMES, roleOf, countsAsSetupNine, datasheetLimit, distinctDatasheets, overStageCap, PROMOTION_COST, RECRUITS_COST, reinforceCost, REINFORCE_SUPPLY, roleRules, rosterOf, setupToughnessBlock, SURGEON_COST, supplyOf, toggleOn, totalBuffs, totalEffective, toughStageActive, unitLocked, warlordNotCharacter } from "../../game/index.ts";
 import type { Unit } from "../../game/index.ts";
 import { useCampaign } from "../../store/useCampaign.ts";
 import { FateHand } from "../FateHand.tsx";
 import { HallOfHeroes } from "./HallOfHeroes.tsx";
-import { PostBattleHelper } from "./PostBattleHelper.tsx";
+import { HonourDialog } from "./HonourDialog.tsx";
 import { ConfirmSpendDialog, FieldSurgeonDialog, PromotionDialog, SeasonedRecruitsDialog } from "./RpDialogs.tsx";
 import type { QuickSpend } from "./RpDialogs.tsx";
 import { RelicDialog } from "./RelicDialog.tsx";
@@ -13,13 +13,12 @@ import { UnitCard } from "./UnitCard.tsx";
 import { UnitFormSheet } from "./UnitFormSheet.tsx";
 import { YS_BUTTON_LABEL, YellowscribeExport } from "./YellowscribeExport.tsx";
 
-type Dialog = { kind: "add" } | { kind: "edit"; unit: Unit } | { kind: "relic"; unit: Unit } | { kind: "surgeon" | "promo" | "recruits" } | { kind: "spend"; spend: QuickSpend } | null;
+type Dialog = { kind: "add" } | { kind: "edit"; unit: Unit } | { kind: "relic"; unit: Unit } | { kind: "honour"; unitId: string } | { kind: "surgeon" | "promo" | "recruits" } | { kind: "spend"; spend: QuickSpend } | null;
 
 export function RosterTab({ colors }: { colors: Record<string, string> }) {
   const { state, dispatch, viewer } = useCampaign();
   const [picked, setPicked] = useState<string | null>(null);
   const [dialog, setDialog] = useState<Dialog>(null);
-  const [helper, setHelper] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [view, setView] = useState<"roster" | "hall">("roster");
   const [toast, setToast] = useState<{ pid: string; text: string } | null>(null);
@@ -58,10 +57,6 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
   const stage = toughStageActive(state, player);
   const stageOver = stage ? roster.filter((u) => overStageCap(u.t)).length : 0;
   const hasEx = roster.some((u) => u.ex);
-  // Rolls still owed after a tracked battle (XP, battles and kills are already on the units).
-  const owedUnits = owedRolls(state, pid)?.units ?? [];
-  // Applied with nothing left (a fielded unit removed since): the helper has nothing to ask and must not add XP again.
-  const helperDone = !!state.lastTally?.[pid]?.applied && owedUnits.length === 0;
   const say = (text: string) => setToast({ pid, text });
   const closeDialog = () => setDialog(null);
   const done = (text: string) => {
@@ -72,37 +67,12 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
     dispatch({ type: "addExamples", playerId: pid });
     say("Example units added, tagged Example.");
   };
-
-  if (helper && !helperDone) {
-    return (
-      <section className="tab" id="roster">
-        <PostBattleHelper
-          playerId={pid}
-          roster={roster}
-          onClose={(text) => {
-            setHelper(false);
-            if (text) say(text);
-            window.scrollTo(0, 0);
-          }}
-        />
-      </section>
-    );
-  }
+  const honourUnit = dialog?.kind === "honour" ? roster.find((u) => u.id === dialog.unitId) : undefined;
 
   return (
     <section className="tab" id="roster">
       <h2>My Warband</h2>
-      {owedUnits.length > 0 && (
-        <div className="note">
-          Your last battle is recorded. {owedUnits.length} unit{owedUnits.length === 1 ? "" : "s"} still owe{owedUnits.length === 1 ? "s" : ""} rolls: {owedUnits.map((u) => u.name).join(", ")}.
-          <div className="row" style={{ marginTop: 8 }}>
-            <button type="button" className="btn primary" onClick={() => setHelper(true)}>
-              Make post-battle rolls
-            </button>
-          </div>
-        </div>
-      )}
-      <p className="dim">Your hub: your Fate Cards, your RP and your units with their XP, honours and scars. Nothing can be added that would take your roster over supply or past a full slot. Battle Honours from a battle always apply.</p>
+      <p className="dim">Your hub: your Fate Cards, your RP and your units with their XP, honours and scars. Nothing can be added that would take your roster over supply or past a full slot. Battle Honours always apply.</p>
       <div className="seg hallseg" role="group" aria-label="Roster view">
         <button type="button" className="chip" aria-pressed={view === "roster"} onClick={() => setView("roster")}>
           Roster
@@ -198,9 +168,6 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
             <div className="row">
               <button className="btn primary" onClick={() => setDialog({ kind: "add" })}>
                 Add unit
-              </button>
-              <button className="btn" disabled={roster.length === 0 || helperDone} onClick={() => setHelper(true)}>
-                Post-battle helper
               </button>
               {hasEx ? (
                 <button
@@ -313,6 +280,7 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
                     removable={!unitLocked(state, u)}
                     onEdit={() => setDialog({ kind: "edit", unit: u })}
                     onRollRelic={() => setDialog({ kind: "relic", unit: u })}
+                    onTakeHonour={() => setDialog({ kind: "honour", unitId: u.id })}
                     onRemoveRelic={
                       viewer.isOwner
                         ? (relic) => {
@@ -381,6 +349,7 @@ export function RosterTab({ colors }: { colors: Record<string, string> }) {
         />
       )}
       {editable && dialog?.kind === "relic" && <RelicDialog playerId={pid} unit={dialog.unit} onDone={done} onClose={closeDialog} />}
+      {editable && honourUnit && <HonourDialog playerId={pid} unit={honourUnit} onDone={done} onClose={closeDialog} />}
       {editable && dialog?.kind === "add" && (
         <UnitFormSheet
           mode="add"

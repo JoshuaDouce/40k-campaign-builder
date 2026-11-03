@@ -13,15 +13,15 @@ interface Props {
   children: ReactNode;
 }
 
-/** The sheet's action row: one confirm button and Cancel. */
-export function SheetFooter({ label, disabled, danger, onGo, onClose }: { label: ReactNode; disabled?: boolean; danger?: boolean; onGo(): void; onClose(): void }) {
+/** The sheet's action row: one confirm button and Cancel (or `closeLabel`). */
+export function SheetFooter({ label, closeLabel = "Cancel", disabled, danger, onGo, onClose }: { label: ReactNode; closeLabel?: string; disabled?: boolean; danger?: boolean; onGo(): void; onClose(): void }) {
   return (
     <div className="row sub">
       <button type="button" className={danger ? "btn danger" : "btn primary"} disabled={disabled} onClick={onGo}>
         {label}
       </button>
       <button type="button" className="btn" onClick={onClose}>
-        Cancel
+        {closeLabel}
       </button>
     </div>
   );

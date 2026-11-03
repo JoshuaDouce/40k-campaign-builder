@@ -1,8 +1,9 @@
 // Battle army lists: which roster units each side fields in a rolled battle, and at what points.
 import { BATTLELINE_MIN, roleOf } from "./roles.ts";
-import { applyBattleProgress, effectivePoints, owedRolls, rosterOf } from "./roster.ts";
+import type { Rng } from "./rng.ts";
+import { allowedScars, applyBattleProgress, applyFallen, effectivePoints, fallenPlan, inRange, rosterOf, scarTableFor, WEAPON_MAX, WORN_GEAR } from "./roster.ts";
 import { getZone } from "./selectors.ts";
-import type { ArmyList, BattleTally, CampaignState, LiveBattle, Unit } from "./types.ts";
+import type { ArmyList, BattleTally, CampaignState, LiveBattle, RemovedUnit, Unit, UndoSnapshot, UnitTally } from "./types.ts";
 
 /** Battleline units a list must field (fewer only when the roster has fewer). */
 export const ARMY_BATTLELINE_MIN = BATTLELINE_MIN;
@@ -50,6 +51,12 @@ export function fixArmy(list: ArmyList, roster: readonly Unit[]): ArmyList {
 /** A side's list for a rolled battle: what they saved, or the Warlord and 2 Battleline. Always legal. */
 export function armyOf(s: CampaignState, b: Pick<LiveBattle, "lists">, side: string): ArmyList {
   return fixArmy(b.lists?.[side] ?? { units: [] }, rosterOf(s, side));
+}
+
+/** The units a side fields in a rolled battle, in roster order (as `rosterOf` shows them). */
+export function fieldedUnits(s: CampaignState, b: Pick<LiveBattle, "lists">, side: string): readonly Unit[] {
+  const ids = new Set(armyOf(s, b, side).units);
+  return rosterOf(s, side).filter((u) => ids.has(u.id));
 }
 
 /** Points a unit takes the field at in this list (its full points unless fielded smaller). */
@@ -111,8 +118,60 @@ export function tallyUnit(s: CampaignState, attackerId: string, side: string, un
   if (typeof destroyed !== "boolean" || !Number.isInteger(kills) || kills < 0 || kills > 99) return false;
   const t = tallyFor(s, attackerId, side, unitId);
   if (!t) return false;
-  if (destroyed || kills > 0) t.units[unitId] = { ...(destroyed && { destroyed: true }), ...(kills > 0 && { kills }) };
+  const old = t.units[unitId];
+  // Unticking Destroyed clears the fallen rolls; ticking it again keeps whatever is there.
+  const entry: UnitTally = destroyed && old?.destroyed ? { ...old } : destroyed ? { destroyed: true } : {};
+  if (kills > 0) entry.kills = kills;
+  else delete entry.kills;
+  if (Object.keys(entry).length > 0) t.units[unitId] = entry;
   else delete t.units[unitId];
+  return true;
+}
+
+/** A field of `tallyFallen`: missing or null clears it. */
+type Roll = number | null | undefined;
+
+/**
+ * Set a destroyed unit's fallen rolls in a started battle (mutates `s`). Values are absolute (missing or null clears a
+ * field), so a retry is safe. Refused unless the unit is tallied Destroyed, for a fallen D6 on the Warlord, for a die
+ * out of range, a scar that is not one the unit may hold, or a weapon over 60 characters. A roll that leaves the unit
+ * unscarred clears the scar fields, and a scar other than Worn Gear clears the weapon.
+ */
+export function tallyFallen(
+  s: CampaignState,
+  attackerId: string,
+  side: string,
+  unitId: string,
+  fallen: Roll,
+  scarRoll: Roll,
+  scarPick: string | null | undefined,
+  weapon: string | null | undefined
+): boolean {
+  const t = tallyFor(s, attackerId, side, unitId);
+  const unit = rosterOf(s, side).find((u) => u.id === unitId);
+  const old = t?.units[unitId];
+  if (!t || !unit || !old?.destroyed) return false;
+  if ((fallen != null && !inRange(fallen, 6)) || (scarRoll != null && !inRange(scarRoll, scarTableFor(unit).length))) return false;
+  if (fallen != null && unit.isWarlord) return false;
+  if (scarPick != null && (typeof scarPick !== "string" || !allowedScars(unit).some((x) => x.n === scarPick))) return false;
+  const w = weapon ?? undefined;
+  if (w !== undefined && (typeof w !== "string" || w.trim().length > WEAPON_MAX)) return false;
+
+  const entry: UnitTally = {
+    destroyed: true,
+    ...(old.kills !== undefined && { kills: old.kills }),
+    ...(fallen != null && { fallen }),
+    ...(scarRoll != null && { scarRoll }),
+    ...(scarPick != null && { scarPick }),
+    ...(w !== undefined && w.trim() !== "" && { weapon: w.trim() }),
+  };
+  const plan = fallenPlan(unit, entry);
+  if (!plan.scarred) {
+    delete entry.scarRoll;
+    delete entry.scarPick;
+    delete entry.weapon;
+  } else if (plan.scar !== WORN_GEAR) delete entry.weapon;
+  t.units[unitId] = entry;
   return true;
 }
 
@@ -132,54 +191,33 @@ export function markGlory(s: CampaignState, attackerId: string, side: string, un
   return true;
 }
 
-/**
- * Remember each side's fielded units and any tally (even after going back to army lists) when a result is
- * recorded, for the post-battle helper (mutates `s`). Tallies keep only units still in the list.
- */
-export function rememberArmies(s: CampaignState, attackerId: string, b: LiveBattle): void {
-  const last = (s.lastArmy ??= {});
-  for (const side of armySides(b, attackerId)) {
-    const units = armyOf(s, b, side).units;
-    last[side] = units;
-    const t = b.tally?.[side];
-    if (t) {
-      const kept = Object.fromEntries(Object.entries(t.units).filter(([id]) => units.includes(id)));
-      (s.lastTally ??= {})[side] = { units: kept, ...(t.glory && units.includes(t.glory) && { glory: t.glory }) };
-    } else if (s.lastTally) delete s.lastTally[side];
-  }
-}
+/** What Undo needs to take back a recorded result: the fielded units as they were, and those a third scar removed. */
+export type BattleUndo = Required<Pick<UndoSnapshot, "rosters" | "removed">>;
 
 /**
- * For a battle that used the live tally ("Battle started" or any tally), give each side's fielded units their dice-free
- * progress straight after `rememberArmies` and mark the side's tally `applied` (mutates `s`). A side that then owes no
- * dice has its remembered army and tally cleared. Returns the fielded units as they were before, for Undo, or null if
- * the battle was not tracked. A battle at a Shrine (`zone`) gives each Marked for Glory unit its +1 XP too.
+ * Apply a recorded battle to both sides' fielded units, tracked or not (mutates `s`): +1 battle, kills, XP, Glory,
+ * Grievous Wound healing, rank-ups, then the fallen for every Destroyed unit (the rolls entered on the tally, the rest
+ * rolled with `rng`; see `applyFallen`). An untouched tally means no losses and no kills. A battle at a Shrine
+ * (`zone`) gives the Marked for Glory unit its +1 XP too. Returns what Undo needs.
  */
-export function autoApplyBattle(s: CampaignState, attackerId: string, b: LiveBattle, zone?: string): Record<string, Unit[]> | null {
-  if (!isTracked(b)) return null;
+export function applyBattleResult(s: CampaignState, attackerId: string, b: LiveBattle, rng: Rng, zone?: string): BattleUndo {
   const shrine = !!zone && getZone(s, zone)?.type === "shrine";
-  const before: Record<string, Unit[]> = {};
+  const rosters: Record<string, Unit[]> = {};
+  const removed: Record<string, RemovedUnit[]> = {};
   for (const side of armySides(b, attackerId)) {
-    const ids = s.lastArmy?.[side];
-    // The stored units, not rosterOf's view, which hides switched-off training and relics.
+    const ids = armyOf(s, b, side).units;
+    // The stored units, not rosterOf's view (or fieldedUnits), which hides switched-off training and relics.
     const roster = s.rosters?.[side];
-    if (!ids || !roster?.length) continue;
-    before[side] = structuredClone(roster.filter((u) => ids.includes(u.id)));
-    const tally = ((s.lastTally ??= {})[side] ??= { units: {} });
+    if (!roster?.length) continue;
+    rosters[side] = structuredClone(roster.filter((u) => ids.includes(u.id)));
+    const t = b.tally?.[side];
+    const tally: BattleTally = {
+      units: Object.fromEntries(Object.entries(t?.units ?? {}).filter(([id]) => ids.includes(id))),
+      ...(t?.glory && ids.includes(t.glory) && { glory: t.glory }),
+    };
     applyBattleProgress(s, side, ids, tally, shrine);
-    tally.applied = true;
-    if (!owedRolls(s, side)) forgetLastBattle(s, side);
+    const lost = applyFallen(s, side, ids, tally, rng);
+    if (lost.length) removed[side] = lost;
   }
-  return before;
-}
-
-/** A battle counts as tracked once it was started or anything was tallied (going back to army lists keeps the tally). */
-export function isTracked(b: Pick<LiveBattle, "started" | "tally">): boolean {
-  return !!(b.started || b.tally);
-}
-
-/** Drop a player's remembered army and tally once their post-battle report is done (mutates `s`). */
-export function forgetLastBattle(s: CampaignState, playerId: string): void {
-  if (s.lastArmy) delete s.lastArmy[playerId];
-  if (s.lastTally) delete s.lastTally[playerId];
+  return { rosters, removed };
 }

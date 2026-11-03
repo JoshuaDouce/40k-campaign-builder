@@ -58,6 +58,7 @@ export function canPerform(state: CampaignState, action: Action, ctx: Permission
 
     case "setArmyList":
     case "tallyUnit":
+    case "tallyFallen":
     case "markGlory":
       return controls(state, action.side, userId);
 
@@ -69,7 +70,7 @@ export function canPerform(state: CampaignState, action: Action, ctx: Permission
 
     case "undoBattle": {
       const u = state.undo;
-      return !!u && !u.reportFiled && u.attacker === action.attacker && (controls(state, u.attacker, userId) || (u.defender !== undefined && controls(state, u.defender, userId)));
+      return !!u && u.attacker === action.attacker && (controls(state, u.attacker, userId) || (u.defender !== undefined && controls(state, u.defender, userId)));
     }
 
     case "updateUnit": {
@@ -88,8 +89,7 @@ export function canPerform(state: CampaignState, action: Action, ctx: Permission
     case "addUnit":
     case "removeUnit":
     case "addRelic":
-    case "applyPostBattle":
-    case "applyPostBattleRolls":
+    case "takeHonour":
     case "addExamples":
     case "clearExamples":
     case "fieldSurgeon":
