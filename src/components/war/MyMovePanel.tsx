@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { ACTIONS, actionDesc, defenderOf, isV12, toggleOn, getPlayer, pickStatus, planetOf, zoneName } from "../../game/index.ts";
-import type { Action } from "../../game/index.ts";
+import type { Action, PickChoice } from "../../game/index.ts";
 import { BattleCard } from "./BattleCard.tsx";
 import { DefenderLines } from "./DefenderLines.tsx";
 import { GarrisonSelect } from "./GarrisonSelect.tsx";
 import { ClashTag, PickBadge } from "./PickBadge.tsx";
 import { PickPicker } from "./PickPicker.tsx";
+import { Overlay, SheetFooter } from "../roster/Overlay.tsx";
 import { PlayerLine } from "./PlayerLine.tsx";
 import { RecuperateDialog } from "./RecuperateDialog.tsx";
 import { garrisonFor, pickLineWithWorld } from "./pickText.ts";
@@ -26,6 +27,7 @@ export function MyMovePanel({ playerId, isMine, onBack, ...ctx }: Props) {
   const [switching, setSwitching] = useState(false);
   const [defSel, setDefSel] = useState<string | null>(null);
   const [recuperating, setRecuperating] = useState(false);
+  const [pending, setPending] = useState<PickChoice | null>(null);
   if (!player) return null;
   const pk = state.picks[playerId];
   const status = pickStatus(state, playerId);
@@ -38,26 +40,56 @@ export function MyMovePanel({ playerId, isMine, onBack, ...ctx }: Props) {
   const confirm: Action = { type: "confirmQuietPick", playerId };
   const switchOk = canActFor(playerId);
   const world = planetOf(state, pk?.zone)?.name;
-  const showSwitch = switching && status?.kind === "waiting";
+  const isOwner = ctx.viewer.isOwner;
+  const kind = status?.kind;
+  const fell = kind === "fell";
+  // The organiser changes any unfinished pick (logged). A fell pick of their own stays a silent switch, like a player's.
+  const ownerCanChange = isOwner && (kind === "waiting" || kind === "ready" || kind === "battle");
+  const organiser = isOwner && (!fell || !isMine);
+  const showSwitch = switching && (kind === "waiting" || ownerCanChange);
+  const startedBattle = pk?.battle?.started ? pk.battle : undefined;
+  // A garrison player has no pick tied to this battle, so only a real defender is "released".
+  const opponent = pending && startedBattle && !startedBattle.garrison ? getPlayer(state, defenderOf(state, playerId)) : undefined;
+  const tiedHint = "Free provinces and quiet actions are offered. Provinces tied up by another pick are greyed.";
 
-  const picker = (kind: "waiting" | "fell") => (
+  const applyChange = (c: PickChoice) => {
+    dispatch({ type: "organiserChangePick", playerId, ...c });
+    setPending(null);
+    setSwitching(false);
+  };
+
+  const picker = () => (
     <PickPicker
       state={state}
       player={player}
       greyTiedUp
-      submitLabel="Switch"
+      submitLabel={organiser ? "Change action" : "Switch"}
       allowed={switchOk}
-      hint={kind === "fell" ? "Free provinces and quiet actions are offered. Provinces tied up by another pick are greyed." : `${isV12(state) ? "Muster" : "Scout, Muster"} and Recuperate are always available and need no target.`}
+      hint={
+        fell
+          ? tiedHint
+          : organiser
+            ? `${tiedHint} The player's pick is then Ready to play.`
+            : `${isV12(state) ? "Muster" : "Scout, Muster"} and Recuperate are always available and need no target.`
+      }
       onSubmit={(c) => {
-        dispatch({ type: "switchPick", playerId, ...c });
-        setSwitching(false);
+        if (!organiser) {
+          dispatch({ type: "switchPick", playerId, ...c });
+          setSwitching(false);
+        } else if (c.act === pk?.act && (c.zone ?? "") === (pk?.zone ?? "")) {
+          setSwitching(false); // the same pick: nothing to change
+        } else if (startedBattle) setPending(c);
+        else applyChange(c);
       }}
       extra={
-        kind === "waiting" ? (
-          <button type="button" className="btn" onClick={() => setSwitching(false)}>
-            Keep my pick
+        fell ? null : (
+          <button type="button" className="btn" onClick={() => {
+            setPending(null);
+            setSwitching(false);
+          }}>
+            {organiser ? "Keep the current pick" : "Keep my pick"}
           </button>
-        ) : null
+        )
       }
     />
   );
@@ -109,21 +141,21 @@ export function MyMovePanel({ playerId, isMine, onBack, ...ctx }: Props) {
         </p>
       ) : status.kind === "done" ? (
         <p className="st-done">{isMine ? "Your move is done." : `${player.name}'s move is done.`}</p>
-      ) : status.kind === "fell" ? (
-        picker("fell")
-      ) : showSwitch ? (
-        picker("waiting")
+      ) : fell || showSwitch ? (
+        picker()
       ) : status.kind === "battle" ? (
         <BattleCard state={state} dispatch={dispatch} can={can} playerId={playerId} />
       ) : status.kind === "waiting" ? (
-        <>
-          <div className="row" style={{ marginTop: 12 }}>
-            <button type="button" className="btn" disabled={!switchOk} onClick={() => setSwitching(true)}>
-              Switch to something else
-            </button>
-          </div>
-          <p className="hint">You can switch at any time. No penalty, no cost.</p>
-        </>
+        isOwner ? null : (
+          <>
+            <div className="row" style={{ marginTop: 12 }}>
+              <button type="button" className="btn" disabled={!switchOk} onClick={() => setSwitching(true)}>
+                Switch to something else
+              </button>
+            </div>
+            <p className="hint">You can switch at any time. No penalty, no cost.</p>
+          </>
+        )
       ) : def?.battle ? (
         <div className="battle">
           <div className="eyebrow">
@@ -157,6 +189,23 @@ export function MyMovePanel({ playerId, isMine, onBack, ...ctx }: Props) {
             />
           )}
         </>
+      ) : null}
+
+      {ownerCanChange && !showSwitch ? (
+        <div className="row" style={{ marginTop: 12 }}>
+          <button type="button" className="btn" disabled={!switchOk} onClick={() => setSwitching(true)}>
+            {isMine ? "Change my action" : `Change ${player.name}'s action`}
+          </button>
+        </div>
+      ) : null}
+      {pending && startedBattle && showSwitch ? (
+        <Overlay title="Change this action?" onClose={() => setPending(null)}>
+          <p>
+            {player.name}&apos;s battle at {zoneName(state, pk?.zone, "the province")} has been started. Changing their action discards both army lists and the battle tally.
+          </p>
+          {opponent ? <p className="dim">{opponent.name} is released and can pick again.</p> : null}
+          <SheetFooter danger label="Change action" closeLabel="Cancel" onGo={() => applyChange(pending)} onClose={() => setPending(null)} />
+        </Overlay>
       ) : null}
 
       <DefenderLines {...ctx} playerId={playerId} isYou={isMine} name={player.name} />

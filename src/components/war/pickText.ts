@@ -1,9 +1,7 @@
-import { ACTIONS, defenderOf, getPlayer, isBattleAct, planetOf, zoneName } from "../../game/index.ts";
-import type { ActionId, CampaignState, RoundPick } from "../../game/index.ts";
+import { actionName, defenderOf, getPlayer, isBattleAct, planetOf, zoneName } from "../../game/index.ts";
+import type { CampaignState, RoundPick } from "../../game/index.ts";
 
-export function actionName(act: ActionId | null | undefined): string {
-  return ACTIONS.find((a) => a.id === act)?.n ?? "";
-}
+export { actionName };
 
 /** "Conquer Quarry Ridge" or "Scout". */
 export function pickLine(state: CampaignState, pk: RoundPick): string {

@@ -609,13 +609,44 @@ export function confirmQuietPick(s: CampaignState, playerId: string, rng: Rng, s
  * unfinished pick is on (quiet actions are always allowed). The new pick is Ready to play at once.
  */
 export function switchPick(s: CampaignState, playerId: string, c: PickChoice): boolean {
-  const p = getPlayer(s, playerId);
   const st = pickStatus(s, playerId);
-  if (s.phase !== "resolution" || !p || !st || (st.kind !== "waiting" && st.kind !== "fell")) return false;
-  const pk = buildPick(s, p, c);
-  if (!pk) return false;
-  if (pk.zone && tiedUp(s, pk.zone, playerId)) return false;
+  if (s.phase !== "resolution" || !st || (st.kind !== "waiting" && st.kind !== "fell")) return false;
+  return !!replacePick(s, playerId, c);
+}
+
+/** Builds a legal pick on a province no other unfinished pick is on and puts it in place. Null (no change) if it can't. */
+function replacePick(s: CampaignState, playerId: string, c: PickChoice): RoundPick | null {
+  const p = getPlayer(s, playerId);
+  const pk = p ? buildPick(s, p, c) : null;
+  if (!pk || (pk.zone && tiedUp(s, pk.zone, playerId))) return null;
   s.picks[playerId] = pk;
+  return pk;
+}
+
+/** The action's display name, e.g. "Conquer". */
+export function actionName(act: ActionId | null | undefined): string {
+  return ACTIONS.find((a) => a.id === act)?.n ?? "";
+}
+
+/** "Conquer (Quarry Ridge)" or "Muster": the action's name, with its province in brackets when it has one. */
+function actLabel(s: CampaignState, pk: RoundPick): string {
+  const z = zoneName(s, pk.zone, "");
+  return z ? `${actionName(pk.act)} (${z})` : actionName(pk.act);
+}
+
+/**
+ * Resolution, organiser only: replace any unfinished pick (Ready, Waiting, Choose again or In battle) with another legal
+ * one, Ready to play at once. A rolled battle on the old pick (twists, garrison, lists, tally) is discarded and its
+ * defender simply goes back to their normal status. Nothing was applied yet, so there is nothing to roll back.
+ */
+export function organiserChangePick(s: CampaignState, playerId: string, c: PickChoice): boolean {
+  const p = getPlayer(s, playerId);
+  const old = s.picks[playerId];
+  if (s.phase !== "resolution" || !p || !old || old.done) return false;
+  if (old.act === c.act && (old.zone ?? "") === (c.zone ?? "")) return false;
+  const pk = replacePick(s, playerId, c);
+  if (!pk) return false;
+  log(s, "The organiser changed ", B(p.name), `'s action from ${actLabel(s, old)} to ${actLabel(s, pk)}.`);
   return true;
 }
 

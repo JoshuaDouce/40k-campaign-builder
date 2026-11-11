@@ -169,7 +169,7 @@ entries without refreshing.
 - **Player name** defaults to the user's display name and stays editable (warband name).
 - **Permissions:** only the owner can begin War Round 1 (start the campaign); any member can begin later War Rounds. Turns, cards and RP: that player or
   the owner. Battle results: attacker, defender or owner. Map "Held by" override, stat
-  +/- buttons, adding or removing a player's Fate Cards, remove player, reset campaign, chart a new Reach: owner only.
+  +/- buttons, adding or removing a player's Fate Cards, changing a player's unfinished pick, remove player, reset campaign, chart a new Reach: owner only.
 - **Security is honour-system for MVP:** hidden hands and per-player permissions are
   enforced in the UI only. The log is stored as plain data, never HTML.
 - **No automated tests for now** (decided 2026-10-20). This is a throwaway app for a few
@@ -205,6 +205,10 @@ entries without refreshing.
   supply limit or Fate Card count changed (War Round, Player / Organiser / Game tag, the log line, before and after).
   Recorded in `apply()` into `state.plog` (latest 200 per player, fewer above 4 players: 800 in all, to stay well inside
   the 400 KB campaign item). Read-only; players never see it (UI-only, like hidden hands). See `docs/features/player-log.md`.
+- **Organiser changes a pick (2026-11-11):** in Resolution the owner can change any not-Done pick (Ready, Waiting, Choose again,
+  In battle, including a started battle) to any legal action or target, their own too (their own Choose again pick is the normal silent switch). The pick becomes Ready to play; a rolled battle
+  (twists, lists, tally) is discarded and its opponent is released silently. Logged as "The organiser changed X's action from A to B."
+  No refunds. Not in Planning, not on Done picks. A started battle asks to confirm first. Owner-only (`organiserChangePick`).
 - **`main` deploys straight to live** and committing to `main` is fine (friends-only app).
 
 ## Not in the MVP

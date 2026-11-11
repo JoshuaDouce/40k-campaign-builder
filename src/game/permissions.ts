@@ -25,6 +25,7 @@ export const OWNER_ONLY: ReadonlySet<ActionType> = new Set<ActionType>([
   "removeRelic",
   "organiserAddCard",
   "organiserRemoveCard",
+  "organiserChangePick",
   "deleteFallen",
   "setToggle",
   "upgradeRules",
