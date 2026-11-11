@@ -35,6 +35,7 @@ import {
   revealPicks,
   rollPick,
   switchPick,
+  organiserChangePick,
   takeSnapshot,
   undoBattle,
   unreadyPick,
@@ -136,6 +137,9 @@ function run(s: CampaignState, a: Action, rng: Rng): boolean {
 
     case "switchPick":
       return switchPick(s, a.playerId, { act: a.act, zone: a.zone });
+
+    case "organiserChangePick":
+      return organiserChangePick(s, a.playerId, { act: a.act, zone: a.zone });
 
     case "requisitionDeck": {
       const p = getPlayer(s, a.playerId);

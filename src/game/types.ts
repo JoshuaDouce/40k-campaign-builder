@@ -494,6 +494,8 @@ export type Action =
   /** For Recuperate, `scars` are the (up to two) Battle Scars the player picked to remove. */
   | { type: "confirmQuietPick"; playerId: string; scars?: { unitId: string; scar: string }[] }
   | { type: "switchPick"; playerId: string; act: ActionId; zone?: string }
+  /** Organiser only, Resolution: replace a player's unfinished pick. */
+  | { type: "organiserChangePick"; playerId: string; act: ActionId; zone?: string }
   | { type: "undoBattle"; attacker: string }
   | { type: "requisitionDeck"; playerId: string }
   | { type: "playCard"; playerId: string; index: number }
